@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\admin;
+use App\Models\questions;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,6 +29,7 @@ class Admincontroller extends Controller
         // } else {
         // }
     }
+
     public function indexLogin()
     {
         return view('loginTest');
@@ -37,53 +39,37 @@ class Admincontroller extends Controller
     {
         $result = [];
 
-        if ($request->has('username') && $request->has('password')) {
-            $username = $request->input('username');
-            $password = md5($request->input('password'));
+        if ($request->has('email') && $request->has('password')) {
+            $email = $request->input('email');
+            $password = $request->input('password');
 
-            $user = Admin::where('username', $username)
-                ->orWhere('email', $username)
-                ->first();
-
-            if (!empty($user)) {
-                // Kiểm tra mật khẩu
-                if ($password == $user->password) {
-                    // Đăng nhập thành công
-                    // Auth::guard('admins')->login($user);
-
-                    // Lưu thông tin vào session
-                    session()->put('login', true);
-                    session()->put('permission', 'admin');
-
-                    $result['status_value'] = "Đăng nhập thành công, chuẩn bị chuyển hướng...";
-                    $result['status'] = 1;
-                } else {
-                    $result['status_value'] = "Sai tài khoản hoặc mật khẩu!";
-                    $result['status'] = 0;
-                }
+            $check  = Auth::guard('admins')->attempt([
+                'email'    => $email,
+                'password'    => $password,
+            ]);
+            $token = session()->get('_token');
+            session()->put('permission', 'admin');
+            // dd($token);
+            if ($check) {
+                $result['status_value'] = 'Đăng nhập thành công đang chuyển hướng...';
             } else {
-                $result['status_value'] = "Sai tài khoản hoặc mật khẩu!";
-                $result['status'] = 0;
+                $result['status_value'] = 'Đăng nhập thất bại!';
             }
-        } else {
-            $result['status_value'] = "Nhập tài khoản và mật khẩu!";
-            $result['status'] = 0;
         }
-
         return response()->json([
             'result' => $result,
+            'token' => $token,
         ]);
     }
 
 
-
     public function logout(Request $request)
     {
-        session()->forget('login');
-        session()->forget('permission');
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
+        // session()->forget('login');
+        // session()->forget('permission');
+        // $request->session()->invalidate();
+        // $request->session()->regenerateToken();
+        Auth::guard('admins')->logout();
         return redirect('/admin/login');
     }
 
@@ -114,7 +100,7 @@ class Admincontroller extends Controller
                 $name = $row['B'];
                 $username = $row['C'];
                 $email = $row['D'];
-                $password = md5($row['E']);
+                $password = bcrypt($row['E']);
                 $birthday = $row['F'];
                 $gender = ($row['G'] == 'Nam') ? 2 : (($row['G'] == 'Nữ') ? 3 : 1);
                 $admin = new Admin([
@@ -164,7 +150,7 @@ class Admincontroller extends Controller
 
         $name = $request->input('name');
         $username = $request->input('username');
-        $password = md5($request->input('password'));
+        $password = bcrypt($request->input('password'));
         $email = $request->input('email');
         $birthday = $request->input('birthday');
         $gender = $request->input('gender');
@@ -214,7 +200,6 @@ class Admincontroller extends Controller
     }
 
 
-
     public function updateAdmin(Request $request)
     {
         $admin = Admin::where('id', $request->id)->first();
@@ -234,170 +219,103 @@ class Admincontroller extends Controller
         }
     }
 
-
-    // quản lý trưởng bộ môn
-    public function getTBM()
+    public function getQuestion()
     {
-        $tbm = new truongbomon();
-        $getAllTBM = $tbm->getTBM();
+        $admin = new questions();
+        $getQuestions = $admin->getQuestion();
 
         return response()->json([
-            'getAllTBM' => $getAllTBM,
+            'getQuestions' => $getQuestions,
         ]);
     }
 
-    public function indexTestFile()
-    {
-        return view('admin.testFile');
-    }
 
-    public function check_add_tbm_via_file(Request $request)
+    public function checkAddQuestionViaFile(Request $request)
     {
         $result = [];
+
+        $subjectId = 10;
+        $inputFileType = 'Xlsx';
+        $count = 0;
+        $errList = [];
 
         if ($request->hasFile('file')) {
             $filePath = $request->file('file')->path();
 
-            $reader = IOFactory::createReader('Xlsx');
+            $reader = IOFactory::createReader($inputFileType);
             $spreadsheet = $reader->load($filePath);
             $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
 
-            $count = 0;
-            $errList = [];
-
             foreach ($sheetData as $key => $row) {
-                if ($key < 4) {
+                if ($key < 4 || empty($row['A'])) {
                     continue;
                 }
 
-                if (empty($row['A'])) {
-                    continue;
+                $answers = [];
+                $stt = $row['A'];
+                $questionContent = $row['B'];
+                $levelId = $row['C'];
+                $answerA = $row['D'];
+                $answerB = $row['E'];
+                $answerC = $row['F'];
+                $answerD = $row['G'];
+                $correctAnswer = $row['H'];
+                $gradeId = $row['I'];
+                $unit = $row['J'];
+                $teacherId = null;
+
+                switch ($correctAnswer) {
+                    case "A":
+                        $answer = $answerA;
+                        break;
+                    case "B":
+                        $answer = $answerB;
+                        break;
+                    case "C":
+                        $answer = $answerC;
+                        break;
+                    default:
+                        $answer = $answerD;
                 }
 
-                $name = $row['B'];
-                $username = $row['C'];
-                $email = $row['D'];
-                $password = md5($row['E']);
-                $birthday = $row['F'];
-                $gender = ($row['G'] == 'Nam') ? 2 : (($row['G'] == 'Nữ') ? 3 : 1);
-                $subject = ($row['H'] == 'Toán') ? 1 : (($row['H'] == 'Ngữ Văn') ? 2 :  3);
-                $tbm = new truongbomon([
-                    'name' => $name,
-                    'username' => $username,
-                    'email' => $email,
-                    'password' => $password,
-                    'birthday' => $birthday,
-                    'gender_id' => $gender,
-                    'subject_id' => $subject,
-                    'last_login' => now(),
-                ]);
+                if (!empty($questionContent)) {
+                    $question = new questions([
+                        'subject_id' => $subjectId,
+                        'question_content' => $questionContent,
+                        'level_id' => $levelId,
+                        'answer_a' => $answerA,
+                        'answer_b' => $answerB,
+                        'answer_c' => $answerC,
+                        'answer_d' => $answerD,
+                        'correct_answer' => $answer,
+                        'grade_id' => $gradeId,
+                        'unit' => $unit,
+                        'teacher_id' => $teacherId,
+                        'suggest' => 'Nội dung gợi ý',
+                    ]);
 
-                if ($tbm->saveQuietly()) {
-                    $count++;
-                } else {
-                    $errList[] = $row['A'];
+                    // Lưu câu hỏi vào cơ sở dữ liệu
+                    if ($question->saveQuietly()) {
+                        $count++;
+                    } else {
+                        $errList[] = $row['A'];
+                    }
                 }
             }
-            //Xóa tệp
+
             unlink($filePath);
 
             if (empty($errList)) {
-                $result['status_value'] = "Thêm thành công " . $count . " tài khoản!";
+                $result['status_value'] = "Thêm thành công " . $count . " câu hỏi!";
                 $result['status'] = 1;
             } else {
-                $result['status_value'] = "Lỗi! Không thể thêm tài khoản có STT: " . implode(', ', $errList) . ', vui lòng xem lại.';
+                $result['status_value'] = "Lỗi! Không thể thêm câu hỏi có STT: " . implode(', ', $errList) . ', vui lòng xem lại.';
                 $result['status'] = 0;
             }
         } else {
             $result['status_value'] = "Không tìm thấy tệp được tải lên!";
             $result['status'] = 0;
         }
-
         return response()->json($result);
-        // return response()->json([
-        //     'result' => $result,
-        // ]);
-    }
-    public function indexTBM()
-    {
-        return view('admin.TBM');
-    }
-    public function createTBM(Request $request)
-    {
-        $result = [];
-
-        $name = $request->input('name');
-        $username = $request->input('username');
-        $password = md5($request->input('password'));
-        $email = $request->input('email');
-        $birthday = $request->input('birthday');
-        $gender = $request->input('gender');
-        $subject = $request->input('subject');
-
-        $tbm = new truongbomon([
-            'name' => $name,
-            'username' => $username,
-            'password' => $password,
-            'email' => $email,
-            'birthday' => $birthday,
-            'gender_id' => $gender,
-            'subject_id' => $subject,
-            'last_login' => now(),
-
-        ]);
-
-        // Lưu TBM  mới vào cơ sở dữ liệu
-        if ($tbm->save()) {
-            $result = $tbm->toArray();
-            $result['status_value'] = "Thêm thành công!";
-            $result['status'] = 1;
-        } else {
-            $result['status_value'] = "Lỗi! Tài khoản đã tồn tại!";
-            $result['status'] = 0;
-        }
-
-        // return response()->json($result);
-        return response()->json([
-            'result' => $result,
-        ]);
-    }
-
-    public function deleteTBM(Request $request)
-    {
-        $tbm = truongbomon::find($request->subject_head_id);
-        // dd($tbm);
-        if ($tbm) {
-            $tbm->delete();
-            return response()->json([
-                'status'    => true,
-                'message'   => 'Xoá trưởng bộ môn thành công!',
-            ]);
-        } else {
-            return response()->json([
-                'status'    => false,
-                'message'   => 'Không tìm thấy trưởng bộ môn!',
-            ], 404);
-        }
-    }
-
-
-
-    public function updateTNM(Request $request)
-    {
-        $tbm = truongbomon::where('id', $request->id)->first();
-
-        $data = $tbm->all();
-        if (isset($tbm)) {
-            $request->update($data);
-            return response()->json([
-                'status'    => true,
-                'message'   => 'Cập nhật trưởng bộ môn thành công!',
-            ]);
-        } else {
-            return response()->json([
-                'status'    => false,
-                'message'   => 'Cập nhật trưởng bộ môn không thành công!',
-            ]);
-        }
     }
 }
