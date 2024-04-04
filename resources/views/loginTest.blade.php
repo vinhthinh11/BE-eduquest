@@ -9,8 +9,8 @@
     <h2>Login</h2>
     <form id="loginForm">
         @csrf
-        <label for="username">Username or Email:</label><br>
-        <input type="text" id="username" name="username"><br>
+        <label for="email">email or Email:</label><br>
+        <input type="text" id="email" name="email"><br>
         <label for="password">Password:</label><br>
         <input type="password" id="password" name="password"><br><br>
         <button type="submit">Login</button>

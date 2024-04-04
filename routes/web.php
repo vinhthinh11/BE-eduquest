@@ -30,19 +30,11 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
     Route::post('/create-admin', [AdminController::class, 'createAdmin'])->name('createAdmin');
     Route::delete('/delete-admin', [AdminController::class, 'deleteAdmin'])->name('deleteAdmin');
     Route::put('/update-admin', [AdminController::class, 'updateAdmin'])->name('updateAdmin');
+    Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
+    Route::get('/question', function () {return view('admin.test_question');});
+    Route::get('/get-questions', [Admincontroller::class, 'getQuestion'])->name('getQuestion');
 
-    Route::group(['prefix' => '/truongbomon', 'middleware' => 'checkLoginAdmin'], function () {
-        Route::get('/', [AdminController::class, 'indexTestFile'])->name('testFile');
-        Route::get('/get', [Admincontroller::class, 'getTBM'])->name('getTBM');
-        Route::post('/update-tbm', [Admincontroller::class, 'updateTBM'])->name('updateTBM');
-        Route::post('/check-add-tbm-via-file', [AdminController::class, 'check_add_tbm_via_file'])->name('check_add_tbm_via_file');
-        Route::get('/indexTBM', [AdminController::class, 'indexTBM']);
-        Route::post('/create-tbm', [AdminController::class, 'createTBM'])->name('createTBM');
-        Route::delete('/delete-tbm', [AdminController::class, 'deleteTBM'])->name('deleteTBM');
-        Route::put('/update-tbm', [AdminController::class, 'updateTBM'])->name('updateTBM');
-    });
 
-   
 });
 
 
