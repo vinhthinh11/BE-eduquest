@@ -171,7 +171,7 @@
                         document.getElementById('updateForm').addEventListener('submit', function(event) {
                             event.preventDefault();
                             var formData = new FormData(this);
-
+                            
                             fetch(`/admin/update-admin/${admin.admin_id}`, {
                                     method: 'POST',
                                     headers: {
