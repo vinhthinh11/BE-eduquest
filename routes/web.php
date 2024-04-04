@@ -14,27 +14,27 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/admin/login', [Admincontroller::class, 'indexLogin']);
-Route::post('/admin/logout', [Admincontroller::class, 'logout'])->name('logout');
-Route::post('/admin/submit-login', [AdminController::class, 'submitLogin']);
+// Route::get('/admin/login', [Admincontroller::class, 'indexLogin']);
+// Route::post('/admin/logout', [Admincontroller::class, 'logout'])->name('logout');
+// Route::post('/admin/submit-login', [AdminController::class, 'submitLogin']);
 
-// quản lý admin
-Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function () {
-    Route::get('/', function () {
-        return view('welcome');
-    });
-    Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
-    Route::post('/update-admin', [Admincontroller::class, 'updateAdmin'])->name('updateAdmin');
-    Route::post('/check-add-admin-via-file', [AdminController::class, 'check_add_admin_via_file'])->name('admin.check_add_admin_via_file');
-    Route::get('/index', [AdminController::class, 'indexAdmin']);
-    Route::post('/create-admin', [AdminController::class, 'createAdmin'])->name('createAdmin');
-    Route::delete('/delete-admin', [AdminController::class, 'deleteAdmin'])->name('deleteAdmin');
-    Route::put('/update-admin', [AdminController::class, 'updateAdmin'])->name('updateAdmin');
-    Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
-    Route::get('/question', function () {return view('admin.test_question');});
-    Route::get('/get-questions', [Admincontroller::class, 'getQuestion'])->name('getQuestion');
+// // quản lý admin
+// Route::group(['prefix' => '/admin',], function () {
+//     Route::get('/', function () {
+//         return view('welcome');
+//     });
+//     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
+//     Route::post('/update-admin', [Admincontroller::class, 'updateAdmin'])->name('updateAdmin');
+//     Route::post('/check-add-admin-via-file', [AdminController::class, 'check_add_admin_via_file'])->name('admin.check_add_admin_via_file');
+//     Route::get('/index', [AdminController::class, 'indexAdmin']);
+//     Route::post('/create-admin', [AdminController::class, 'createAdmin'])->name('createAdmin');
+//     Route::delete('/delete-admin', [AdminController::class, 'deleteAdmin'])->name('deleteAdmin');
+//     Route::put('/update-admin', [AdminController::class, 'updateAdmin'])->name('updateAdmin');
+//     Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
+//     Route::get('/question', function () {return view('admin.test_question');});
+//     Route::get('/get-questions', [Admincontroller::class, 'getQuestion'])->name('getQuestion');
 
 
-});
+// });
 
 
