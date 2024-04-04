@@ -3,9 +3,7 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Facade\FlareClient\Http\Response;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class checkadminLogin
 {

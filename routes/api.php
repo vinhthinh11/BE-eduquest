@@ -22,13 +22,13 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 //
 Route::get('/admin/login', [Admincontroller::class, 'indexLogin']);
+
 Route::post('/admin/logout', [Admincontroller::class, 'logout'])->name('logout');
 Route::post('/admin/submit-login', [AdminController::class, 'submitLogin']);
 
 // quản lý admin
 //'middleware' => 'checkLoginAdmin'
-Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function () {
-    
+Route::group(['prefix' => '/admin'], function () {
 
     //quản lý trưởng bộ môn
     Route::group(['prefix' => '/truongbomon'], function () {
@@ -39,7 +39,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
         Route::delete('/delete-tbm', [AdminTBMonController::class, 'deleteTBM'])->name('deleteTBM');
         Route::put('/update-tbm', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
     });
-    
+
     //quản lý môn
     Route::group(['prefix' => '/mon'], function () {
         Route::get('/', [AdminMonHocController::class, 'index'])->name('index');
