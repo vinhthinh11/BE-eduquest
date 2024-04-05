@@ -12,7 +12,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <h2>Create Admin</h2>
-    <form id="createAdminForm">
+    <form id="createAdminForm" action="http://127.0.0.1:8000/api/admin/index" method="POST">
         <label for="name">Name:</label><br>
         <input type="text" id="name" name="name"><br>
 
