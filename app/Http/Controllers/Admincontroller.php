@@ -15,10 +15,7 @@ class Admincontroller extends Controller
 {
     public function getAdmin()
     {
-        // $check = Auth::guard('admins')->check();
-        // dd($check);
-        //dd
-        // if (session()->has('login') && session()->get('login') == true) {
+
         $admin = new admin();
         $getAllAdmin = $admin->getAdmin();
 
