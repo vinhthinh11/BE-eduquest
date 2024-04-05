@@ -29,7 +29,17 @@ use App\Http\Controllers\AdminTeacherController;
 Route::get('/admin/login', [Admincontroller::class, 'indexLogin']);
 Route::post('/admin/logout', [Admincontroller::class, 'logout'])->name('logout');
 Route::post('/admin/submit-login', [AdminController::class, 'submitLogin']);
-Route::group(['prefix' => '/admin' ,'middleware' => 'checkLoginAdmin'], function () {
+
+//Profile
+Route::group(['prefix' => 'profiles'], function () {
+    Route::get('/',                     [AdminProfileController::class, 'getProfiles'])->name('getProfiles');
+    Route::post('/update-profile',     [AdminProfileController::class, 'updateProfile'])->name('updateProfile');
+    Route::post('/update-last-login',  [AdminProfileController::class, 'updateLastLogin'])->name('updateLastLogin');
+    Route::post('/update-avatar',      [AdminProfileController::class, 'updateAvatar'])->name('updateAvatarProfile');
+    Route::post('/admin-info',         [AdminProfileController::class, 'adminInfo'])->name('AdminInfo');
+});
+
+Route::group(['prefix' => '/admin'], function () { //, 'middleware' => 'checkLoginAdmin'
     Route::get('/', function () {
         return view('welcome');
     });
@@ -41,67 +51,27 @@ Route::group(['prefix' => '/admin' ,'middleware' => 'checkLoginAdmin'], function
     Route::delete('/delete-admin', [AdminController::class, 'deleteAdmin'])->name('deleteAdmin');
     Route::put('/update-admin', [AdminController::class, 'updateAdmin'])->name('updateAdmin');
     Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
-    Route::get('/question', function () {return view('admin.test_question');});
+    Route::get('/question', function () {
+        return view('admin.test_question');
+    });
     Route::get('/get-questions', [Admincontroller::class, 'getQuestion'])->name('getQuestion');
 
-<<<<<<< master
-
-});
-=======
-//Profile
-Route::group(['prefix' => 'profiles'], function() {
-    Route::get('/',                     [AdminProfileController::class , 'getProfiles'])->name('getProfiles');
-    Route::post('/update-profile' ,     [AdminProfileController::class , 'updateProfile'])->name('updateProfile');
-    Route::post('/update-last-login' ,  [AdminProfileController::class , 'updateLastLogin'])->name('updateLastLogin');
-    Route::post('/update-avatar' ,      [AdminProfileController::class , 'updateAvatar'])->name('updateAvatarProfile');
-    Route::post('/admin-info' ,         [AdminProfileController::class , 'adminInfo'])->name('AdminInfo');
-
-});
-
-// quản lý admin
->>>>>>> local
-//'middleware' => 'checkLoginAdmin'
-Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function () {
-
-
-    //quản lý trưởng bộ môn
-    Route::group(['prefix' => '/truongbomon'], function () {
-        Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
-        Route::post('/update-tbm', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
-        Route::post('/check-add-tbm-via-file', [AdminTBMonController::class, 'check_add_tbm_via_file'])->name('check_add_tbm_via_file');
-        Route::post('/create-tbm', [AdminTBMonController::class, 'createTBM'])->name('createTBM');
-        Route::delete('/delete-tbm', [AdminTBMonController::class, 'deleteTBM'])->name('deleteTBM');
-        Route::put('/update-tbm', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
+    Route::group(['prefix' => 'teacher'], function () {
+        Route::get('/get',     [AdminTeacherController::class, 'getTeacher'])->name('getTeacher');
+        Route::post('/delete', [AdminTeacherController::class, 'destroy'])->name('destroyTeacher');
+        Route::post('/update', [AdminTeacherController::class, 'update'])->name('updateTeacher');
+        Route::post('/create', [AdminTeacherController::class, 'create'])->name('createTeacher');
+        Route::post('/search', [AdminTeacherController::class, 'search'])->name('searchTeacher');
+        Route::post('/check-add-teacher-via-file', [AdminTeacherController::class, 'createFileTeacher'])->name('check_add_teacher_via_file');
     });
 
-    //quản lý môn
-    Route::group(['prefix' => '/mon'], function () {
-        Route::post('/', [AdminMonHocController::class, 'createMon'])->name('createMon');
-        Route::get('/', [AdminMonHocController::class, 'index'])->name('index');
-        Route::put('/', [AdminMonHocController::class, 'updateMon'])->name('updateMon');
-        Route::delete('/', [AdminMonHocController::class, 'deleteMon'])->name('deleteMon');
+    Route::group(['prefix' => 'classes'], function () {
+        Route::get('/get',      [AdminClassController::class, 'getClasses'])->name('getClasses');
+        Route::post('/delete', [AdminClassController::class, 'destroy'])->name('destroyClass');
+        Route::post('/update', [AdminClassController::class, 'update'])->name('updateClass');
+        Route::post('/create', [AdminClassController::class, 'create'])->name('createClass');
+        Route::post('/search', [AdminClassController::class, 'search'])->name('searchClass');
     });
 
-<<<<<<< master
-=======
-    //Teacher
-    Route::group(['prefix' => 'teacher'], function() {
-        Route::get('/get',      [AdminTeacherController::class , 'getTeacher'])->name('getTeacher');
-        Route::post('/delete' , [AdminTeacherController::class , 'destroy'])->name('destroyTeacher');
-        Route::post('/update' , [AdminTeacherController::class , 'update'])->name('updateTeacher');
-        Route::post('/create' , [AdminTeacherController::class , 'create'])->name('createTeacher');
-        Route::post('/search' , [AdminTeacherController::class , 'search'])->name('searchTeacher');
-        Route::post('/check-add-teacher-via-file' , [AdminTeacherController::class , 'createFileTeacher'])->name('check_add_teacher_via_file');
-    });
 
-    //Classes
-    Route::group(['prefix' => 'classes'], function() {
-        Route::get('/get',      [AdminClassController::class , 'getClasses'])->name('getClasses');
-        Route::post('/delete' , [AdminClassController::class , 'destroy'])->name('destroyClass');
-        Route::post('/update' , [AdminClassController::class , 'update'])->name('updateClass');
-        Route::post('/create' , [AdminClassController::class , 'create'])->name('createClass');
-        Route::post('/search' , [AdminClassController::class , 'search'])->name('searchClass');
-    });
-
->>>>>>> local
 });
