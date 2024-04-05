@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\AdminClassController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admincontroller;
 use App\Http\Controllers\AdminTBMonController;
 use App\Http\Controllers\AdminMonHocController;
+use App\Http\Controllers\AdminProfileController;
+use App\Http\Controllers\AdminTeacherController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,8 +44,22 @@ Route::group(['prefix' => '/admin' ,'middleware' => 'checkLoginAdmin'], function
     Route::get('/question', function () {return view('admin.test_question');});
     Route::get('/get-questions', [Admincontroller::class, 'getQuestion'])->name('getQuestion');
 
+<<<<<<< master
 
 });
+=======
+//Profile
+Route::group(['prefix' => 'profiles'], function() {
+    Route::get('/',                     [AdminProfileController::class , 'getProfiles'])->name('getProfiles');
+    Route::post('/update-profile' ,     [AdminProfileController::class , 'updateProfile'])->name('updateProfile');
+    Route::post('/update-last-login' ,  [AdminProfileController::class , 'updateLastLogin'])->name('updateLastLogin');
+    Route::post('/update-avatar' ,      [AdminProfileController::class , 'updateAvatar'])->name('updateAvatarProfile');
+    Route::post('/admin-info' ,         [AdminProfileController::class , 'adminInfo'])->name('AdminInfo');
+
+});
+
+// quản lý admin
+>>>>>>> local
 //'middleware' => 'checkLoginAdmin'
 Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function () {
 
@@ -65,4 +82,26 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
         Route::post('/create-mon', [AdminMonHocController::class, 'createMon'])->name('createMon');
     });
 
+<<<<<<< master
+=======
+    //Teacher
+    Route::group(['prefix' => 'teacher'], function() {
+        Route::get('/get',      [AdminTeacherController::class , 'getTeacher'])->name('getTeacher');
+        Route::post('/delete' , [AdminTeacherController::class , 'destroy'])->name('destroyTeacher');
+        Route::post('/update' , [AdminTeacherController::class , 'update'])->name('updateTeacher');
+        Route::post('/create' , [AdminTeacherController::class , 'create'])->name('createTeacher');
+        Route::post('/search' , [AdminTeacherController::class , 'search'])->name('searchTeacher');
+        Route::post('/check-add-teacher-via-file' , [AdminTeacherController::class , 'createFileTeacher'])->name('check_add_teacher_via_file');
+    });
+
+    //Classes
+    Route::group(['prefix' => 'classes'], function() {
+        Route::get('/get',      [AdminClassController::class , 'getClasses'])->name('getClasses');
+        Route::post('/delete' , [AdminClassController::class , 'destroy'])->name('destroyClass');
+        Route::post('/update' , [AdminClassController::class , 'update'])->name('updateClass');
+        Route::post('/create' , [AdminClassController::class , 'create'])->name('createClass');
+        Route::post('/search' , [AdminClassController::class , 'search'])->name('searchClass');
+    });
+
+>>>>>>> local
 });
