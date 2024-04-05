@@ -2,11 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\subject_head;
 
@@ -20,7 +16,7 @@ class AdminTBMonController extends Controller
         return response()->json([
             'response' => 'success',
             'data' => $getAllTBM
-        ], $this->successStatus); 
+        ], $this->successStatus);
     }
 
     public function check_add_tbm_via_file(Request $request)

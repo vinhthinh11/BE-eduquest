@@ -59,10 +59,10 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
 
     //quản lý môn
     Route::group(['prefix' => '/mon'], function () {
+        Route::post('/', [AdminMonHocController::class, 'createMon'])->name('createMon');
         Route::get('/', [AdminMonHocController::class, 'index'])->name('index');
-        Route::post('/update-mon', [AdminMonHocController::class, 'updateMon'])->name('updateMon');
-        Route::delete('/delete-mon', [AdminMonHocController::class, 'deleteMon'])->name('deleteMon');
-        Route::post('/create-mon', [AdminMonHocController::class, 'createMon'])->name('createMon');
+        Route::put('/', [AdminMonHocController::class, 'updateMon'])->name('updateMon');
+        Route::delete('/', [AdminMonHocController::class, 'deleteMon'])->name('deleteMon');
     });
 
 });

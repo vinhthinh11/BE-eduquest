@@ -12,7 +12,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <h2>Create Admin</h2>
-    <form id="createAdminForm" action="http://127.0.0.1:8000/api/admin/index" method="POST">
+    <form id="createAdminForm" action="/api/admin/create-admin" method="POST">
         <label for="name">Name:</label><br>
         <input type="text" id="name" name="name"><br>
 
@@ -74,7 +74,7 @@
 
         // Hàm gửi yêu cầu lấy danh sách admin
         function fetchAdminList() {
-            fetch('/admin/get')
+            fetch('/api/admin/get')
                 .then(response => response.json())
                 .then(data => {
                     displayAdminList(data.getAllAdmin);
@@ -171,7 +171,7 @@
                         document.getElementById('updateForm').addEventListener('submit', function(event) {
                             event.preventDefault();
                             var formData = new FormData(this);
-                            
+
                             fetch(`/admin/update-admin/${admin.admin_id}`, {
                                     method: 'POST',
                                     headers: {
