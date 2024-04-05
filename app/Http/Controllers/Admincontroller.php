@@ -47,8 +47,8 @@ class Admincontroller extends Controller
                 'email'    => $email,
                 'password'    => $password,
             ]);
-            $token = session()->get('_token');
-            session()->put('permission', 'admin');
+            // $token = session()->get('_token');
+            // session()->put('permission', 'admin');
             // dd($token);
             if ($check) {
                 $result['status_value'] = 'Đăng nhập thành công đang chuyển hướng...';
@@ -58,7 +58,7 @@ class Admincontroller extends Controller
         }
         return response()->json([
             'result' => $result,
-            'token' => $token,
+            // 'token' => $token,
         ]);
     }
 
@@ -69,6 +69,7 @@ class Admincontroller extends Controller
         // session()->forget('permission');
         // $request->session()->invalidate();
         // $request->session()->regenerateToken();
+        // xoa jwt
         Auth::guard('admins')->logout();
         return redirect('/admin/login');
     }

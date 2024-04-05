@@ -21,7 +21,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 //
-Route::get('/admin/login', [Admincontroller::class, 'indexLogin']);
+// Route::get('/admin/login', [Admincontroller::class, 'indexLogin']);
 
 Route::post('/admin/logout', [Admincontroller::class, 'logout'])->name('logout');
 Route::post('/admin/submit-login', [AdminController::class, 'submitLogin']);
@@ -42,10 +42,10 @@ Route::group(['prefix' => '/admin'], function () {
 
     //quản lý môn
     Route::group(['prefix' => '/mon'], function () {
+        Route::post('/', [AdminMonHocController::class, 'createMon'])->name('createMon');
         Route::get('/', [AdminMonHocController::class, 'index'])->name('index');
-        Route::post('/update-mon', [AdminMonHocController::class, 'updateMon'])->name('updateMon');
-        Route::delete('/delete-mon', [AdminMonHocController::class, 'deleteMon'])->name('deleteMon');
-        Route::post('/create-mon', [AdminMonHocController::class, 'createMon'])->name('createMon');
+        Route::put('/', [AdminMonHocController::class, 'updateMon'])->name('updateMon');
+        Route::delete('/', [AdminMonHocController::class, 'deleteMon'])->name('deleteMon');
     });
 
 });
