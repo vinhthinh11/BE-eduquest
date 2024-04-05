@@ -4,22 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\admin;
 use App\Models\questions;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use App\Models\subject_head;
+use App\Http\Controllers\Controller;
+use Tymon\JWTAuth\Facades\JWTAuth;
+
 
 class Admincontroller extends Controller
 {
     public function getAdmin()
     {
-        // $check = Auth::guard('admins')->check();
-        // dd($check);
-        //dd
-        // if (session()->has('login') && session()->get('login') == true) {
+
         $admin = new admin();
         $getAllAdmin = $admin->getAdmin();
 
@@ -35,6 +31,11 @@ class Admincontroller extends Controller
         return view('loginTest');
     }
 
+    // public function __construct()
+    // {
+    //     $this->middleware('auth:api', ['except' => ['submitLogin']]);
+    // }
+
     public function submitLogin(Request $request)
     {
         $result = [];
@@ -43,35 +44,32 @@ class Admincontroller extends Controller
             $email = $request->input('email');
             $password = $request->input('password');
 
-            $check  = Auth::guard('admins')->attempt([
+            $token  = Auth::guard('api')->attempt([
                 'email'    => $email,
                 'password'    => $password,
             ]);
-            // $token = session()->get('_token');
-            // session()->put('permission', 'admin');
+            session()->put('permission', 'admin');
             // dd($token);
-            if ($check) {
+            if ($token) {
                 $result['status_value'] = 'Đăng nhập thành công đang chuyển hướng...';
             } else {
                 $result['status_value'] = 'Đăng nhập thất bại!';
             }
         }
+
         return response()->json([
-            'result' => $result,
-            // 'token' => $token,
+            'result' =>  $result,
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => JWTAuth::factory()->getTTL() * 6000
         ]);
     }
 
 
     public function logout(Request $request)
     {
-        // session()->forget('login');
-        // session()->forget('permission');
-        // $request->session()->invalidate();
-        // $request->session()->regenerateToken();
-        // xoa jwt
-        Auth::guard('admins')->logout();
-        return redirect('/admin/login');
+        Auth::guard('api')->logout();
+        return redirect('api/admin/login');
     }
 
 

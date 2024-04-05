@@ -8,7 +8,6 @@
 <body>
     <h2>Login</h2>
     <form id="loginForm">
-        @csrf
         <label for="email">email or Email:</label><br>
         <input type="text" id="email" name="email"><br>
         <label for="password">Password:</label><br>
@@ -24,7 +23,7 @@
 
             var formData = new FormData(this);
 
-            fetch('/admin/submit-login', {
+            fetch('/api/admin/submit-login', {
                     method: 'POST',
                     body: formData
                 })

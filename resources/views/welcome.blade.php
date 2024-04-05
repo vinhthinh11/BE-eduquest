@@ -10,13 +10,9 @@
 </head>
 
 <body class="antialiased">
-    @if (session()->has('login') && session()->get('login') == true)
-        <p>{{ session()->get('username') }}</p>
-    @endif
 
 
     <form id="logoutForm" action="{{ route('logout') }}" method="POST" style="display: none;">
-        @csrf
     </form>
 
     <a href="#" onclick="event.preventDefault(); document.getElementById('logoutForm').submit();">
@@ -24,7 +20,6 @@
     </a>
     <form id="add_via_file" enctype="multipart/form-data" action="{{ route('admin.check_add_admin_via_file') }}"
         method="POST">
-        @csrf
         <div class="file-field input-field col s6">
             <div class="btn input-field">
                 <span>File</span>

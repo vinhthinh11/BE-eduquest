@@ -4,18 +4,18 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class checkadminLogin
 {
     public function handle(Request $request, Closure $next)
     {
-       $check = Auth::guard('admins');
-        dd($check->session()->get('_token'));
+
+        $check = JWTAuth::parseToken()->authenticate();
         if ($check) {
             return $next($request);
         } else {
-            return redirect('/admin/login');
+            return redirect('/api/admin/login');
         }
 
     }
