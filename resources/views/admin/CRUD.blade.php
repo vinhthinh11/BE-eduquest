@@ -109,7 +109,7 @@
 
         // Hàm xóa admin
         function deleteAdmin(adminId) {
-            fetch('/admin/delete-admin', {
+            fetch('/api/admin/delete-admin', {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',
@@ -137,7 +137,7 @@
 
         // Hàm cập nhật admin
         function updateAdmin(adminId) {
-            fetch(`/admin/get-admin/${adminId}`)
+            fetch(`/api/admin/get-admin/${adminId}`)
                 .then(response => response.json())
                 .then(admin => {
                     // Hiển thị form cập nhật với dữ liệu của admin
