@@ -25,7 +25,7 @@ use App\Http\Controllers\AdminMonHocController;
 // quản lý admin
 Route::get('/admin/login', [Admincontroller::class, 'indexLogin']);
 Route::post('/admin/logout', [Admincontroller::class, 'logout'])->name('logout');
-Route::post('/admin/submit-login', [AdminController::class, 'submitLogin']);
+Route::post('/submit-login', [AdminController::class, 'submitLogin']);
 Route::group(['prefix' => '/admin' ,'middleware' => 'checkLoginAdmin'], function () {
     Route::get('/', function () {
         return view('welcome');
