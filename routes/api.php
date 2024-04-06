@@ -22,18 +22,10 @@ Route::get('/admin/login', [Admincontroller::class, 'indexLogin']);
 Route::post('/admin/logout', [Admincontroller::class, 'logout'])->name('logout');
 Route::post('/submit-login', [AdminController::class, 'submitLogin']);
 Route::group(['prefix' => '/admin' ,'middleware' => 'checkLoginAdmin'], function () {
-Route::post('/admin/submit-login', [AdminController::class, 'submitLogin']);
-
-
-Route::group(['prefix' => '/admin'], function () { //, 'middleware' => 'checkLoginAdmin'
-    Route::get('/', function () {
-        return view('welcome');
-    });
     Route::get('/index', [AdminController::class, 'indexAdmin']);
     Route::get('/question', function () {
         return view('admin.test_question');
     });
-
     // API route ----------------------------
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
     Route::post('/check-add-admin-via-file', [AdminController::class, 'check_add_admin_via_file'])->name('admin.check_add_admin_via_file');
@@ -54,16 +46,6 @@ Route::group(['prefix' => '/admin'], function () { //, 'middleware' => 'checkLog
         Route::post('/search', [AdminTeacherController::class, 'search'])->name('searchTeacher');
         Route::post('/check-add-teacher-via-file', [AdminTeacherController::class, 'createFileTeacher'])->name('check_add_teacher_via_file');
     });
-
-
-//     //Admin - Profile
-// Route::group(['prefix' => 'profiles'], function () {
-//     Route::get('/',                     [AdminProfileController::class, 'getProfiles'])->name('getProfiles');
-//     Route::post('/update-profile',     [AdminProfileController::class, 'updateProfile'])->name('updateProfile');
-//     Route::post('/update-last-login',  [AdminProfileController::class, 'updateLastLogin'])->name('updateLastLogin');
-//     Route::post('/update-avatar',      [AdminProfileController::class, 'updateAvatar'])->name('updateAvatarProfile');
-//     Route::post('/admin-info',         [AdminProfileController::class, 'adminInfo'])->name('AdminInfo');
-// });
 
 // Admin -Class
 
@@ -92,8 +74,5 @@ Route::group(['prefix' => 'profiles'], function () {
     Route::post('/update-last-login',  [AdminProfileController::class, 'updateLastLogin'])->name('updateLastLogin');
     Route::post('/update-avatar',      [AdminProfileController::class, 'updateAvatar'])->name('updateAvatarProfile');
     Route::post('/admin-info',         [AdminProfileController::class, 'adminInfo'])->name('AdminInfo');
-});
-
-
 });
 });
