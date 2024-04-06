@@ -30,7 +30,7 @@ class AdminTeacherController extends Controller
         } else
             return response()->json([
                 'status'    => false,
-                'message'   => 'Hệ thống gặp sự cố dữ liệu!',
+                'message'   => 'Giáo Viên không tồn tại trên hệ thống!',
             ]);
     }
 
@@ -44,49 +44,42 @@ class AdminTeacherController extends Controller
 
             return response()->json([
                 'status'    => true,
-                'message'   => 'Cập nhật Giáo Viên thành công!',
+                'message'   => 'Đã lấy được thông tin Giáo Viên thành công!',
             ]);
         } else {
             return response()->json([
                 'status'    => false,
-                'message'   => 'Hệ thống gặp sự cố dữ liệu!',
+                'message'   => 'Giáo Viên không tồn tại trên hệ thống!',
             ]);
         }
     }
 
+    public function edit(Request $request)
+    {
+        $teacher = teacher::find($request->teacher_id);
+
+        if($teacher) {
+            return response()->json([
+                'status'    => true,
+                'message'   => 'Cập Nhập thành công thông tin Giáo Viên!',
+                'teacher'    => $teacher,
+            ]);
+        }
+        else
+            return response()->json([
+                'status'    => false,
+                'message'   => 'Cập nhập Giáo Viên thất bại!'
+            ]);
+    }
+
     public function create(Request $request)
     {
-        $result = [];
-
-        $name = $request->input('name');
-        $username = $request->input('username');
-        $password = md5($request->input('password'));
-        $email = $request->input('email');
-        $birthday = $request->input('birthday');
-        $gender = $request->input('gender');
-
-        $teacher = new teacher([
-            'name' => $name,
-            'username' => $username,
-            'password' => $password,
-            'email' => $email,
-            'birthday' => $birthday,
-            'gender_id' => $gender,
-            'last_login' => now(),
-
-        ]);
-
-        if ($teacher->save()) {
-            $result = $teacher->toArray();
-            $result['status_value'] = "Thêm Giáo Viên thành công!";
-            $result['status'] = 1;
-        } else {
-            $result['status_value'] = "Lỗi! Giáo Viên đã tồn tại!";
-            $result['status'] = 0;
-        }
+        $data = $request->all();
+        teacher::create($data);
 
         return response()->json([
-            'result' => $result,
+            'status'    => true,
+            'message'   => 'Đã tạo mới thành công!',
         ]);
     }
 
