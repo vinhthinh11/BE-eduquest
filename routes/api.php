@@ -8,17 +8,9 @@ use App\Http\Controllers\AdminTBMonController;
 use App\Http\Controllers\AdminMonHocController;
 use App\Http\Controllers\AdminProfileController;
 use App\Http\Controllers\AdminTeacherController;
-
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
+use App\Http\Controllers\StatistController;
+use App\Http\Controllers\TeacherConTroller;
+use App\Http\Controllers\TeacherScoreConTroller;
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
@@ -36,7 +28,7 @@ Route::group(['prefix' => 'profiles'], function () {
     Route::post('/update-profile',     [AdminProfileController::class, 'updateProfile'])->name('updateProfile');
     Route::post('/update-last-login',  [AdminProfileController::class, 'updateLastLogin'])->name('updateLastLogin');
     Route::post('/update-avatar',      [AdminProfileController::class, 'updateAvatar'])->name('updateAvatarProfile');
-    Route::post('/admin-info',         [AdminProfileController::class, 'adminInfo'])->name('AdminInfo');
+    Route::post('/admin-info',         [AdminProfileController::class, 'adminInfo'])->name('adminInfo');
 });
 
 Route::group(['prefix' => '/admin'], function () { //, 'middleware' => 'checkLoginAdmin'
@@ -56,10 +48,14 @@ Route::group(['prefix' => '/admin'], function () { //, 'middleware' => 'checkLog
     });
     Route::get('/get-questions', [Admincontroller::class, 'getQuestion'])->name('getQuestion');
 
+    Route::post('/list-statist', [StatistController::class, 'listStatist'])->name('listStatist');
+    Route::post('/list-statist-scores', [StatistController::class, 'listStatistScores'])->name('listStatistScores');
+
     Route::group(['prefix' => 'teacher'], function () {
         Route::get('/get',     [AdminTeacherController::class, 'getTeacher'])->name('getTeacher');
         Route::post('/delete', [AdminTeacherController::class, 'destroy'])->name('destroyTeacher');
         Route::post('/update', [AdminTeacherController::class, 'update'])->name('updateTeacher');
+        Route::post('/edit',   [AdminTeacherController::class, 'edit'])->name('editTeacher');
         Route::post('/create', [AdminTeacherController::class, 'create'])->name('createTeacher');
         Route::post('/search', [AdminTeacherController::class, 'search'])->name('searchTeacher');
         Route::post('/check-add-teacher-via-file', [AdminTeacherController::class, 'createFileTeacher'])->name('check_add_teacher_via_file');
@@ -69,9 +65,15 @@ Route::group(['prefix' => '/admin'], function () { //, 'middleware' => 'checkLog
         Route::get('/get',      [AdminClassController::class, 'getClasses'])->name('getClasses');
         Route::post('/delete', [AdminClassController::class, 'destroy'])->name('destroyClass');
         Route::post('/update', [AdminClassController::class, 'update'])->name('updateClass');
+        Route::post('/edit',   [AdminClassController::class, 'edit'])->name('editClass');
         Route::post('/create', [AdminClassController::class, 'create'])->name('createClass');
         Route::post('/search', [AdminClassController::class, 'search'])->name('searchClass');
     });
+});
 
-
+Route::group(['prefix' => '/teacher'], function () {
+    Route::group(['prefix' => '/score'], function () {
+        Route::post('/list',        [TeacherConTroller::class, 'listScore'])->name('listScore');
+        Route::post('/export',      [TeacherConTroller::class, 'exportScore'])->name('exportScore');
+    });
 });

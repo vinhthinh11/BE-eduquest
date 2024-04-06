@@ -29,7 +29,7 @@ class AdminClassController extends Controller
         } else
             return response()->json([
                 'status'    => false,
-                'message'   => 'Hệ thống gặp sự cố dữ liệu!',
+                'message'   => 'Lớp không tồn tại trên hệ thống!',
             ]);
     }
 
@@ -48,36 +48,37 @@ class AdminClassController extends Controller
         } else {
             return response()->json([
                 'status'    => false,
-                'message'   => 'Hệ thống gặp sự cố dữ liệu!',
+                'message'   => 'Lớp không tồn tại trên hệ thống!',
+            ]);
+        }
+    }
+
+    public function edit(Request $request)
+    {
+        $class = classes::find($request->class_id);
+
+        if($class) {
+            return response()->json([
+                'status'    => true,
+                'message'   => 'Cập Nhập thành công thông tin Lớp!',
+                'class$class'    => $class,
+            ]);
+        } else {
+            return response()->json([
+                'status'    => false,
+                'message'   => 'Cập nhập Lớp thất bại!'
             ]);
         }
     }
 
     public function create(Request $request)
     {
-        $result = [];
-
-        $grade_id = $request->input('grade_id');
-        $class_name = $request->input('class_name');
-        $teacher_id = $request->input('teacher_id');
-
-        $class = new classes([
-            'grade_id' => $grade_id,
-            'class_name' => $class_name,
-            'teacher_id' => $teacher_id
-        ]);
-
-        if ($class->save()) {
-            $result = $class->toArray();
-            $result['status_value'] = "Thêm lớp học thành công!";
-            $result['status'] = 1;
-        } else {
-            $result['status_value'] = "Lỗi! Không thể thêm lớp học!";
-            $result['status'] = 0;
-        }
+        $data = $request->all();
+        classes::create($data);
 
         return response()->json([
-            'result' => $result,
+            'status'    => true,
+            'message'   => 'Đã tạo mới thành công!',
         ]);
     }
 
