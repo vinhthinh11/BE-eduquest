@@ -94,4 +94,37 @@ class AdminClassController extends Controller
             'list'  => $list
         ]);
     }
+
+    public function deleteCheckbox(Request $request)
+    {
+        $data = $request->all();
+
+        $str = "";
+
+        foreach ($data as $key => $value) {
+            if(isset($value['check'])) {  //'check' này ở bên fe nhớ đặt
+                $str .= $value['class_id'] . ",";
+            }
+
+            $data_id = explode("," , rtrim($str, ","));
+
+            foreach ($data_id as $k => $v) {
+                $class =classes::where('class_id', $v);
+
+                if($class) {
+                    $class->delete();
+                } else {
+                    return response()->json([
+                        'status'    => false,
+                        'message'   => 'Lớp không tồn tại!',
+                    ]);
+                }
+            }
+        }
+
+        return response()->json([
+            'status'    => true,
+            'message'   => 'Xóa nhiều Lớp thành công!',
+        ]);
+    }
 }

@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\classes;
 use App\Models\teacher;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class AdminTeacherController extends Controller
 {
@@ -21,18 +23,30 @@ class AdminTeacherController extends Controller
     {
         $teacher = teacher::find($request->teacher_id);
 
-        if ($teacher) {
-            $teacher->delete();
-            return response()->json([
-                'status'    => true,
-                'message'   => 'Xóa Giáo Viên thành công!',
-            ]);
-        } else
+        if($teacher) {
+            $class = classes::where('class_id', $request->teacher_id)->first();
+
+            if($class) {
+                return response()->json([
+                    'status'    => 2,
+                    'message'   => 'Giáo Viên đang đứng Lớp, bạn không thể xóa!'
+                ]);
+            } else {
+                $teacher->delete();
+
+                return response()->json([
+                    'status'    => true,
+                    'message'   => 'Đã xóa Giáo Viên thành công!'
+                ]);
+            }
+        } else {
             return response()->json([
                 'status'    => false,
-                'message'   => 'Giáo Viên không tồn tại trên hệ thống!',
+                'message'   => 'Giáo Viên không tồn tại!'
             ]);
+        }
     }
+
 
     public function update(Request $request)
     {
@@ -57,19 +71,26 @@ class AdminTeacherController extends Controller
     public function edit(Request $request)
     {
         $teacher = teacher::find($request->teacher_id);
+        $data = $request->only(['name', 'gender_id', 'birthday', 'password']);
 
-        if($teacher) {
-            return response()->json([
-                'status'    => true,
-                'message'   => 'Cập Nhập thành công thông tin Giáo Viên!',
-                'teacher'    => $teacher,
-            ]);
-        }
-        else
+        if (!$teacher) {
             return response()->json([
                 'status'    => false,
-                'message'   => 'Cập nhập Giáo Viên thất bại!'
+                'message'   => 'Tài khoản không tồn tại!'
             ]);
+        }
+        // Kiểm tra admin muốn cập nhật mật khẩu cho giáo viên không
+        else if (isset($data['password'])) {
+            $data['password'] = Hash::make($data['password']); //  bcrypt password
+        }
+
+        $teacher->fill($data)->save();
+
+        return response()->json([
+            'status'    => true,
+            'message'   => 'Cập Nhập thành công thông tin Giáo Viên!',
+            'teacher'   => $teacher,
+        ]);
     }
 
     public function create(Request $request)
@@ -100,7 +121,8 @@ class AdminTeacherController extends Controller
             foreach ($sheetData as $key => $row) {
                 if ($key < 4) {
                     continue;
-                }if (empty($row['A'])) {
+                }
+                if (empty($row['A'])) {
                     continue;
                 }
 
@@ -148,12 +170,44 @@ class AdminTeacherController extends Controller
     public function search(Request $request)
     {
         $list = teacher::select('teachers.*')
-                ->where('name', 'like', '%' . $request->key_search . '%')
-                ->orWhere('username', 'like', '%' . $request->key_search . '%')
-                ->get();
+            ->where('name', 'like', '%' . $request->key_search . '%')
+            ->orWhere('username', 'like', '%' . $request->key_search . '%')
+            ->get();
 
         return response()->json([
             'list'  => $list
-            ]);
+        ]);
+    }
+    public function deleteCheckbox(Request $request)
+    {
+        $data = $request->all();
+
+        $str = "";
+
+        foreach ($data as $key => $value) {
+            if(isset($value['check'])) {  //'check' này ở bên fe nhớ đặt
+                $str .= $value['teacher_id'] . ",";
+            }
+
+            $data_id = explode("," , rtrim($str, ","));
+
+            foreach ($data_id as $k => $v) {
+                $teacher =teacher::where('teacher_id', $v);
+
+                if($teacher) {
+                    $teacher->delete();
+                } else {
+                    return response()->json([
+                        'status'    => false,
+                        'message'   => 'Giáo Viên không tồn tại!',
+                    ]);
+                }
+            }
+        }
+
+        return response()->json([
+            'status'    => true,
+            'message'   => 'Xóa nhiều Giáo Viên thành công!',
+        ]);
     }
 }

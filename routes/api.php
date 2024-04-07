@@ -33,6 +33,11 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
     Route::get('/get-questions', [Admincontroller::class, 'getQuestion'])->name('getQuestion');
     Route::post('/list-statist', [StatistController::class, 'listStatist'])->name('listStatist');
     Route::post('/list-statist-scores', [StatistController::class, 'listStatistScores'])->name('listStatistScores');
+    Route::get('/question', function () {
+        return view('admin.test_question');
+    });
+    Route::get('/get-questions', [Admincontroller::class, 'getQuestion'])->name('getQuestion');
+
     //Profile
     Route::group(['prefix' => 'profiles'], function () {
         Route::get('/',                    [AdminProfileController::class, 'getProfiles'])->name('getProfiles');
@@ -41,11 +46,6 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
         Route::post('/update-avatar',      [AdminProfileController::class, 'updateAvatar'])->name('updateAvatarProfile');
         Route::post('/admin-info',         [AdminProfileController::class, 'adminInfo'])->name('adminInfo');
     });
-    Route::get('/question', function () {
-        return view('admin.test_question');
-    });
-    Route::get('/get-questions', [Admincontroller::class, 'getQuestion'])->name('getQuestion');
-
 
     //Thong Ke
     Route::post('/list-statist', [StatistController::class, 'listStatist'])->name('listStatist');
@@ -58,6 +58,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
         Route::post('/edit',   [AdminTeacherController::class, 'edit'])->name('editTeacher');
         Route::post('/create', [AdminTeacherController::class, 'create'])->name('createTeacher');
         Route::post('/search', [AdminTeacherController::class, 'search'])->name('searchTeacher');
+        Route::post('/delete-check-box', [AdminTeacherController::class, 'deleteCheckbox'])->name('deleteCheckbox');
         Route::post('/check-add-teacher-via-file', [AdminTeacherController::class, 'createFileTeacher'])->name('check_add_teacher_via_file');
     });
 
@@ -68,8 +69,8 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
         Route::post('/edit',   [AdminClassController::class, 'edit'])->name('editClass');
         Route::post('/create', [AdminClassController::class, 'create'])->name('createClass');
         Route::post('/search', [AdminClassController::class, 'search'])->name('searchClass');
+        Route::post('/delete-check-box', [AdminClassController::class, 'deleteCheckbox'])->name('deleteCheckbox');
     });
-
 
     Route::group(['prefix' => '/truongbomon'], function () {
         Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
@@ -79,6 +80,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
         Route::delete('/delete-tbm', [AdminTBMonController::class, 'deleteTBM'])->name('deleteTBM');
         Route::put('/update-tbm', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
     });
+
     Route::group(['prefix' => '/teacher'], function () {
         Route::group(['prefix' => '/score'], function () {
             Route::post('/list',        [TeacherConTroller::class, 'listScore'])->name('listScore');
