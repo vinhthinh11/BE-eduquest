@@ -43,7 +43,6 @@ class Admincontroller extends Controller
         if ($request->has('email') && $request->has('password')) {
             $email = $request->input('email');
             $password = $request->input('password');
-
             $token  = Auth::guard('api')->attempt([
                 'email'    => $email,
                 'password'    => $password,
