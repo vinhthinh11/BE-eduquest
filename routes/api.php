@@ -72,6 +72,4 @@ Route::group(['prefix' => '/admin'], function () { //, 'middleware' => 'checkLog
         Route::post('/create', [AdminClassController::class, 'create'])->name('createClass');
         Route::post('/search', [AdminClassController::class, 'search'])->name('searchClass');
     });
-
-
 });
