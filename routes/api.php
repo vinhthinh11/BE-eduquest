@@ -17,13 +17,14 @@ use App\Http\Controllers\TeacherScoreConTroller;
 // });
 //
 
-// quản lý admin
-// Route::get('/admin/login', [Admincontroller::class, 'indexLogin']);
-// Route::post('/admin/logout', [Admincontroller::class, 'logout'])->name('logout');
+// Login
+Route::get('/admin/login', [Admincontroller::class, 'indexLogin']);
+Route::post('/admin/logout', [Admincontroller::class, 'logout'])->name('logout');
 Route::post('/submit-login', [AdminController::class, 'submitLogin']);
 
 Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function () {
     // API route ----------------------------
+    //ql Admin
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
     Route::post('/check-add-admin-via-file', [AdminController::class, 'check_add_admin_via_file'])->name('admin.check_add_admin_via_file');
     Route::post('/create-admin', [AdminController::class, 'createAdmin'])->name('createAdmin');
@@ -51,6 +52,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
     Route::post('/list-statist', [StatistController::class, 'listStatist'])->name('listStatist');
     Route::post('/list-statis2t-scores', [StatistController::class, 'listStatistScores'])->name('listStatistScores');
 
+    //ql Teacher
     Route::group(['prefix' => 'teacher'], function () {
         Route::get('/get',     [AdminTeacherController::class, 'getTeacher'])->name('getTeacher');
         Route::post('/delete', [AdminTeacherController::class, 'destroy'])->name('destroyTeacher');
@@ -62,8 +64,9 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
         Route::post('/check-add-teacher-via-file', [AdminTeacherController::class, 'createFileTeacher'])->name('check_add_teacher_via_file');
     });
 
+    //ql Class
     Route::group(['prefix' => 'classes'], function () {
-        Route::get('/get',      [AdminClassController::class, 'getClasses'])->name('getClasses');
+        Route::get('/get',     [AdminClassController::class, 'getClasses'])->name('getClasses');
         Route::post('/delete', [AdminClassController::class, 'destroy'])->name('destroyClass');
         Route::post('/update', [AdminClassController::class, 'update'])->name('updateClass');
         Route::post('/edit',   [AdminClassController::class, 'edit'])->name('editClass');
@@ -72,6 +75,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
         Route::post('/delete-check-box', [AdminClassController::class, 'deleteCheckbox'])->name('deleteCheckbox');
     });
 
+    //ql TBM
     Route::group(['prefix' => '/truongbomon'], function () {
         Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
         Route::post('/update-tbm', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
@@ -81,6 +85,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
         Route::put('/update-tbm', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
     });
 
+    //Teacher controller
     Route::group(['prefix' => '/teacher'], function () {
         Route::group(['prefix' => '/score'], function () {
             Route::post('/list',        [TeacherConTroller::class, 'listScore'])->name('listScore');
@@ -89,3 +94,6 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
     });
 });
 
+Route::group(['prefix' => 'laravel-filemanager'], function () {
+    \UniSharp\LaravelFilemanager\Lfm::routes();
+});

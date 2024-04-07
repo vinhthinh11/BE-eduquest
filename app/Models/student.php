@@ -28,4 +28,7 @@ class student extends Model
         'practice_time_remaining',
         'practice_starting_time',
     ];
+
+    protected $primaryKey = 'student_id';
+    public $timestamps = false;
 }
