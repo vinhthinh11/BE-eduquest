@@ -7,5 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class practice_scores extends Model
 {
-    use HasFactory;
+    protected $table = 'practice_scores';
+
+    protected $fillable = [
+        'student_id',
+        'practice_code',
+        'score_number',
+        'score_detail',
+        'completion_time'
+    ];
 }
