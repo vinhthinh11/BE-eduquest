@@ -11,6 +11,7 @@ use App\Http\Controllers\AdminTeacherController;
 use App\Http\Controllers\StatistController;
 use App\Http\Controllers\TeacherConTroller;
 use App\Http\Controllers\TeacherScoreConTroller;
+use App\Http\Controllers\AdminHSController;
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
@@ -85,6 +86,23 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
         Route::put('/update-tbm', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
     });
 
+    //ql Môn học
+    Route::group(['prefix' => '/mon'], function () {
+        Route::get('/', [AdminMonHocController::class, 'index'])->name('index');
+        Route::post('/', [AdminMonHocController::class, 'createMon'])->name('createMon');
+        Route::delete('/', [AdminMonHocController::class, 'deleteMon'])->name('deleteMon');
+        Route::put('/', [AdminMonHocController::class, 'updateMon'])->name('updateMon');
+    });
+
+    //ql học sinh
+    Route::group(['prefix' => '/hocsinh'], function () {
+        Route::get('/', [AdminHSController::class, 'index'])->name('index');
+        Route::post('/file-hs', [AdminHSController::class, 'check_add_hs_via_file'])->name('check_add_hs_via_file');
+        Route::post('/create', [AdminHSController::class, 'createHS'])->name('createHS');
+        Route::delete('/', [AdminHSController::class, 'deleteHS'])->name('deleteHS');
+        Route::put('/', [AdminHSController::class, 'updateHS'])->name('updateHS');
+    });
+
     //Teacher controller
     Route::group(['prefix' => '/teacher'], function () {
         Route::group(['prefix' => '/score'], function () {
@@ -92,6 +110,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
             Route::post('/export',      [TeacherConTroller::class, 'exportScore'])->name('exportScore');
         });
     });
+    
 });
 
 Route::group(['prefix' => 'laravel-filemanager'], function () {
