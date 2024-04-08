@@ -7,7 +7,7 @@
     <title>Laravel</title>
 </head>
 <body class="antialiased">
-    <form id="add_via_file" enctype="multipart/form-data" action="{{ route('check_add_tbm_via_file') }}" method="POST">
+    <form id="add_via_file" enctype="multipart/form-data" action="{{ route('check_add_teacher_via_file') }}" method="POST">
         @csrf
         <div class="file-field input-field col s6">
             <div class="btn input-field">

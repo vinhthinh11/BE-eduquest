@@ -7,6 +7,7 @@ use App\Models\teacher;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AdminTeacherController extends Controller
 {
@@ -74,7 +75,7 @@ class AdminTeacherController extends Controller
         $data = $request->only(['name', 'gender_id', 'birthday', 'password']);
 
         if (!$teacher) {
-            return response()->json([
+             return response()->json([
                 'status'    => false,
                 'message'   => 'Tài khoản không tồn tại!'
             ]);
@@ -100,7 +101,7 @@ class AdminTeacherController extends Controller
 
         return response()->json([
             'status'    => true,
-            'message'   => 'Đã tạo mới thành công!',
+            'message'   => 'Đã tạo mới Giáo Viên thành công!',
         ]);
     }
 
@@ -181,33 +182,39 @@ class AdminTeacherController extends Controller
     public function deleteCheckbox(Request $request)
     {
         $data = $request->all();
-
-        $str = "";
+        $deletedTeachers = [];
 
         foreach ($data as $key => $value) {
-            if(isset($value['check'])) {  //'check' này ở bên fe nhớ đặt
-                $str .= $value['teacher_id'] . ",";
-            }
+            if (isset($value['check'])) {
+                $teacherId = $value['teacher_id'];
+                $teacher = teacher::find($teacherId);
 
-            $data_id = explode("," , rtrim($str, ","));
+                if ($teacher) {
+                    $class = classes::where('teacher_id', $teacherId)->first();
 
-            foreach ($data_id as $k => $v) {
-                $teacher =teacher::where('teacher_id', $v);
+                    if ($class) {
+                        return response()->json([
+                            'status' => false,
+                            'message' => 'Không thể xóa giáo viên vì giáo viên đang đứng lớp!',
+                        ]);
+                    }
 
-                if($teacher) {
+                    //Không đứng thì xóa thôi
                     $teacher->delete();
+                    $deletedTeachers[] = $teacherId;
                 } else {
                     return response()->json([
-                        'status'    => false,
-                        'message'   => 'Giáo Viên không tồn tại!',
+                        'status' => false,
+                        'message' => 'Giáo viên có teacher_id ' . $teacherId . ' không tồn tại!',
                     ]);
                 }
             }
         }
 
         return response()->json([
-            'status'    => true,
-            'message'   => 'Xóa nhiều Giáo Viên thành công!',
+            'status' => true,
+            'message' => 'Xóa các giáo viên thành công!',
+            'deleted_teachers' => $deletedTeachers,
         ]);
     }
 }
