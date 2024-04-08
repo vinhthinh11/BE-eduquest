@@ -205,21 +205,25 @@ class Admincontroller extends Controller
 
     public function updateAdmin(Request $request)
     {
-        $admin = Admin::where('id', $request->id)->first();
+          $admin = Admin::find($request->admin_id);
+        $data = $request->only(['name', 'gender_id', 'birthday', 'password']);
 
-        $data = $admin->all();
-        if (isset($admin)) {
-            $request->update($data);
-            return response()->json([
-                'status'    => true,
-                'message'   => 'Cập nhật khách hàng thành công!',
-            ]);
-        } else {
-            return response()->json([
+        if (!$admin) {
+             return response()->json([
                 'status'    => false,
-                'message'   => 'Cập nhật khách hàng không thành công!',
-            ]);
+                'message'   => 'Tài khoản không tồn tại!'
+            ],400);
         }
+        else if (isset($data['password'])) {
+            $data['password'] = bcrypt($data['password']);
+        }
+
+        $admin->fill($data)->save();
+
+        return response()->json([
+            'message'   => 'Cập nhật thông tin thành công!',
+            'admin'   => $admin,
+        ]);
     }
 
     public function getQuestion()

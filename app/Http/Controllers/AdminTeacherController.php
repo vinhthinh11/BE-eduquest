@@ -145,7 +145,6 @@ class AdminTeacherController extends Controller
                 ]);
 
                 if ($teacher->saveQuietly()) {
-                    $count++;
                 } else {
                     $errList[] = $row['A'];
                 }

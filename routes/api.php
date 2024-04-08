@@ -115,7 +115,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
             Route::post('/export',      [TeacherConTroller::class, 'exportScore'])->name('exportScore');
         });
     });
-    
+
 });
 
 // Route::group(['prefix' => 'laravel-filemanager'], function () {
