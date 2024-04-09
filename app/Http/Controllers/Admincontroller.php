@@ -186,21 +186,22 @@ class Admincontroller extends Controller
 
     public function deleteAdmin(Request $request)
     {
-        $admin = Admin::find($request->admin_id);
-        // dd($admin);
-        if ($admin) {
-            $admin->delete();
-            return response()->json([
-                'status'    => true,
-                'message'   => 'Xoá admin thành công!',
-            ]);
-        } else {
-            return response()->json([
-                'status'    => false,
-                'message'   => 'Không tìm thấy admin!',
-            ], 404);
+        $admin = admin::find($request->admin_id);
+
+        if(!$admin) {
+             return response()->json([
+                'message'   => 'Giáo Viên không tồn tại!'
+            ],400);
+
+
+            }
+            //   $admin->delete();
+                return response()->json([
+                    'message'   => 'Xóa Admin thành công!',
+                    "admin"=>$admin
+                ]);
+
         }
-    }
 
 
     public function updateAdmin(Request $request)
