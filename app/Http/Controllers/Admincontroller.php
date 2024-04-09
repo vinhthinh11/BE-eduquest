@@ -26,8 +26,7 @@ class Admincontroller extends Controller
         return response()->json([
             'getAllAdmin' => $getAllAdmin,
         ]);
-        // } else {
-        // }
+
     }
 
     public function indexLogin()
@@ -55,18 +54,17 @@ class Admincontroller extends Controller
             session()->put('permission', 'admin');
             // dd($token);
             if ($token) {
-                $result['status_value'] = 'Đăng nhập thành công đang chuyển hướng...';
-            } else {
-                $result['status_value'] = 'Đăng nhập thất bại!';
-            }
-        }
-
-        return response()->json([
+               return response()->json([
             'result' =>  $result,
             'access_token' => $token,
-            'token_type' => 'bearer',
             'expires_in' => JWTAuth::factory()->getTTL() * 6000
-        ]);
+               ]);
+            } else {
+                return response()->json([
+            'mesage' =>  "Tài khoản hoặc mật khẩu không đúng!",
+        ],403);
+            }
+        }
     }
 
 
@@ -192,22 +190,19 @@ class Admincontroller extends Controller
              return response()->json([
                 'message'   => 'Giáo Viên không tồn tại!'
             ],400);
-
-
             }
-            //   $admin->delete();
+              $admin->delete();
                 return response()->json([
                     'message'   => 'Xóa Admin thành công!',
                     "admin"=>$admin
                 ]);
-
         }
 
 
     public function updateAdmin(Request $request)
     {
           $admin = Admin::find($request->admin_id);
-        $data = $request->only(['name', 'gender_id', 'birthday', 'password']);
+        $data = $request->only(['name', 'username','gender_id', 'birthday', 'password','permission',]);
 
         if (!$admin) {
              return response()->json([

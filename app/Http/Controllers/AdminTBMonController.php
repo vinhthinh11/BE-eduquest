@@ -12,11 +12,16 @@ class AdminTBMonController extends Controller
     public $successStatus = 200;
     public function index()
     {
-        $getAllTBM = subject_head::paginate(10);
+        $getAllTBM = subject_head::all();
+        if ($getAllTBM->isEmpty()) {
+            return response()->json([
+            'message' => 'No data found',
+            ], 400);
+        }
         return response()->json([
-            'response' => 'success',
+            'message' => 'success',
             'data' => $getAllTBM
-        ], $this->successStatus);
+        ]);
     }
 
     public function check_add_tbm_via_file(Request $request)
