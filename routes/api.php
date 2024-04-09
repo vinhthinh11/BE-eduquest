@@ -28,12 +28,11 @@ Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function 
     //ql Admin
     Route::get('/', function () {return view('welcome');});
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
-    Route::post('/update-admin', [Admincontroller::class, 'updateAdmin'])->name('updateAdmin');
     Route::post('/check-add-admin-via-file', [AdminController::class, 'check_add_admin_via_file'])->name('admin.check_add_admin_via_file');
     Route::get('/index', [AdminController::class, 'indexAdmin']);
-    Route::post('/create-admin', [AdminController::class, 'createAdmin'])->name('createAdmin');
-    Route::delete('/delete-admin', [AdminController::class, 'deleteAdmin'])->name('deleteAdmin');
-    Route::put('/update-admin', [AdminController::class, 'updateAdmin'])->name('updateAdmin');
+    Route::post('/create', [AdminController::class, 'createAdmin'])->name('createAdmin');
+    Route::delete('/delete', [AdminController::class, 'deleteAdmin'])->name('deleteAdmin');
+    Route::put('/update', [AdminController::class, 'updateAdmin'])->name('updateAdmin');
     Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
     Route::post('/check-add-question', [Admincontroller::class, 'checkAddQuestions'])->name('checkAddQuestion');
     Route::get('/question', function () {return view('admin.test_question');});
@@ -62,7 +61,7 @@ Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function 
     Route::group(['prefix' => 'teacher'], function () {
         Route::get('/get',     [AdminTeacherController::class, 'getTeacher'])->name('getTeacher');
         Route::post('/delete', [AdminTeacherController::class, 'destroy'])->name('destroyTeacher');
-        Route::post('/update', [AdminTeacherController::class, 'update'])->name('updateTeacher');
+        Route::put('/update', [AdminTeacherController::class, 'update'])->name('updateTeacher');
         Route::post('/edit',   [AdminTeacherController::class, 'edit'])->name('editTeacher');
         Route::post('/create', [AdminTeacherController::class, 'create'])->name('createTeacher');
         Route::post('/search', [AdminTeacherController::class, 'search'])->name('searchTeacher');
