@@ -20,11 +20,15 @@ class Admincontroller extends Controller
     public function getAdmin()
     {
 
-        $admin = new admin();
-        $getAllAdmin = $admin->getAdmin();
-
+         $data = admin::get();
+        if ($data->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No admin found!',
+            ], 400);
+        }
         return response()->json([
-            'getAllAdmin' => $getAllAdmin,
+            'data'    => $data,
         ]);
 
     }
