@@ -22,8 +22,8 @@ use App\Http\Controllers\AdminHSController;
 Route::get('/admin/login', [Admincontroller::class, 'indexLogin']);
 Route::post('/admin/logout', [Admincontroller::class, 'logout'])->name('logout');
 Route::post('/submit-login', [AdminController::class, 'submitLogin']);
-
-Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function () {
+// 'middleware' => 'checkLoginAdmin'
+Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function () {
     // API route ----------------------------
     //ql Admin
     Route::get('/', function () {return view('welcome');});
@@ -115,7 +115,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
             Route::post('/export',      [TeacherConTroller::class, 'exportScore'])->name('exportScore');
         });
     });
-    
+
 });
 
 // Route::group(['prefix' => 'laravel-filemanager'], function () {

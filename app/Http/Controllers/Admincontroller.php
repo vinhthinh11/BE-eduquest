@@ -26,8 +26,7 @@ class Admincontroller extends Controller
         return response()->json([
             'getAllAdmin' => $getAllAdmin,
         ]);
-        // } else {
-        // }
+
     }
 
     public function indexLogin()
@@ -55,18 +54,17 @@ class Admincontroller extends Controller
             session()->put('permission', 'admin');
             // dd($token);
             if ($token) {
-                $result['status_value'] = 'Đăng nhập thành công đang chuyển hướng...';
-            } else {
-                $result['status_value'] = 'Đăng nhập thất bại!';
-            }
-        }
-
-        return response()->json([
+               return response()->json([
             'result' =>  $result,
             'access_token' => $token,
-            'token_type' => 'bearer',
             'expires_in' => JWTAuth::factory()->getTTL() * 6000
-        ]);
+               ]);
+            } else {
+                return response()->json([
+            'mesage' =>  "Tài khoản hoặc mật khẩu không đúng!",
+        ],403);
+            }
+        }
     }
 
 
@@ -186,40 +184,42 @@ class Admincontroller extends Controller
 
     public function deleteAdmin(Request $request)
     {
-        $admin = Admin::find($request->admin_id);
-        // dd($admin);
-        if ($admin) {
-            $admin->delete();
-            return response()->json([
-                'status'    => true,
-                'message'   => 'Xoá admin thành công!',
-            ]);
-        } else {
-            return response()->json([
-                'status'    => false,
-                'message'   => 'Không tìm thấy admin!',
-            ], 404);
+        $admin = admin::find($request->admin_id);
+
+        if(!$admin) {
+             return response()->json([
+                'message'   => 'Giáo Viên không tồn tại!'
+            ],400);
+            }
+              $admin->delete();
+                return response()->json([
+                    'message'   => 'Xóa Admin thành công!',
+                    "admin"=>$admin
+                ]);
         }
-    }
 
 
     public function updateAdmin(Request $request)
     {
-        $admin = Admin::where('id', $request->id)->first();
+          $admin = Admin::find($request->admin_id);
+        $data = $request->only(['name', 'username','gender_id', 'birthday', 'password','permission',]);
 
-        $data = $admin->all();
-        if (isset($admin)) {
-            $request->update($data);
-            return response()->json([
-                'status'    => true,
-                'message'   => 'Cập nhật khách hàng thành công!',
-            ]);
-        } else {
-            return response()->json([
+        if (!$admin) {
+             return response()->json([
                 'status'    => false,
-                'message'   => 'Cập nhật khách hàng không thành công!',
-            ]);
+                'message'   => 'Tài khoản không tồn tại!'
+            ],400);
         }
+        else if (isset($data['password'])) {
+            $data['password'] = bcrypt($data['password']);
+        }
+
+        $admin->fill($data)->save();
+
+        return response()->json([
+            'message'   => 'Cập nhật thông tin thành công!',
+            'admin'   => $admin,
+        ]);
     }
 
     public function getQuestion()
