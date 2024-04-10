@@ -26,6 +26,8 @@ class admin extends  Authenticatable implements JWTSubject
         'avatar',
         'birthday'
     ];
+
+
     public $timestamps = false;
     protected $primaryKey = 'admin_id';
 
@@ -46,4 +48,42 @@ class admin extends  Authenticatable implements JWTSubject
         return [];
     }
 
+    public function update_avatar($avatar, $username)
+    {
+        $admin = admin::where('username', $username)->first();
+
+        if ($admin) {
+            $admin->avatar = $avatar;
+            $admin->save();
+            return true;
+        }
+
+        return false;
+    }
+
+    // public function update_profile($username, $name, $email, $password, $gender, $birthday)
+    // {
+    //     $password = password_hash($password, PASSWORD_BCRYPT);
+
+    //     $result = DB::table($this->table)
+    //         ->where('username', $username)
+    //         ->update([
+    //             'email' => $email,
+    //             'password' => $password,
+    //             'name' => $name,
+    //             'gender_id' => $gender,
+    //             'birthday' => $birthday
+    //         ]);
+
+    //     return $result;
+    // }
+
+    // public function update_last_login($adminId)
+    // {
+    //     $result = DB::table($this->table)
+    //         ->where('admin_id', $adminId)
+    //         ->update(['last_login' => now()]);
+
+    //     return $result;
+    // }
 }

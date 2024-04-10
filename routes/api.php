@@ -22,7 +22,7 @@ Route::get('/admin/login', [Admincontroller::class, 'indexLogin']);
 Route::post('/admin/logout', [Admincontroller::class, 'logout'])->name('logout');
 Route::post('/submit-login', [AdminController::class, 'submitLogin']);
 
-Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function () {
+Route::group(['prefix' => '/admin'], function () { //, 'middleware' => 'checkLoginAdmin'
     // API route ----------------------------
     //ql Admin
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
@@ -60,7 +60,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
         Route::post('/edit',   [AdminTeacherController::class, 'edit'])->name('editTeacher');
         Route::post('/create', [AdminTeacherController::class, 'create'])->name('createTeacher');
         Route::post('/search', [AdminTeacherController::class, 'search'])->name('searchTeacher');
-        Route::post('/delete-check-box', [AdminTeacherController::class, 'deleteCheckbox'])->name('deleteCheckbox');
+        Route::post('/delete-check-box', [AdminTeacherController::class, 'deleteCh2eckbox'])->name('deleteCheckbox');
         Route::post('/check-add-teacher-via-file', [AdminTeacherController::class, 'createFileTeacher'])->name('check_add_teacher_via_file');
     });
 
