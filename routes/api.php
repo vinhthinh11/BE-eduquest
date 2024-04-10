@@ -70,7 +70,7 @@ Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function 
     });
 
     //ql Class
-    Route::group(['prefix' => 'classes'], function () {
+    Route::group(['prefix' => 'class'], function () {
         Route::get('/get',     [AdminClassController::class, 'getClasses'])->name('getClasses');
         Route::post('/delete', [AdminClassController::class, 'destroy'])->name('destroyClass');
         Route::post('/update', [AdminClassController::class, 'update'])->name('updateClass');
@@ -84,7 +84,7 @@ Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function 
     Route::group(['prefix' => '/truongbomon'], function () {
         Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
         Route::post('/update-tbm', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
-        Route::post('/check-add-tbm-via-file', [AdminTBMonController::class, 'check_add_tbm_via_file'])->name('check_add_tbm_via_file');
+        Route::post('/file', [AdminTBMonController::class, 'check_add_tbm_via_file'])->name('check_add_tbm_via_file');
         Route::post('/create-tbm', [AdminTBMonController::class, 'createTBM'])->name('createTBM');
         Route::delete('/delete-tbm', [AdminTBMonController::class, 'deleteTBM'])->name('deleteTBM');
         Route::put('/update-tbm', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
