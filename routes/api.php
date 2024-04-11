@@ -44,6 +44,7 @@ Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function 
     Route::get('/get-subjects', [Admincontroller::class, 'getSubjects'])->name('getSubjects');
     Route::post('/update-questions', [Admincontroller::class, 'updateQuestions'])->name(('updateQuestions'));
     Route::delete('/delete-question', [Admincontroller::class, 'deleteQuestion'])->name(('deleteQuestion'));
+    Route::post('check-add-test', [Admincontroller::class, 'checkAddTest'])->name(('checkAddTest'));
     ///
     //Profile
     Route::group(['prefix' => 'profiles'], function () {
