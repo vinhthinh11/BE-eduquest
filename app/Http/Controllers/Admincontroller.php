@@ -46,12 +46,12 @@ class Admincontroller extends Controller
     {
         $result = [];
 
-        if ($request->has('email') && $request->has('password')) {
-            $email = $request->input('email');
+        if ($request->has('username') && $request->has('password')) {
+            $username = $request->input('username');
             $password = $request->input('password');
 
             $token  = Auth::guard('api')->attempt([
-                'email'    => $email,
+                'username'    => $username,
                 'password'    => $password,
             ]);
             session()->put('permission', 'admin');

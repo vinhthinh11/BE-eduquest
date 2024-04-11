@@ -25,6 +25,8 @@ Route::post('/submit-login', [AdminController::class, 'submitLogin']);
 // 'middleware' => 'checkLoginAdmin'
 Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function () {
     // API route ----------------------------
+    // this line was add to check if huong could receive the change in his repo
+
     //ql Admin
     Route::get('/', function () {return view('welcome');});
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
