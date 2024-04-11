@@ -30,23 +30,20 @@ Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function 
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
     Route::post('/check-add-admin-via-file', [AdminController::class, 'check_add_admin_via_file'])->name('admin.check_add_admin_via_file');
     Route::get('/index', [AdminController::class, 'indexAdmin']);
-    Route::post('/create', [AdminController::class, 'createAdmin'])->name('createAdmin');
-    Route::delete('/delete', [AdminController::class, 'deleteAdmin'])->name('deleteAdmin');
-    Route::put('/update', [AdminController::class, 'updateAdmin'])->name('updateAdmin');
-
-    Route::group(['prefix' => 'question'], function () {
-        Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
-        Route::post('/check-add-question', [Admincontroller::class, 'checkAddQuestions'])->name('checkAddQuestion');
-        // Route::get('/question', function () {return view('admin.test_question');});
-        Route::get('/get', [Admincontroller::class, 'getQuestion'])->name('getQuestion');
-        Route::get('/get/level', [Admincontroller::class, 'getLevels'])->name('getLevel');
-        Route::get('/get-grade', [Admincontroller::class, 'getGrades'])->name('getGrade');
-        Route::get('/get-status', [Admincontroller::class, 'getStatus'])->name('getStatus');
-        Route::get('/get-subjects', [Admincontroller::class, 'getSubjects'])->name('getSubjects');
-        Route::put('/update', [Admincontroller::class, 'updateQuestions'])->name(('updateQuestions'));
-        Route::delete('/delete', [Admincontroller::class, 'deleteQuestion'])->name(('deleteQuestion'));
- });
-
+    Route::post('/create-admin', [AdminController::class, 'createAdmin'])->name('createAdmin');
+    Route::delete('/delete-admin', [AdminController::class, 'deleteAdmin'])->name('deleteAdmin');
+    Route::put('/update-admin', [AdminController::class, 'updateAdmin'])->name('updateAdmin');
+    Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
+    Route::post('/check-add-question', [Admincontroller::class, 'checkAddQuestions'])->name('checkAddQuestion');
+    Route::get('/question', function () {return view('admin.test_question');});
+    Route::get('/get-questions', [Admincontroller::class, 'getQuestion'])->name('getQuestion');
+    Route::get('/get-level', [Admincontroller::class, 'getLevels'])->name('getLevel');
+    Route::get('/get-grade', [Admincontroller::class, 'getGrades'])->name('getGrade');
+    Route::get('/get-status', [Admincontroller::class, 'getStatus'])->name('getStatus');
+    Route::get('/get-subjects', [Admincontroller::class, 'getSubjects'])->name('getSubjects');
+    Route::post('/update-questions', [Admincontroller::class, 'updateQuestions'])->name(('updateQuestions'));
+    Route::delete('/delete-question', [Admincontroller::class, 'deleteQuestion'])->name(('deleteQuestion'));
+    Route::post('check-add-test', [Admincontroller::class, 'checkAddTest'])->name(('checkAddTest'));
     ///
     //Profile
     Route::group(['prefix' => 'profiles'], function () {
