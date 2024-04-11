@@ -645,4 +645,8 @@ class Admincontroller extends Controller
 
         ]);
     }
+
+    public function addTest() {
+
+    }
 }
