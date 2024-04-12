@@ -21,7 +21,7 @@ Route::get('/admin/login', [Admincontroller::class, 'indexLogin']);
 Route::post('/admin/logout', [Admincontroller::class, 'logout'])->name('logout');
 Route::post('/submit-login', [AdminController::class, 'submitLogin']);
 // 'middleware' => 'checkLoginAdmin'
-Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function () {
+Route::group(['prefix' => '/admin'], function () {
     // API route ----------------------------
     // this line was add to check if huong could receive the change in his repo
 
@@ -29,7 +29,7 @@ Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function 
     Route::get('/', function () {return view('welcome');});
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
     Route::post('/check-add-admin-via-file', [AdminController::class, 'check_add_admin_via_file'])->name('admin.check_add_admin_via_file');
-    Route::get('/index', [AdminController::class, 'indexAdmin']);
+    // Route::get('/index', [AdminController::class, 'indexAdmin']);
     Route::post('/create', [AdminController::class, 'createAdmin'])->name('createAdmin');
     Route::delete('/delete', [AdminController::class, 'deleteAdmin'])->name('deleteAdmin');
     Route::put('/update', [AdminController::class, 'updateAdmin'])->name('updateAdmin');
@@ -46,7 +46,7 @@ Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function 
         Route::get('/get-subjects', [Admincontroller::class, 'getSubjects'])->name('getSubjects');
         Route::get('/get-level', [Admincontroller::class, 'getLevels'])->name('getLevel');
         Route::post('/update-questions', [Admincontroller::class, 'updateQuestions'])->name(('updateQuestions'));
-        
+
         Route::post('check-add-test', [Admincontroller::class, 'checkAddTest'])->name(('checkAddTest'));
  });
 

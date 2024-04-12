@@ -43,11 +43,11 @@ class Admincontroller extends Controller
     {
         $result = [];
 
-        if ($request->has('username') && $request->has('password')) {
-            $username = $request->input('username');
+        if ($request->has('email') && $request->has('password')) {
+            $email = $request->input('email');
             $password = $request->input('password');
             $token  = Auth::guard('api')->attempt([
-                'username'    => $username,
+                'email'    => $email,
                 'password'    => $password,
             ]);
             session()->put('permission', 'admin');
@@ -64,6 +64,8 @@ class Admincontroller extends Controller
         ],403);
             }
         }
+           return response()->json([
+            'mesage' =>  "Đăng nhập thiếu thông tin"],400);
     }
 
     public function logout(Request $request)
