@@ -19,12 +19,15 @@ class Admincontroller extends Controller
 {
     public function getAdmin()
     {
-
-        $admin = new admin();
-        $getAllAdmin = $admin->getAdmin();
-
+         $data = admin::get();
+        if ($data->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No admin found!',
+            ], 400);
+        }
         return response()->json([
-            'getAllAdmin' => $getAllAdmin,
+            'data'    => $data,
         ]);
 
     }
@@ -46,6 +49,7 @@ class Admincontroller extends Controller
         if ($request->has('email') && $request->has('password')) {
             $email = $request->input('email');
             $password = $request->input('password');
+
             $token  = Auth::guard('api')->attempt([
                 'email'    => $email,
                 'password'    => $password,
@@ -64,9 +68,8 @@ class Admincontroller extends Controller
         ],403);
             }
         }
-           return response()->json([
-            'mesage' =>  "Đăng nhập thiếu thông tin"],400);
     }
+
 
     public function logout(Request $request)
     {
@@ -223,11 +226,48 @@ class Admincontroller extends Controller
 
     public function getQuestion()
     {
-        $admin = new questions();
-        $getQuestions = $admin->getQuestion();
+        $data = questions::get();
+        if(!$data)return response()->json([
+            'message' => 'No question found!',
+        ], 400);
+        return response()->json([
+            'data' => $data,
+        ]);
+    }
+
+    public function getLevels()
+    {
+        $level = level::get();
 
         return response()->json([
-            'getQuestions' => $getQuestions,
+            'level' => $level,
+        ]);
+    }
+
+    public function getGrades()
+    {
+        $grade = grade::get();
+
+        return response()->json([
+            'grade' => $grade,
+        ]);
+    }
+
+    public function getStatus()
+    {
+        $status = status::get();
+
+        return response()->json([
+            'status' => $status,
+        ]);
+    }
+
+    public function getSubjects()
+    {
+        $subjects = subjects::get();
+
+        return response()->json([
+            'subjects' => $subjects,
         ]);
     }
 
@@ -236,7 +276,8 @@ class Admincontroller extends Controller
     {
         $result = [];
 
-        $subjectId = 10;
+        $subjectId = $request->subject_id;
+        // $subjectId = 10;
         $inputFileType = 'Xlsx';
         $count = 0;
         $errList = [];
@@ -264,8 +305,9 @@ class Admincontroller extends Controller
                 $correctAnswer = $row['H'];
                 $gradeId = $row['I'];
                 $unit = $row['J'];
+                $suggest = $row['K'];
+                $status = $row['L'];
                 $teacherId = null;
-
                 switch ($correctAnswer) {
                     case "A":
                         $answer = $answerA;
@@ -280,7 +322,7 @@ class Admincontroller extends Controller
                         $answer = $answerD;
                 }
 
-                if (!empty($questionContent)) {
+                if (!empty($questionContent) && $teacherId == null) {
                     $question = new questions([
                         'subject_id' => $subjectId,
                         'question_content' => $questionContent,
@@ -292,8 +334,9 @@ class Admincontroller extends Controller
                         'correct_answer' => $answer,
                         'grade_id' => $gradeId,
                         'unit' => $unit,
+                        'suggest' => $suggest,
+                        'status_id' => $status,
                         'teacher_id' => $teacherId,
-                        'suggest' => 'Nội dung gợi ý',
                     ]);
 
                     // Lưu câu hỏi vào cơ sở dữ liệu
@@ -386,72 +429,78 @@ class Admincontroller extends Controller
 
     public function updateQuestions(Request $request)
     {
-        $result = [];
-        $question_id     = $request->question_id;
-        if (!empty($question_id)) {
-            $result['status_value'] = "Không tìm thấy câu hỏi!";
-            $result['status'] = 0;
+       $question = questions::find($request->question_id);
+       if(!$question)return response()->json(["message" => "Không tìm thấy câu hỏi!"], 400);
+       $data = $request->only(['question_content', 'level_id', 'answer_a', 'answer_b', 'answer_c', 'answer_d', 'correct_answer', 'grade_id', 'unit','suggest','status_id', 'teacher_id']);
+      $updateQuestion  =$question->fill($data)->save();
+    return response()->json(["updateData" => $updateQuestion]);
+       // $result = [];
+        // $question_id     = $request->question_id;
+        // if (!empty($question_id)) {
+        //     return response()->json([
+        //         'message'   => 'Không co id cuar cau hoi!',
+        //     ]);
+        // }
+
+        // $question_content = $request->question_content;
+        // $grade_id        = $request->grade_id;
+        // $subject_id      = $request->subject_id;
+        // $level_id        = $request->level_id;
+        // $unit            = $request->unit;
+        // $answer_a        = $request->answer_a;
+        // $answer_b        = $request->answer_b;
+        // $answer_c        = $request->answer_c;
+        // $answer_d        = $request->answer_d;
+        // $status_id       = $request->status_id;
+        // $suggest         = $request->suggest;
+        // $correct_answer  = $request->correct_answer;
+
+//         switch ($correct_answer) {
+//             case "A":
+//                 $answer = $answer_a;
+//                 break;
+//             case "B":
+//                 $answer = $answer_b;
+//                 break;
+//             case "C":
+//                 $answer = $answer_c;
+//                 break;
+//             default:
+//                 $answer = $answer_d;
+//         }
+// // ni cung ngu
+//         if (empty($question_content) || empty($grade_id) || empty($unit) || empty($level_id) || empty($answer_a) || empty($answer_b) || empty($answer_c) || empty($answer_d) || empty($correct_answer)) {
+//             $result['status_value'] = "Không được bỏ trống các trường nhập!";
+//             $result['status'] = 0;
+//         } else {
+//             $question = questions::find($question_id);
+//             // dd($question);
+//             if ($question) {
+//                 $question->update([
+//                     'subject_id' => $subject_id,
+//                     'question_content' => $question_content,
+//                     'level_id' => $level_id,
+//                     'grade_id' => $grade_id,
+//                     'unit' => $unit,
+//                     'answer_a' => $answer_a,
+//                     'answer_b' => $answer_b,
+//                     'answer_c' => $answer_c,
+//                     'answer_d' => $answer_d,
+//                     'correct_answer' => $answer,
+//                     'suggest' => $suggest,
+//                     'status_id' => $status_id,
+//                 ]);
+
+//                 $result['status_value'] = "Sửa thành công!";
+//                 $result['status'] = 1;
+//             } else {
+//                 $result['status_value'] = "Câu hỏi không tồn tại!";
+//                 $result['status'] = 0;
+//             }
+            // return response()->json();
         }
 
-        $question_content = $request->question_content;
-        $grade_id        = $request->grade_id;
-        $subject_id      = $request->subject_id;
-        $level_id        = $request->level_id;
-        $unit            = $request->unit;
-        $answer_a        = $request->answer_a;
-        $answer_b        = $request->answer_b;
-        $answer_c        = $request->answer_c;
-        $answer_d        = $request->answer_d;
-        $status_id       = $request->status_id;
-        $suggest         = $request->suggest;
-        $correct_answer  = $request->correct_answer;
 
-        switch ($correct_answer) {
-            case "A":
-                $answer = $answer_a;
-                break;
-            case "B":
-                $answer = $answer_b;
-                break;
-            case "C":
-                $answer = $answer_c;
-                break;
-            default:
-                $answer = $answer_d;
-        }
-
-        if (empty($question_content) || empty($grade_id) || empty($unit) || empty($level_id) || empty($answer_a) || empty($answer_b) || empty($answer_c) || empty($answer_d) || empty($correct_answer)) {
-            $result['status_value'] = "Không được bỏ trống các trường nhập!";
-            $result['status'] = 0;
-        } else {
-            $question = questions::find($question_id);
-            // dd($question);
-            if ($question) {
-                $question->update([
-                    'subject_id' => $subject_id,
-                    'question_content' => $question_content,
-                    'level_id' => $level_id,
-                    'grade_id' => $grade_id,
-                    'unit' => $unit,
-                    'answer_a' => $answer_a,
-                    'answer_b' => $answer_b,
-                    'answer_c' => $answer_c,
-                    'answer_d' => $answer_d,
-                    'correct_answer' => $answer,
-                    'suggest' => $suggest,
-                    'status_id' => $status_id,
-                ]);
-
-                $result['status_value'] = "Sửa thành công!";
-                $result['status'] = 1;
-            } else {
-                $result['status_value'] = "Câu hỏi không tồn tại!";
-                $result['status'] = 0;
-            }
-        }
-
-        return response()->json($result);
-    }
 
     public function deleteQuestion(Request $request)
     {
