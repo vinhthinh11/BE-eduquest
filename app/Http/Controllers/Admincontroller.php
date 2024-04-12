@@ -20,12 +20,15 @@ class Admincontroller extends Controller
 {
     public function getAdmin()
     {
-
-        $admin = new admin();
-        $getAllAdmin = $admin->getAdmin();
-
+         $data = admin::get();
+        if ($data->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No admin found!',
+            ], 400);
+        }
         return response()->json([
-            'getAllAdmin' => $getAllAdmin,
+            'data'    => $data,
         ]);
     }
 
@@ -43,12 +46,12 @@ class Admincontroller extends Controller
     {
         $result = [];
 
-        if ($request->has('email') && $request->has('password')) {
-            $email = $request->input('email');
+        if ($request->has('username') && $request->has('password')) {
+            $username = $request->input('username');
             $password = $request->input('password');
 
             $token  = Auth::guard('api')->attempt([
-                'email'    => $email,
+                'username'    => $username,
                 'password'    => $password,
             ]);
             session()->put('permission', 'admin');
@@ -61,8 +64,9 @@ class Admincontroller extends Controller
                 ]);
             } else {
                 return response()->json([
-                    'mesage' =>  "Tài khoản hoặc mật khẩu không đúng!",
-                ], 403);
+
+            'mesage' =>  "Tài khoản hoặc mật khẩu không đúng!",
+        ],400);
             }
         }
     }
@@ -184,12 +188,18 @@ class Admincontroller extends Controller
 
     public function deleteAdmin(Request $request)
     {
-        $admin = admin::find($request->admin_id);
+        $admin = admin::find($request->id);
 
-        if (!$admin) {
-            return response()->json([
-                'message'   => 'Giáo Viên không tồn tại!'
-            ], 400);
+
+        if(!$admin) {
+             return response()->json([
+                'message'   => 'Admin không tồn tại!'
+            ],400);
+            }
+              $admin->delete();
+                return response()->json([
+                    'message'   => 'Xóa Admin thành công!',
+                ]);
         }
         $admin->delete();
         return response()->json([
@@ -223,11 +233,12 @@ class Admincontroller extends Controller
 
     public function getQuestion()
     {
-        $admin = new questions();
-        $getQuestions = $admin->getQuestion();
-
+        $data = questions::get();
+        if(!$data)return response()->json([
+            'message' => 'No question found!',
+        ], 400);
         return response()->json([
-            'getQuestions' => $getQuestions,
+            'data' => $data,
         ]);
     }
 

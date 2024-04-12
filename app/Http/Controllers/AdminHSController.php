@@ -12,36 +12,39 @@ class AdminHSController extends Controller
      public $successStatus = 200;
      public function index()
      {
-         $getAllHS = students::paginate(10);
+         $data = students::get();
+         if(!$data->isEmpty()){
+             return response()->json([
+                 'data' => $data
+             ]);}
          return response()->json([
-             'response' => 'success',
-             'data' => $getAllHS
-         ], $this->successStatus);
+             'data' => $data
+         ]);
      }
- 
+
      public function check_add_hs_via_file(Request $request)
      {
          $result = [];
- 
+
          if ($request->hasFile('file')) {
              $filePath = $request->file('file')->path();
- 
+
              $reader = IOFactory::createReader('Xlsx');
              $spreadsheet = $reader->load($filePath);
              $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
- 
+
              $count = 0;
              $errList = [];
- 
+
              foreach ($sheetData as $key => $row) {
                  if ($key < 4) {
                      continue;
                  }
- 
+
                  if (empty($row['A'])) {
                      continue;
                  }
- 
+
                  $name = $row['B'];
                  $username = $row['C'];
                  $email = $row['D'];
@@ -57,7 +60,7 @@ class AdminHSController extends Controller
                      'gender_id' => $gender,
                      'last_login' => now(),
                  ]);
- 
+
                  if ($hs->saveQuietly()) {
                      $count++;
                  } else {
@@ -66,7 +69,7 @@ class AdminHSController extends Controller
              }
              //Xóa tệp
              unlink($filePath);
- 
+
              if (empty($errList)) {
                  $result['status_value'] = "Thêm thành công " . $count . " tài khoản!";
                  $result['status'] = 1;
@@ -78,7 +81,7 @@ class AdminHSController extends Controller
              $result['status_value'] = "Không tìm thấy tệp được tải lên!";
              $result['status'] = 0;
          }
- 
+
          return response()->json($result);
          // return response()->json([
          //     'result' => $result,
@@ -87,14 +90,14 @@ class AdminHSController extends Controller
      public function createHS(Request $request)
      {
          $result = [];
- 
+
          $name = $request->input('name');
          $username = $request->input('username');
          $password = md5($request->input('password'));
          $email = $request->input('email');
          $birthday = $request->input('birthday');
          $gender = $request->input('gender');
- 
+
          //giới tính
          if ($gender == 'Nam') {
              $gender_id = 2;
@@ -103,7 +106,7 @@ class AdminHSController extends Controller
          }else {
              $gender_id = 1;
          }
- 
+
          $hs = new students([
              'name' => $name,
              'username' => $username,
@@ -112,7 +115,7 @@ class AdminHSController extends Controller
              'birthday' => $birthday,
              'gender_id' => $gender_id,
              'last_login' => now(),
- 
+
          ]);
          if ($hs->save()) {
              $result = $hs->toArray();
@@ -122,13 +125,13 @@ class AdminHSController extends Controller
              $result['status_value'] = "Lỗi! Tài khoản đã tồn tại!";
              $result['status'] = 0;
          }
- 
+
          // return response()->json($result);
          return response()->json([
              'result' => $result,
          ]);
      }
- 
+
      public function deleteHS(Request $request)
      {
          $hs = students::find($request->student_id);
@@ -145,15 +148,15 @@ class AdminHSController extends Controller
              ], 404);
          }
      }
- 
- 
- 
+
+
+
      public function updateHS(Request $request){
          $hs = students::find($request->student_id);
          if ($hs) {
              $data = $request->all();
              $hs->update($data);
- 
+
              return response()->json([
                  'status'    => true,
                  'message'   => 'Cập nhật học sinh thành công!',

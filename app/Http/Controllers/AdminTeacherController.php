@@ -14,7 +14,12 @@ class AdminTeacherController extends Controller
     public function getTeacher()
     {
         $data = teacher::get();
-
+        if ($data->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No teacher found!',
+            ], 400);
+        }
         return response()->json([
             'data'    => $data,
         ]);
