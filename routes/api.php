@@ -23,6 +23,8 @@ Route::post('/submit-login', [AdminController::class, 'submitLogin']);
 // 'middleware' => 'checkLoginAdmin'
 Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function () {
     // API route ----------------------------
+    // this line was add to check if huong could receive the change in his repo
+
     //ql Admin
     Route::get('/', function () {return view('welcome');});
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
@@ -32,19 +34,26 @@ Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function 
     Route::delete('/delete', [AdminController::class, 'deleteAdmin'])->name('deleteAdmin');
     Route::put('/update', [AdminController::class, 'updateAdmin'])->name('updateAdmin');
 
+
+
+
     Route::group(['prefix' => 'question'], function () {
         Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
         Route::post('/check-add-question', [Admincontroller::class, 'checkAddQuestions'])->name('checkAddQuestion');
-        // Route::get('/question', function () {return view('admin.test_question');});
         Route::get('/get', [Admincontroller::class, 'getQuestion'])->name('getQuestion');
-        Route::get('/get/level', [Admincontroller::class, 'getLevels'])->name('getLevel');
         Route::get('/get-grade', [Admincontroller::class, 'getGrades'])->name('getGrade');
         Route::get('/get-status', [Admincontroller::class, 'getStatus'])->name('getStatus');
         Route::get('/get-subjects', [Admincontroller::class, 'getSubjects'])->name('getSubjects');
         Route::put('/update', [Admincontroller::class, 'updateQuestions'])->name(('updateQuestions'));
         Route::delete('/delete', [Admincontroller::class, 'deleteQuestion'])->name(('deleteQuestion'));
+        Route::get('/get-level', [Admincontroller::class, 'getLevels'])->name('getLevel');
+        Route::get('/get-subjects', [Admincontroller::class, 'getSubjects'])->name('getSubjects');
+        Route::post('/update-questions', [Admincontroller::class, 'updateQuestions'])->name(('updateQuestions'));
+        Route::delete('/delete-question', [Admincontroller::class, 'deleteQuestion'])->name(('deleteQuestion'));
+        Route::post('check-add-test', [Admincontroller::class, 'checkAddTest'])->name(('checkAddTest'));
  });
 
+    ///
     //Profile
     Route::group(['prefix' => 'profiles'], function () {
         Route::put('/update-profile',      [ProfileController::class, 'updateProfile'])->name('updateProfile');
@@ -87,7 +96,7 @@ Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function 
     Route::group(['prefix' => '/truongbomon'], function () {
         Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
         Route::post('/update-tbm', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
-        Route::post('/check-add-tbm-via-file', [AdminTBMonController::class, 'check_add_tbm_via_file'])->name('check_add_tbm_via_file');
+        Route::post('/file', [AdminTBMonController::class, 'check_add_tbm_via_file'])->name('check_add_tbm_via_file');
         Route::post('/create-tbm', [AdminTBMonController::class, 'createTBM'])->name('createTBM');
         Route::delete('/delete-tbm', [AdminTBMonController::class, 'deleteTBM'])->name('deleteTBM');
         Route::put('/update-tbm', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');

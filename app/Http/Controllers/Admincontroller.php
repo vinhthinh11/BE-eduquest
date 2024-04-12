@@ -8,11 +8,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Http\Controllers\Controller;
-use App\Models\student;
-use App\Models\subject_head;
-use App\Models\teacher;
-use Illuminate\Support\Facades\Hash;
-use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use App\Models\grade;
+use App\Models\level;
+use App\Models\status;
+use App\Models\subjects;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 
@@ -27,8 +26,7 @@ class Admincontroller extends Controller
         return response()->json([
             'getAllAdmin' => $getAllAdmin,
         ]);
-        // } else {
-        // }
+
     }
 
     public function indexLogin()
@@ -45,28 +43,27 @@ class Admincontroller extends Controller
     {
         $result = [];
 
-        if ($request->has('email') && $request->has('password')) {
-            $email = $request->input('email');
+        if ($request->has('username') && $request->has('password')) {
+            $username = $request->input('username');
             $password = $request->input('password');
             $token  = Auth::guard('api')->attempt([
-                'email'    => $email,
+                'username'    => $username,
                 'password'    => $password,
             ]);
             session()->put('permission', 'admin');
             // dd($token);
             if ($token) {
-                $result['status_value'] = 'Đăng nhập thành công đang chuyển hướng...';
-            } else {
-                $result['status_value'] = 'Đăng nhập thất bại!';
-            }
-        }
-
-        return response()->json([
+               return response()->json([
             'result' =>  $result,
             'access_token' => $token,
-            'token_type' => 'bearer',
             'expires_in' => JWTAuth::factory()->getTTL() * 6000
-        ]);
+               ]);
+            } else {
+                return response()->json([
+            'mesage' =>  "Tài khoản hoặc mật khẩu không đúng!",
+        ],403);
+            }
+        }
     }
 
     public function logout(Request $request)
@@ -185,40 +182,41 @@ class Admincontroller extends Controller
 
     public function deleteAdmin(Request $request)
     {
-        $admin = Admin::find($request->admin_id);
-        // dd($admin);
-        if ($admin) {
-            $admin->delete();
-            return response()->json([
-                'status'    => true,
-                'message'   => 'Xoá admin thành công!',
-            ]);
-        } else {
-            return response()->json([
-                'status'    => false,
-                'message'   => 'Không tìm thấy admin!',
-            ], 404);
+        $admin = admin::find($request->id);
+
+        if(!$admin) {
+             return response()->json([
+                'message'   => 'Admin không tồn tại!'
+            ],400);
+            }
+              $admin->delete();
+                return response()->json([
+                    'message'   => 'Xóa Admin thành công!',
+                ]);
         }
-    }
 
 
     public function updateAdmin(Request $request)
     {
-        $admin = Admin::where('id', $request->id)->first();
+          $admin = Admin::find($request->admin_id);
+        $data = $request->only(['name', 'username','gender_id', 'birthday', 'password','permission',]);
 
-        $data = $admin->all();
-        if (isset($admin)) {
-            $request->update($data);
-            return response()->json([
-                'status'    => true,
-                'message'   => 'Cập nhật khách hàng thành công!',
-            ]);
-        } else {
-            return response()->json([
+        if (!$admin) {
+             return response()->json([
                 'status'    => false,
-                'message'   => 'Cập nhật khách hàng không thành công!',
-            ]);
+                'message'   => 'Tài khoản không tồn tại!'
+            ],400);
         }
+        else if (isset($data['password'])) {
+            $data['password'] = bcrypt($data['password']);
+        }
+
+        $admin->fill($data)->save();
+
+        return response()->json([
+            'message'   => 'Cập nhật thông tin thành công!',
+            'admin'   => $admin,
+        ]);
     }
 
     public function getQuestion()
@@ -319,5 +317,172 @@ class Admincontroller extends Controller
             $result['status'] = 0;
         }
         return response()->json($result);
+    }
+
+    public function checkAddQuestions(Request $request)
+    {
+        $result = [];
+
+        $subjectId = $request->subject_id;
+        $questionContent = $request->question_content;
+        $gradeId = $request->grade_id;
+        $levelId = $request->level_id;
+        $unit = $request->unit;
+        $answerA = $request->answer_a;
+        $answerB = $request->answer_b;
+        $answerC = $request->answer_c;
+        $answerD = $request->answer_d;
+        $status = $request->status_id;
+        $suggest = $request->suggest;
+        $correct_answer = $request->correct_answer;
+        $teacherId = null;
+
+        switch ($correct_answer) {
+            case "A":
+                $answer = $answerA;
+                break;
+            case "B":
+                $answer = $answerB;
+                break;
+            case "C":
+                $answer = $answerC;
+                break;
+            default:
+                $answer = $answerD;
+        }
+
+        if (!empty($questionContent) && $teacherId == null) {
+            $question = new questions([
+                'subject_id' => $subjectId,
+                'question_content' => $questionContent,
+                'level_id' => $levelId,
+                'answer_a' => $answerA,
+                'answer_b' => $answerB,
+                'answer_c' => $answerC,
+                'answer_d' => $answerD,
+                'correct_answer' => $answer,
+                'grade_id' => $gradeId,
+                'unit' => $unit,
+                'suggest' => $suggest,
+                'status_id' => $status,
+                'teacher_id' => $teacherId,
+            ]);
+        }
+
+        if ($question->save()) {
+            $result = $question->toArray();
+            $result['status_value'] = "Thêm thành công!";
+            $result['status'] = 1;
+        } else {
+            $result['status_value'] = "Lỗi! câu hỏi đã tồn tại!";
+            $result['status'] = 0;
+        }
+        return response()->json([
+            'result' => $result,
+        ]);
+    }
+
+    public function updateQuestions(Request $request)
+    {
+        $result = [];
+        $question_id     = $request->question_id;
+        if (!empty($question_id)) {
+            $result['status_value'] = "Không tìm thấy câu hỏi!";
+            $result['status'] = 0;
+        }
+
+        $question_content = $request->question_content;
+        $grade_id        = $request->grade_id;
+        $subject_id      = $request->subject_id;
+        $level_id        = $request->level_id;
+        $unit            = $request->unit;
+        $answer_a        = $request->answer_a;
+        $answer_b        = $request->answer_b;
+        $answer_c        = $request->answer_c;
+        $answer_d        = $request->answer_d;
+        $status_id       = $request->status_id;
+        $suggest         = $request->suggest;
+        $correct_answer  = $request->correct_answer;
+
+        switch ($correct_answer) {
+            case "A":
+                $answer = $answer_a;
+                break;
+            case "B":
+                $answer = $answer_b;
+                break;
+            case "C":
+                $answer = $answer_c;
+                break;
+            default:
+                $answer = $answer_d;
+        }
+
+        if (empty($question_content) || empty($grade_id) || empty($unit) || empty($level_id) || empty($answer_a) || empty($answer_b) || empty($answer_c) || empty($answer_d) || empty($correct_answer)) {
+            $result['status_value'] = "Không được bỏ trống các trường nhập!";
+            $result['status'] = 0;
+        } else {
+            $question = questions::find($question_id);
+            // dd($question);
+            if ($question) {
+                $question->update([
+                    'subject_id' => $subject_id,
+                    'question_content' => $question_content,
+                    'level_id' => $level_id,
+                    'grade_id' => $grade_id,
+                    'unit' => $unit,
+                    'answer_a' => $answer_a,
+                    'answer_b' => $answer_b,
+                    'answer_c' => $answer_c,
+                    'answer_d' => $answer_d,
+                    'correct_answer' => $answer,
+                    'suggest' => $suggest,
+                    'status_id' => $status_id,
+                ]);
+
+                $result['status_value'] = "Sửa thành công!";
+                $result['status'] = 1;
+            } else {
+                $result['status_value'] = "Câu hỏi không tồn tại!";
+                $result['status'] = 0;
+            }
+        }
+
+        return response()->json($result);
+    }
+
+    public function deleteQuestion(Request $request)
+    {
+        $question_id = $request->question_id;
+        $question = questions::find($question_id);
+
+        if (!empty($question)) {
+            $question->delete();
+            return response()->json([
+                'status'    => true,
+                'message'   => 'Xoá câu hỏi thành công!',
+            ]);
+        } else {
+            return response()->json([
+                'status'    => false,
+                'message'   => 'Xoá câu hỏi không thành công!',
+            ]);
+        }
+    }
+
+    public function checkAddTest(Request $request)
+    {
+
+        $result = [];
+
+        $testName   = $request->test_name;
+        $password   = bcrypt($request->password);
+        $gradeId    = $request->grade_id;
+        $subjectId  = $request->subject_id;
+        $levelId    = $request->level_id;
+        $totalQuestions = $request->total_questions;
+        $timeToDo   = $request->time_to_do;
+        $note       = $request->note;
+        $testCode   = rand(100000, 999999);
     }
 }

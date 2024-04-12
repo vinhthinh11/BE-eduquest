@@ -27,8 +27,10 @@ class AdminTBMonController extends Controller
     public function check_add_tbm_via_file(Request $request)
     {
         $result = [];
+        if (!$request->hasFile('file'))  return response()->json([
+            'message' => 'Chua nhap file',
+        ], 400);
 
-        if ($request->hasFile('file')) {
             $filePath = $request->file('file')->path();
 
             $reader = IOFactory::createReader('Xlsx');
@@ -39,11 +41,7 @@ class AdminTBMonController extends Controller
             $errList = [];
 
             foreach ($sheetData as $key => $row) {
-                if ($key < 4) {
-                    continue;
-                }
-
-                if (empty($row['A'])) {
+                if ($key < 4 ||empty($row['A'])) {
                     continue;
                 }
 
@@ -52,7 +50,7 @@ class AdminTBMonController extends Controller
                 $email = $row['D'];
                 $password = md5($row['E']);
                 $birthday = $row['F'];
-                $gender = ($row['G'] == 'Nam') ? 2 : (($row['G'] == 'Nữ') ? 3 : 1);
+                $gender = ($row['G'] == 'Nam') ? 1 : (($row['G'] == 'Nữ') ? 2 : 3);
                 $subject = ($row['H'] == 'Toán') ? 1 : (($row['H'] == 'Ngữ Văn') ? 2 :  3);
                 $tbm = new subject_head([
                     'name' => $name,
@@ -65,32 +63,20 @@ class AdminTBMonController extends Controller
                     'last_login' => now(),
                 ]);
 
-                if ($tbm->saveQuietly()) {
-                    $count++;
-                } else {
-                    $errList[] = $row['A'];
-                }
+            try {
+                $tbm->saveQuietly();
+                $count++;
+            } catch (\Exception $e) {
+                return response()->json([
+                    'message' => 'Them file khong thanh cong',
+                ], 400);
             }
-            //Xóa tệp
-            unlink($filePath);
-
-            if (empty($errList)) {
-                $result['status_value'] = "Thêm thành công " . $count . " tài khoản!";
-                $result['status'] = 1;
-            } else {
-                $result['status_value'] = "Lỗi! Không thể thêm tài khoản có STT: " . implode(', ', $errList) . ', vui lòng xem lại.';
-                $result['status'] = 0;
-            }
-        } else {
-            $result['status_value'] = "Không tìm thấy tệp được tải lên!";
-            $result['status'] = 0;
         }
-
-        return response()->json($result);
-        // return response()->json([
-        //     'result' => $result,
-        // ]);
-    }
+                    unlink($filePath);
+                    return response()->json([
+                        "mesagge"=> "them thanh cong ". $count . " truong bo mon",
+                    ]);
+}
     public function createTBM(Request $request)
     {
         $result = [];
@@ -159,7 +145,7 @@ class AdminTBMonController extends Controller
 
     public function deleteTBM(Request $request)
     {
-        $tbm = subject_head::find($request->subject_head_id);
+        $tbm = subject_head::findOrFail($request->id);
         // dd($tbm);
         if ($tbm) {
             $tbm->delete();
