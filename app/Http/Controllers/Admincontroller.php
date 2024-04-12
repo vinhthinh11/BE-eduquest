@@ -8,6 +8,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Http\Controllers\Controller;
+use App\Models\student;
+use App\Models\subject_head;
+use App\Models\teacher;
+use Illuminate\Support\Facades\Hash;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 
@@ -63,7 +68,6 @@ class Admincontroller extends Controller
             'expires_in' => JWTAuth::factory()->getTTL() * 6000
         ]);
     }
-
 
     public function logout(Request $request)
     {

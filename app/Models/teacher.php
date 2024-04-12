@@ -2,12 +2,18 @@
 
 namespace App\Models;
 
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
 
-class teacher extends Model
+class teacher extends Authenticatable implements JWTSubject
 {
+    use Notifiable;
+
     protected $table = 'teachers';
     protected $fillable = [
         'teacher_id',
@@ -29,5 +35,14 @@ class teacher extends Model
     {
         $getTeacher = DB::select('select * from teachers');
         return $getTeacher;
+    }
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
     }
 }

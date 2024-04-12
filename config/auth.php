@@ -17,7 +17,11 @@ return [
         ],
         'api' => [
             'driver' => 'jwt',
-            'provider' => 'admins',
+            'provider' => 'admins'
+        ],
+        'teacher' => [
+            'driver' => 'jwt',
+            'provider' => 'teacher'
         ],
     ],
 
@@ -31,6 +35,29 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\admin::class,
         ],
+        'teacher' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\teacher::class,
+        ],
+
+
+    // 'guards' => [
+    //     'api' => [
+    //         'driver' => 'jwt',
+    //         'provider' => 'multi',
+    //     ],
+    // ],
+
+    // 'providers' => [
+    //     'multi' => [
+    //         'driver' => 'eloquent',
+    //         'models' => [
+    //             App\Models\admin::class,
+    //             App\Models\teacher::class,
+    //             App\Models\subject_head::class,
+    //             App\Models\student::class,
+    //         ],
+    //     ],
 
         // 'users' => [
         //     'driver' => 'database',
