@@ -25,26 +25,35 @@ Route::post('/submit-login', [AdminController::class, 'submitLogin']);
 // 'middleware' => 'checkLoginAdmin'
 Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function () {
     // API route ----------------------------
+    // this line was add to check if huong could receive the change in his repo
+
     //ql Admin
     Route::get('/', function () {return view('welcome');});
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
-    Route::post('/update-admin', [Admincontroller::class, 'updateAdmin'])->name('updateAdmin');
     Route::post('/check-add-admin-via-file', [AdminController::class, 'check_add_admin_via_file'])->name('admin.check_add_admin_via_file');
     Route::get('/index', [AdminController::class, 'indexAdmin']);
-    Route::post('/create-admin', [AdminController::class, 'createAdmin'])->name('createAdmin');
-    Route::delete('/delete-admin', [AdminController::class, 'deleteAdmin'])->name('deleteAdmin');
-    Route::put('/update-admin', [AdminController::class, 'updateAdmin'])->name('updateAdmin');
-    Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
-    Route::post('/check-add-question', [Admincontroller::class, 'checkAddQuestions'])->name('checkAddQuestion');
-    Route::get('/question', function () {return view('admin.test_question');});
-    Route::get('/get-questions', [Admincontroller::class, 'getQuestion'])->name('getQuestion');
-    Route::get('/get-level', [Admincontroller::class, 'getLevels'])->name('getLevel');
-    Route::get('/get-grade', [Admincontroller::class, 'getGrades'])->name('getGrade');
-    Route::get('/get-status', [Admincontroller::class, 'getStatus'])->name('getStatus');
-    Route::get('/get-subjects', [Admincontroller::class, 'getSubjects'])->name('getSubjects');
-    Route::post('/update-questions', [Admincontroller::class, 'updateQuestions'])->name(('updateQuestions'));
-    Route::delete('/delete-question', [Admincontroller::class, 'deleteQuestion'])->name(('deleteQuestion'));
-    Route::post('check-add-test', [Admincontroller::class, 'checkAddTest'])->name(('checkAddTest'));
+    Route::post('/create', [AdminController::class, 'createAdmin'])->name('createAdmin');
+    Route::delete('/delete', [AdminController::class, 'deleteAdmin'])->name('deleteAdmin');
+    Route::put('/update', [AdminController::class, 'updateAdmin'])->name('updateAdmin');
+    
+
+    
+
+    Route::group(['prefix' => 'question'], function () {
+        Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
+        Route::post('/check-add-question', [Admincontroller::class, 'checkAddQuestions'])->name('checkAddQuestion');
+        Route::get('/get', [Admincontroller::class, 'getQuestion'])->name('getQuestion');
+        Route::get('/get-grade', [Admincontroller::class, 'getGrades'])->name('getGrade');
+        Route::get('/get-status', [Admincontroller::class, 'getStatus'])->name('getStatus');
+        Route::get('/get-subjects', [Admincontroller::class, 'getSubjects'])->name('getSubjects');
+        Route::put('/update', [Admincontroller::class, 'updateQuestions'])->name(('updateQuestions'));
+        Route::delete('/delete', [Admincontroller::class, 'deleteQuestion'])->name(('deleteQuestion'));
+        Route::get('/get-level', [Admincontroller::class, 'getLevels'])->name('getLevel');
+        Route::get('/get-subjects', [Admincontroller::class, 'getSubjects'])->name('getSubjects');
+        Route::post('/update-questions', [Admincontroller::class, 'updateQuestions'])->name(('updateQuestions'));
+        Route::delete('/delete-question', [Admincontroller::class, 'deleteQuestion'])->name(('deleteQuestion'));
+        Route::post('check-add-test', [Admincontroller::class, 'checkAddTest'])->name(('checkAddTest'));
+ });
     ///
     //Profile
     Route::group(['prefix' => 'profiles'], function () {
@@ -63,7 +72,7 @@ Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function 
     Route::group(['prefix' => 'teacher'], function () {
         Route::get('/get',     [AdminTeacherController::class, 'getTeacher'])->name('getTeacher');
         Route::post('/delete', [AdminTeacherController::class, 'destroy'])->name('destroyTeacher');
-        Route::post('/update', [AdminTeacherController::class, 'update'])->name('updateTeacher');
+        Route::put('/update', [AdminTeacherController::class, 'update'])->name('updateTeacher');
         Route::post('/edit',   [AdminTeacherController::class, 'edit'])->name('editTeacher');
         Route::post('/create', [AdminTeacherController::class, 'create'])->name('createTeacher');
         Route::post('/search', [AdminTeacherController::class, 'search'])->name('searchTeacher');
@@ -72,21 +81,21 @@ Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function 
     });
 
     //ql Class
-    Route::group(['prefix' => 'classes'], function () {
+    Route::group(['prefix' => 'class'], function () {
         Route::get('/get',     [AdminClassController::class, 'getClasses'])->name('getClasses');
-        Route::post('/delete', [AdminClassController::class, 'destroy'])->name('destroyClass');
-        Route::post('/update', [AdminClassController::class, 'update'])->name('updateClass');
-        Route::post('/edit',   [AdminClassController::class, 'edit'])->name('editClass');
-        Route::post('/create', [AdminClassController::class, 'create'])->name('createClass');
+        Route::delete('/delete', [AdminClassController::class, 'destroy'])->name('destroyClass');
+        Route::put('/update', [AdminClassController::class, 'update'])->name('updateClass');
+        Route::put('/edit',   [AdminClassController::class, 'edit'])->name('editClass');
+        Route::put('/create', [AdminClassController::class, 'create'])->name('createClass');
         Route::post('/search', [AdminClassController::class, 'search'])->name('searchClass');
-        Route::post('/delete-check-box', [AdminClassController::class, 'deleteCheckbox'])->name('deleteCheckbox');
+        Route::delete('/delete-check-box', [AdminClassController::class, 'deleteCheckbox'])->name('deleteCheckbox');
     });
 
     //ql TBM
     Route::group(['prefix' => '/truongbomon'], function () {
         Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
         Route::post('/update-tbm', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
-        Route::post('/check-add-tbm-via-file', [AdminTBMonController::class, 'check_add_tbm_via_file'])->name('check_add_tbm_via_file');
+        Route::post('/file', [AdminTBMonController::class, 'check_add_tbm_via_file'])->name('check_add_tbm_via_file');
         Route::post('/create-tbm', [AdminTBMonController::class, 'createTBM'])->name('createTBM');
         Route::delete('/delete-tbm', [AdminTBMonController::class, 'deleteTBM'])->name('deleteTBM');
         Route::put('/update-tbm', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
@@ -101,12 +110,12 @@ Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function 
     });
 
     //ql học sinh
-    Route::group(['prefix' => '/hocsinh'], function () {
-        Route::get('/', [AdminHSController::class, 'index'])->name('index');
-        Route::post('/file-hs', [AdminHSController::class, 'check_add_hs_via_file'])->name('check_add_hs_via_file');
+    Route::group(['prefix' => '/student'], function () {
+        Route::get('/get', [AdminHSController::class, 'index'])->name('index');
+        Route::post('/file', [AdminHSController::class, 'check_add_hs_via_file'])->name('check_add_hs_via_file');
         Route::post('/create', [AdminHSController::class, 'createHS'])->name('createHS');
-        Route::delete('/', [AdminHSController::class, 'deleteHS'])->name('deleteHS');
-        Route::put('/', [AdminHSController::class, 'updateHS'])->name('updateHS');
+        Route::delete('/delete', [AdminHSController::class, 'deleteHS'])->name('deleteHS');
+        Route::put('/update', [AdminHSController::class, 'updateHS'])->name('updateHS');
     });
 
     //Teacher controller
