@@ -13,6 +13,7 @@ use App\Models\level;
 use App\Models\status;
 use App\Models\subjects;
 use App\Models\tests;
+use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 
@@ -20,7 +21,7 @@ class Admincontroller extends Controller
 {
     public function getAdmin()
     {
-         $data = admin::get();
+        $data = admin::get();
         if ($data->isEmpty()) {
             return response()->json([
                 'status' => false,
@@ -50,16 +51,27 @@ class Admincontroller extends Controller
             $email = $request->input('email');
             $password = $request->input('password');
 
+
+            $admin = DB::table('admins')
+                ->select('permission')
+                ->where('email', $email)
+                ->orWhere('email', $password)
+                ->first();
+
+            if ($admin) {
+                $permission = $admin->permission;
+            }
+
             $token  = Auth::guard('api')->attempt([
                 'email'    => $email,
                 'password'    => $password,
             ]);
-            session()->put('permission', 'admin');
             // dd($token);
             if ($token) {
                 return response()->json([
-                    'result' =>  $result,
+                    'result' =>  "Đăng nhập thành công",
                     'access_token' => $token,
+                    'permission' => $permission,
                     'expires_in' => JWTAuth::factory()->getTTL() * 6000
                 ]);
             } else {
@@ -189,17 +201,17 @@ class Admincontroller extends Controller
     {
         $admin = admin::find($request->id);
 
-        if(!$admin) {
-             return response()->json([
+        if (!$admin) {
+            return response()->json([
                 'message'   => 'Admin không tồn tại!'
-            ],400);
-            }
-              $admin->delete();
-                return response()->json([
-                    'message'   => 'Xóa Admin thành công!',
-                    "admin"=>$admin
-                ]);
+            ], 400);
         }
+        $admin->delete();
+        return response()->json([
+            'message'   => 'Xóa Admin thành công!',
+            "admin" => $admin
+        ]);
+    }
 
 
     public function updateAdmin(Request $request)
@@ -227,7 +239,7 @@ class Admincontroller extends Controller
     public function getQuestion()
     {
         $data = questions::get();
-        if(!$data)return response()->json([
+        if (!$data) return response()->json([
             'message' => 'No question found!',
         ], 400);
         return response()->json([
@@ -649,5 +661,4 @@ class Admincontroller extends Controller
 
         ]);
     }
-
 }

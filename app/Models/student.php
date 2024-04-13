@@ -4,9 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
-class student extends Model
+class student extends  Authenticatable implements JWTSubject
 {
+    use Notifiable;
+
     protected $table = 'students';
 
     protected $fillable = [
@@ -31,4 +36,14 @@ class student extends Model
 
     protected $primaryKey = 'student_id';
     public $timestamps = false;
+
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
+    }
 }

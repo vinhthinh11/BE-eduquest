@@ -19,6 +19,18 @@ return [
             'driver' => 'jwt',
             'provider' => 'admins',
         ],
+        'apiStudents' => [
+            'driver' => 'jwt',
+            'provider' => 'apiStudents',
+        ],
+        'apiTeacher' => [
+            'driver' => 'jwt',
+            'provider' => 'apiTeacher',
+        ],
+        'apiTBM' => [
+            'driver' => 'jwt',
+            'provider' => 'apiTBM',
+        ],
     ],
 
 
@@ -30,6 +42,18 @@ return [
         'admins' => [
             'driver' => 'eloquent',
             'model' => App\Models\admin::class,
+        ],
+        'apiStudents' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\student::class,
+        ],
+        'apiTeacher' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\teacher::class,
+        ],
+        'apiTBM' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\subject_head::class,
         ],
 
         // 'users' => [
