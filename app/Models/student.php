@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class student extends Model
 {
@@ -31,4 +32,14 @@ class student extends Model
 
     protected $primaryKey = 'student_id';
     public $timestamps = false;
+
+    public function getTest($testCode)
+    {
+        $test = DB::table('tests')
+            ->where('test_code', $testCode)
+            ->first();
+
+        return $test;
+    }
+
 }

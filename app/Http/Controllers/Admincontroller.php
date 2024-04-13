@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use App\Models\grade;
 use App\Models\level;
 use App\Models\status;
+use App\Models\students;
 use App\Models\subjects;
 use App\Models\tests;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -646,7 +647,16 @@ class Admincontroller extends Controller
         ]);
     }
 
-    public function addTest() {
 
+
+    public function checkPassWord(Request $request) {
+        $result   = [];
+        $student  = new students();
+        $testCode = $request->test_code;
+        $password = $request->password;
+
+        if ($password != $student->getTest($testCode)->password) {
+
+        }
     }
 }

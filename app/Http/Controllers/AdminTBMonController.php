@@ -10,7 +10,7 @@ class AdminTBMonController extends Controller
 {
     // quản lý trưởng bộ môn
     public $successStatus = 200;
-    public function index()
+    public function index() 
     {
         $getAllTBM = subject_head::all();
         if ($getAllTBM->isEmpty()) {
