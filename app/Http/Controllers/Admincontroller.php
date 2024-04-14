@@ -320,7 +320,6 @@ class Admincontroller extends Controller
                 $gradeId = $row['I'];
                 $unit = $row['J'];
                 $suggest = $row['K'];
-                $status = $row['L'];
                 $teacherId = null;
                 switch ($correctAnswer) {
                     case "A":
@@ -349,7 +348,7 @@ class Admincontroller extends Controller
                         'grade_id' => $gradeId,
                         'unit' => $unit,
                         'suggest' => $suggest,
-                        'status_id' => $status,
+                        'status_id' => 3,
                         'teacher_id' => $teacherId,
                     ]);
 
@@ -357,7 +356,7 @@ class Admincontroller extends Controller
                     if ($question->saveQuietly()) {
                         $count++;
                     } else {
-                        $errList[] = $row['A'];
+                        $errList[] = $stt;
                     }
                 }
             }
