@@ -17,12 +17,16 @@ class TBMDuyetDTController extends Controller
         $test_code = $request->test_code;
         $test = tests::where('test_code', $test_code)->where('status_id', $status_id)->first();
         if ($test) {
-            $result['status_value'] = "Đề thi đã được duyệt thành công!";
-            $result['status_id'] = 4;
+            return response()->json([
+                'status_value' => "Đề thi đã được duyệt thành công!",
+                'status_id' => 4
+            ]);
+            
         } else {
-            $result['status_value'] = "Đề thi không được duyệt!";
-            $result['status_id'] = 5;
+            return responese()->json([
+                'status_value' => "Đề thi không được duyệt!",
+                'status_id' => 5
+            ]);
         }
-        echo json_encode($result);
     }
 }
