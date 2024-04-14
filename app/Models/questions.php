@@ -26,7 +26,8 @@ class questions extends  Model
         'suggest',
     ];
     public $timestamps = false;
-    protected $primaryKey = 'grade_id';
+    //ngu chua
+    protected $primaryKey = 'question_id';
     function getQuestion()
     {
         $getAllQuestion = DB::select('select * from questions');
