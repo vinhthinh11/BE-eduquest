@@ -11,6 +11,8 @@ use App\Http\Controllers\Controller;
 use App\Models\grade;
 use App\Models\level;
 use App\Models\status;
+use App\Models\student;
+use App\Models\students;
 use App\Models\subjects;
 use App\Models\tests;
 use Illuminate\Support\Facades\DB;
@@ -659,6 +661,49 @@ class Admincontroller extends Controller
         return response()->json([
             'result' => $result,
 
+        ]);
+    }
+
+    public function addTest(Request $request)
+    {
+        $result   = [];
+        $student  = new student();
+        $testCode = $request->test_code;
+        $password = md5($request->password);
+        if ($password != $student->getTest($testCode)->password) {
+            $result['status_value'] = "Sai mật khẩu";
+            $result['status'] = 0;
+        } else {
+            $listQuest =  $student->getQuestOfTest($testCode);
+            if ($listQuest !== null) {
+                foreach ($listQuest as $quest) {
+                    $array = array();
+                    $array[0] = $quest->answer_a;
+                    $array[1] = $quest->answer_b;
+                    $array[2] = $quest->answer_c;
+                    $array[3] = $quest->answer_d;
+                    $ID = rand(1, time()) + rand(100000, 999999);
+                    $time = $student->getTest($testCode)->time_to_do . ':00';
+                    if (is_array($array) && count($array) >= 4) {
+                        $student->addStudentQuest(2, $ID, $testCode, $quest->question_id, $array[0], $array[1], $array[2], $array[3]);
+                    } else {
+                        $result['status_value'] = "Không có đáp án";
+                        $result['status'] = 0;
+                    }
+                    $student->updateStudentExam($testCode, $time, 2);
+                }
+                $result['status_value'] = "Thành công. Chuẩn bị chuyển trang!";
+                $result['status'] = 1;
+            } else {
+                $result['status_value'] = "Không có câu hỏi cho bài kiểm tra này";
+                $result['status'] = 0;
+            }
+        }
+
+
+        return response()->json([
+            'result' => $result,
+            // 'listQuest' => $listQuest,
         ]);
     }
 }

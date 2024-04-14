@@ -31,4 +31,6 @@ class students extends Model
         $getAllHS = DB::select('select * from students');
         return $getAllHS;
     }
+
+    
 }
