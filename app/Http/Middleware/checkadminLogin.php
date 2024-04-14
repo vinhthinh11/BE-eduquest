@@ -4,19 +4,28 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Auth;
 
-class checkadminLogin
+class CheckLoginAdmin
 {
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
+     * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
+     */
     public function handle(Request $request, Closure $next)
     {
-
-        $check = JWTAuth::parseToken()->authenticate();
+        $check = Auth::guard('api')->user();
         if ($check) {
-            return $next($request);
+            if ($check->permission === 1) {
+                return $next($request);
+            } else {
+                return response()->json(['message' => 'Permission denied'], 403);
+            }
         } else {
             return redirect('/api/admin/login');
         }
-
     }
 }
