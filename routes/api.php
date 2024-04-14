@@ -153,6 +153,7 @@ Route::group(['prefix' => '/TBM', 'middleware' => 'CheckTBM'], function () {
 
     //duyệt đề thi
     Route::post('/', [TBMDuyetDeThiConTroller::class, 'duyetDT'])->name('duyetDT');
+    Route::put('/', [TBMDuyetDeThiConTroller::class, 'khongDuyetDT'])->name('khongDuyetDT');
 });
 // Route::group(['prefix' => 'laravel-filemanager'], function () {
 //     \UniSharp\LaravelFilemanager\Lfm::routes();
