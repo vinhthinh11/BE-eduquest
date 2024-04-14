@@ -21,9 +21,8 @@ class TBMDuyetDTController extends Controller
                 'status_value' => "Đề thi đã được duyệt thành công!",
                 'status_id' => 4
             ]);
-            
         } else {
-            return responese()->json([
+            return response()->json([
                 'status_value' => "Đề thi không được duyệt!",
                 'status_id' => 5
             ]);
