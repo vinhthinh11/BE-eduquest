@@ -10,6 +10,7 @@ use App\Http\Controllers\StatistController;
 use App\Http\Controllers\TeacherConTroller;
 use App\Http\Controllers\AdminHSController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TBMDuyetDTController;
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
@@ -149,6 +150,9 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'CheckTeacher'], function 
 
 Route::group(['prefix' => '/TBM', 'middleware' => 'CheckTBM'], function () {
     Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
+
+    //duyệt đề thi
+    Route::post('/',[TBMDuyetDTController::class, 'duyetDeThi'] )->name('duyetDeThi');
 });
 // Route::group(['prefix' => 'laravel-filemanager'], function () {
 //     \UniSharp\LaravelFilemanager\Lfm::routes();
