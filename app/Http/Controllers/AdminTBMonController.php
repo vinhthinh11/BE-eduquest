@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\subject_head;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AdminTBMonController extends Controller
 {
@@ -15,13 +18,51 @@ class AdminTBMonController extends Controller
         $getAllTBM = subject_head::all();
         if ($getAllTBM->isEmpty()) {
             return response()->json([
-            'message' => 'No data found',
+                'message' => 'No data found',
             ], 400);
         }
         return response()->json([
             'message' => 'success',
             'data' => $getAllTBM
         ]);
+    }
+
+    public function submitLogin(Request $request)
+    {
+
+        if ($request->has('email') && $request->has('password')) {
+            $email = $request->input('email');
+            $password = $request->input('password');
+
+
+            $teacher = DB::table('subject_head')
+                ->select('permission')
+                ->where('email', $email)
+                ->orWhere('email', $password)
+                ->first();
+
+            if ($teacher) {
+                $permission = $teacher->permission;
+            }
+
+            $token  = Auth::guard('apiTBM')->attempt([
+                'email'    => $email,
+                'password'    => $password,
+            ]);
+            // dd($token);
+            if ($token) {
+                return response()->json([
+                    'result' =>  "Đăng nhập thành công",
+                    'access_token' => $token,
+                    'permission' => $permission,
+                    'expires_in' => JWTAuth::factory()->getTTL() * 6000
+                ]);
+            } else {
+                return response()->json([
+                    'mesage' =>  "Tài khoản hoặc mật khẩu không đúng!",
+                ], 403);
+            }
+        }
     }
 
     public function check_add_tbm_via_file(Request $request)
@@ -92,9 +133,9 @@ class AdminTBMonController extends Controller
         //giới tính
         if ($gender == 'Nam') {
             $gender_id = 2;
-        } else if($gender == 'Nữ') {
+        } else if ($gender == 'Nữ') {
             $gender_id = 3; // Hoặc bất kỳ giá trị khác tương ứng với giới tính Nam
-        }else {
+        } else {
             $gender_id = 1;
         }
 
@@ -163,7 +204,8 @@ class AdminTBMonController extends Controller
 
 
 
-    public function updateTBM(Request $request){
+    public function updateTBM(Request $request)
+    {
         $tbm = subject_head::find($request->subject_head_id);
         if ($tbm) {
             $data = $request->all();

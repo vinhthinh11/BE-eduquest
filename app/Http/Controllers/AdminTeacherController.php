@@ -6,8 +6,11 @@ use App\Models\classes;
 use App\Models\teacher;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AdminTeacherController extends Controller
 {
@@ -25,14 +28,52 @@ class AdminTeacherController extends Controller
         ]);
     }
 
+    public function submitLogin(Request $request)
+    {
+
+        if ($request->has('email') && $request->has('password')) {
+            $email = $request->input('email');
+            $password = $request->input('password');
+
+
+            $teacher = DB::table('teachers')
+                ->select('permission')
+                ->where('email', $email)
+                ->orWhere('email', $password)
+                ->first();
+
+            if ($teacher) {
+                $permission = $teacher->permission;
+            }
+
+            $token  = Auth::guard('apiTeacher')->attempt([
+                'email'    => $email,
+                'password'    => $password,
+            ]);
+            // dd($token);
+            if ($token) {
+                return response()->json([
+                    'result' =>  "Đăng nhập thành công",
+                    'access_token' => $token,
+                    'permission' => $permission,
+                    'expires_in' => JWTAuth::factory()->getTTL() * 6000
+                ]);
+            } else {
+                return response()->json([
+                    'mesage' =>  "Tài khoản hoặc mật khẩu không đúng!",
+                ], 403);
+            }
+        }
+    }
+
     public function destroy(Request $request)
     {
         $teacher = teacher::find($request->teacher_id);
 
-        if($teacher) {
+        if ($teacher) {
             $class = classes::where('class_id', $request->teacher_id)->first();
 
-            if($class) {
+            if ($class) {
                 return response()->json([
                     'status'    => 2,
                     'message'   => 'Giáo Viên đang đứng Lớp, bạn không thể xóa!'
@@ -80,7 +121,7 @@ class AdminTeacherController extends Controller
         $data = $request->only(['name', 'gender_id', 'birthday', 'password']);
 
         if (!$teacher) {
-             return response()->json([
+            return response()->json([
                 'status'    => false,
                 'message'   => 'Tài khoản không tồn tại!'
             ]);
