@@ -11,6 +11,8 @@ use App\Http\Controllers\StatistController;
 use App\Http\Controllers\TeacherConTroller;
 use App\Http\Controllers\AdminHSController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\StudentController;
+use App\Http\Controllers\TBMDuyetDeThiController;
 
 // Route::group([
 
@@ -36,13 +38,25 @@ use App\Http\Controllers\ProfileController;
 
 
 Route::post('/submit-login', [AdminController::class, 'submitLogin']);
+//Login học sinh
+Route::post('/submit-loginHS', [AdminHSController::class, 'submitLogin']);
+
+//Login giáo viên
+Route::post('/submit-loginGV', [AdminTeacherController::class, 'submitLogin']);
+
+//Login TBM
+Route::post('/submit-loginTBM', [AdminTBMonController::class, 'submitLogin']);
+
+
 // 'middleware' => 'checkLoginAdmin'
-Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function () {
+Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function () {
     // API route ----------------------------
     // this line was add to check if huong could receive the change in his repo
 
     //ql Admin
-    Route::get('/', function () {return view('welcome');});
+    Route::get('/', function () {
+        return view('welcome');
+    });
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
     Route::post('/check-add-admin-via-file', [AdminController::class, 'check_add_admin_via_file'])->name('admin.check_add_admin_via_file');
     // Route::get('/index', [AdminController::class, 'indexAdmin']);
@@ -139,6 +153,32 @@ Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function 
             Route::post('/export',      [TeacherConTroller::class, 'exportScore'])->name('exportScore');
         });
     });
-
 });
 
+
+Route::group(['prefix' => '/student', 'middleware' => 'CheckStudent'], function () {
+    Route::get('/get', [AdminHSController::class, 'index'])->name('index');
+    Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
+
+    Route::post('/update-timing', [StudentController::class, 'updateTiming'])->name('updateTiming');
+    Route::post('/update-doing-exam', [StudentController::class, 'updateDoingExam'])->name('updateDoingExam');
+    Route::post('/reset-doing-exam', [StudentController::class, 'resetDoingExam'])->name('resetDoingExam');
+        Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
+        Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
+        Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
+});
+
+Route::group(['prefix' => '/teacher', 'middleware' => 'CheckTeacher'], function () {
+    Route::get('/get',     [AdminTeacherController::class, 'getTeacher'])->name('getTeacher');
+});
+
+Route::group(['prefix' => '/TBM', 'middleware' => 'CheckTBM'], function () {
+    Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
+
+    //duyệt đề thi
+    Route::post('/', [TBMDuyetDeThiConTroller::class, 'duyetDT'])->name('duyetDT');
+    Route::put('/', [TBMDuyetDeThiConTroller::class, 'khongDuyetDT'])->name('khongDuyetDT');
+});
+// Route::group(['prefix' => 'laravel-filemanager'], function () {
+//     \UniSharp\LaravelFilemanager\Lfm::routes();
+// });

@@ -76,7 +76,9 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'checkLoginAdmin' => \App\Http\Middleware\checkadminLogin::class,
         'userinfo' => \App\Http\Middleware\InfoMiddleware::class,
-
+        'CheckStudent' => \App\Http\Middleware\CheckStudentToken::class,
+        'CheckTeacher' => \App\Http\Middleware\CheckSTeacherLogin::class,
+        'CheckTBM' => \App\Http\Middleware\CheckTbmLogin::class,
     ];
 
     // Trong file app/Http/Kernel.php

@@ -13,11 +13,19 @@ return [
     'guards' => [
         'api' => [
             'driver' => 'jwt',
-            'provider' => 'admins'
+            'provider' => 'admins',
         ],
-        'teacher' => [
+        'apiStudents' => [
             'driver' => 'jwt',
-            'provider' => 'teachers'
+            'provider' => 'apiStudents',
+        ],
+        'apiTeacher' => [
+            'driver' => 'jwt',
+            'provider' => 'apiTeacher',
+        ],
+        'apiTBM' => [
+            'driver' => 'jwt',
+            'provider' => 'apiTBM',
         ],
     ],
 
@@ -31,29 +39,18 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\admin::class,
         ],
-        'teacher' => [
+        'apiStudents' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\student::class,
+        ],
+        'apiTeacher' => [
             'driver' => 'eloquent',
             'model' => App\Models\teacher::class,
         ],
-
-
-    // 'guards' => [
-    //     'api' => [
-    //         'driver' => 'jwt',
-    //         'provider' => 'multi',
-    //     ],
-    // ],
-
-    // 'providers' => [
-    //     'multi' => [
-    //         'driver' => 'eloquent',
-    //         'models' => [
-    //             App\Models\admin::class,
-    //             App\Models\teacher::class,
-    //             App\Models\subject_head::class,
-    //             App\Models\student::class,
-    //         ],
-    //     ],
+        'apiTBM' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\subject_head::class,
+        ],
 
         // 'users' => [
         //     'driver' => 'database',

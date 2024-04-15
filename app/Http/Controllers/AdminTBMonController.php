@@ -2,9 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Admin\Subject_head\CreateFileTBMRequest;
+use App\Http\Requests\Admin\Subject_head\CreateTBMRequest;
+use App\Http\Requests\Admin\Subject_head\DeleteTBMRequest;
+use App\Http\Requests\Admin\Subject_head\UpdateTBMRequest;
+use App\Http\Requests\LoginRequest;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\subject_head;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AdminTBMonController extends Controller
 {
@@ -15,7 +23,7 @@ class AdminTBMonController extends Controller
         $getAllTBM = subject_head::all();
         if ($getAllTBM->isEmpty()) {
             return response()->json([
-            'message' => 'No data found',
+                'message' => 'No data found',
             ], 400);
         }
         return response()->json([
@@ -24,7 +32,45 @@ class AdminTBMonController extends Controller
         ]);
     }
 
-    public function check_add_tbm_via_file(Request $request)
+    public function submitLogin(LoginRequest $request)
+    {
+
+        if ($request->has('email') && $request->has('password')) {
+            $email = $request->input('email');
+            $password = $request->input('password');
+
+
+            $teacher = DB::table('subject_head')
+                ->select('permission')
+                ->where('email', $email)
+                ->orWhere('email', $password)
+                ->first();
+
+            if ($teacher) {
+                $permission = $teacher->permission;
+            }
+
+            $token  = Auth::guard('apiTBM')->attempt([
+                'email'    => $email,
+                'password'    => $password,
+            ]);
+            // dd($token);
+            if ($token) {
+                return response()->json([
+                    'result' =>  "Đăng nhập thành công",
+                    'access_token' => $token,
+                    'permission' => $permission,
+                    'expires_in' => JWTAuth::factory()->getTTL() * 6000
+                ]);
+            } else {
+                return response()->json([
+                    'mesage' =>  "Tài khoản hoặc mật khẩu không đúng!",
+                ], 403);
+            }
+        }
+    }
+
+    public function check_add_tbm_via_file(CreateFileTBMRequest $request)
     {
         $result = [];
         if (!$request->hasFile('file'))  return response()->json([
@@ -48,7 +94,7 @@ class AdminTBMonController extends Controller
                 $name = $row['B'];
                 $username = $row['C'];
                 $email = $row['D'];
-                $password = md5($row['E']);
+                $password = bcrypt($row['E']);
                 $birthday = $row['F'];
                 $gender = ($row['G'] == 'Nam') ? 1 : (($row['G'] == 'Nữ') ? 2 : 3);
                 $subject = ($row['H'] == 'Toán') ? 1 : (($row['H'] == 'Ngữ Văn') ? 2 :  3);
@@ -77,13 +123,13 @@ class AdminTBMonController extends Controller
                         "mesagge"=> "them thanh cong ". $count . " truong bo mon",
                     ]);
 }
-    public function createTBM(Request $request)
+    public function createTBM(CreateTBMRequest $request)
     {
         $result = [];
 
         $name = $request->input('name');
         $username = $request->input('username');
-        $password = md5($request->input('password'));
+        $password = bcrypt($request->input('password'));
         $email = $request->input('email');
         $birthday = $request->input('birthday');
         $gender = $request->input('gender');
@@ -92,9 +138,9 @@ class AdminTBMonController extends Controller
         //giới tính
         if ($gender == 'Nam') {
             $gender_id = 2;
-        } else if($gender == 'Nữ') {
+        } else if ($gender == 'Nữ') {
             $gender_id = 3; // Hoặc bất kỳ giá trị khác tương ứng với giới tính Nam
-        }else {
+        } else {
             $gender_id = 1;
         }
 
@@ -143,7 +189,7 @@ class AdminTBMonController extends Controller
         ]);
     }
 
-    public function deleteTBM(Request $request)
+    public function deleteTBM(DeleteTBMRequest $request)
     {
         $tbm = subject_head::findOrFail($request->id);
         // dd($tbm);
@@ -163,7 +209,8 @@ class AdminTBMonController extends Controller
 
 
 
-    public function updateTBM(Request $request){
+    public function updateTBM(UpdateTBMRequest $request)
+    {
         $tbm = subject_head::find($request->subject_head_id);
         if ($tbm) {
             $data = $request->all();

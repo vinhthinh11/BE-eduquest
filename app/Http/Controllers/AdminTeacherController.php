@@ -2,12 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Admin\Teacher\CreateFileTeacherRequest;
+use App\Http\Requests\Admin\Teacher\CreateTeacherRequest;
+use App\Http\Requests\Admin\Teacher\DeleteTeacherRequest;
+use App\Http\Requests\Admin\Teacher\UpdateTeacherRequest;
+use App\Http\Requests\LoginRequest;
 use App\Models\classes;
 use App\Models\teacher;
+use CreateTeachersTable;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AdminTeacherController extends Controller
 {
@@ -25,14 +34,52 @@ class AdminTeacherController extends Controller
         ]);
     }
 
-    public function destroy(Request $request)
+    public function submitLogin(LoginRequest $request)
+    {
+
+        if ($request->has('email') && $request->has('password')) {
+            $email = $request->input('email');
+            $password = $request->input('password');
+
+
+            $teacher = DB::table('teachers')
+                ->select('permission')
+                ->where('email', $email)
+                ->orWhere('email', $password)
+                ->first();
+
+            if ($teacher) {
+                $permission = $teacher->permission;
+            }
+
+            $token  = Auth::guard('apiTeacher')->attempt([
+                'email'    => $email,
+                'password'    => $password,
+            ]);
+            // dd($token);
+            if ($token) {
+                return response()->json([
+                    'result' =>  "Đăng nhập thành công",
+                    'access_token' => $token,
+                    'permission' => $permission,
+                    'expires_in' => JWTAuth::factory()->getTTL() * 6000
+                ]);
+            } else {
+                return response()->json([
+                    'mesage' =>  "Tài khoản hoặc mật khẩu không đúng!",
+                ], 403);
+            }
+        }
+    }
+
+    public function destroy(DeleteTeacherRequest $request)
     {
         $teacher = teacher::find($request->teacher_id);
 
-        if($teacher) {
+        if ($teacher) {
             $class = classes::where('class_id', $request->teacher_id)->first();
 
-            if($class) {
+            if ($class) {
                 return response()->json([
                     'status'    => 2,
                     'message'   => 'Giáo Viên đang đứng Lớp, bạn không thể xóa!'
@@ -54,7 +101,7 @@ class AdminTeacherController extends Controller
     }
 
 
-    public function update(Request $request)
+    public function update(DeleteTeacherRequest $request)
     {
         $teacher = teacher::find($request->teacher_id);
         $data = $request->all();
@@ -74,13 +121,13 @@ class AdminTeacherController extends Controller
         }
     }
 
-    public function edit(Request $request)
+    public function edit(UpdateTeacherRequest $request)
     {
         $teacher = teacher::find($request->teacher_id);
         $data = $request->only(['name', 'gender_id', 'birthday', 'password']);
 
         if (!$teacher) {
-             return response()->json([
+            return response()->json([
                 'status'    => false,
                 'message'   => 'Tài khoản không tồn tại!'
             ]);
@@ -99,7 +146,7 @@ class AdminTeacherController extends Controller
         ]);
     }
 
-    public function create(Request $request)
+    public function create(CreateTeacherRequest $request)
     {
         $data = $request->all();
         teacher::create($data);
@@ -110,7 +157,7 @@ class AdminTeacherController extends Controller
         ]);
     }
 
-    public function createFileTeacher(Request $request)
+    public function createFileTeacher(CreateFileTeacherRequest $request)
     {
         $result = [];
 
@@ -135,7 +182,7 @@ class AdminTeacherController extends Controller
                 $name = $row['B'];
                 $username = $row['C'];
                 $email = $row['D'];
-                $password = md5($row['E']);
+                $password = bcrypt($row['E']);
                 $birthday = $row['F'];
                 $gender = ($row['G'] == 'Nam') ? 2 : (($row['G'] == 'Nữ') ? 3 : 1);
 

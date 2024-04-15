@@ -6,8 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Passport\HasApiTokens;
+use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Notifications\Notifiable;
 
-class subject_head extends  Model
+class subject_head extends  Authenticatable implements JWTSubject
 {
     protected $table = 'subject_head';
     protected $fillable = [
@@ -32,5 +35,15 @@ class subject_head extends  Model
     {
         $getAllTBM = DB::select('select * from subject_head');
         return $getAllTBM;
+    }
+
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
     }
 }
