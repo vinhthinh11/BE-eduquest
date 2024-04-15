@@ -11,17 +11,13 @@ return [
 
 
     'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
-        ],
         'api' => [
             'driver' => 'jwt',
             'provider' => 'admins'
         ],
         'teacher' => [
             'driver' => 'jwt',
-            'provider' => 'teacher'
+            'provider' => 'teachers'
         ],
     ],
 

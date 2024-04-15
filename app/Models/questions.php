@@ -26,7 +26,6 @@ class questions extends  Model
         'suggest',
     ];
     public $timestamps = false;
-    //ngu chua
     protected $primaryKey = 'question_id';
     function getQuestion()
     {

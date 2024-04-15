@@ -20,6 +20,8 @@ class students extends Model
         'permission',
         'avatar',
         'birthday',
+        'class_id',
+        'last_login',
 
     ];
     public $timestamps = false;

@@ -89,47 +89,54 @@ class AdminHSController extends Controller
      }
      public function createHS(Request $request)
      {
-         $result = [];
-
-         $name = $request->input('name');
-         $username = $request->input('username');
-         $password = md5($request->input('password'));
-         $email = $request->input('email');
-         $birthday = $request->input('birthday');
-         $gender = $request->input('gender');
-
-         //giới tính
-         if ($gender == 'Nam') {
-             $gender_id = 2;
-         } else if($gender == 'Nữ') {
-             $gender_id = 3; // Hoặc bất kỳ giá trị khác tương ứng với giới tính Nam
-         }else {
-             $gender_id = 1;
-         }
-
-         $hs = new students([
-             'name' => $name,
-             'username' => $username,
-             'password' => $password,
-             'email' => $email,
-             'birthday' => $birthday,
-             'gender_id' => $gender_id,
-             'last_login' => now(),
-
-         ]);
-         if ($hs->save()) {
-             $result = $hs->toArray();
-             $result['status_value'] = "Thêm thành công!";
-             $result['status'] = 1;
-         } else {
-             $result['status_value'] = "Lỗi! Tài khoản đã tồn tại!";
-             $result['status'] = 0;
-         }
-
-         // return response()->json($result);
+        // $result = [];
+        $data = request()->only([
+            'name',
+            'username',
+            'email',
+            'password',
+            'birthday',
+            'last_login',
+            'class_id',
+            'gender_id']);
+            $data['password'] = bcrypt($data['password']);
+            $student = new students($data);
+            $student->save();
          return response()->json([
-             'result' => $result,
-         ]);
+            'student' => $student,
+        ]);
+
+        // $name = $request->input('name');
+        // $username = $request->input('username');
+        // $password = bcrypt($request->input('password'));
+        // $email = $request->input('email');
+        // $birthday = $request->input('birthday');
+        // $gender = $request->input('gender');
+        // $gender_id = 1;
+
+        //  $hs = new students([
+        //      'name' => $name,
+        //      'username' => $username,
+        //      'password' => $password,
+        //      'email' => $email,
+        //      'birthday' => $birthday,
+        //      'gender_id' => $gender_id,
+        //      'last_login' => now(),
+
+        //  ]);
+        //  if ($hs->save()) {
+        //      $result = $hs->toArray();
+        //      $result['status_value'] = "Thêm thành công!";
+        //      $result['status'] = 1;
+        //  } else {
+        //      $result['status_value'] = "Lỗi! Tài khoản đã tồn tại!";
+        //      $result['status'] = 0;
+        //  }
+
+        //  // return response()->json($result);
+        //  return response()->json([
+        //      'result' => $result,
+        //  ]);
      }
 
      public function deleteHS(Request $request)

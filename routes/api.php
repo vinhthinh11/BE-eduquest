@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminClassController;
+use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admincontroller;
 use App\Http\Controllers\AdminTBMonController;
@@ -11,14 +12,29 @@ use App\Http\Controllers\TeacherConTroller;
 use App\Http\Controllers\AdminHSController;
 use App\Http\Controllers\ProfileController;
 
+// Route::group([
+
+//     'middleware' => 'api',
+
+// ], function ($router) {
+
+//     Route::post('login', [AuthController::class, 'login']);
+//     // Route::post('logout', 'AuthController@logout');
+//     // Route::post('refresh', 'AuthController@refresh');
+//     Route::post('me', [AuthController::class, 'me']);
+
+// });
+
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
 //
 
 // Login
-Route::get('/admin/login', [Admincontroller::class, 'indexLogin']);
-Route::post('/admin/logout', [Admincontroller::class, 'logout'])->name('logout');
+// Route::get('/admin/login', [Admincontroller::class, 'indexLogin']);
+// Route::post('/admin/logout', [Admincontroller::class, 'logout'])->name('logout');
+
+
 Route::post('/submit-login', [AdminController::class, 'submitLogin']);
 // 'middleware' => 'checkLoginAdmin'
 Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function () {
@@ -110,10 +126,10 @@ Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function 
     //ql học sinh
     Route::group(['prefix' => '/student'], function () {
         Route::get('/get', [AdminHSController::class, 'index'])->name('index');
-        Route::post('/file', [AdminHSController::class, 'check_add_hs_via_file'])->name('check_add_hs_via_file');
         Route::post('/create', [AdminHSController::class, 'createHS'])->name('createHS');
         Route::delete('/delete', [AdminHSController::class, 'deleteHS'])->name('deleteHS');
         Route::put('/update', [AdminHSController::class, 'updateHS'])->name('updateHS');
+        Route::post('/file', [AdminHSController::class, 'check_add_hs_via_file'])->name('check_add_hs_via_file');
     });
 
     //Teacher controller

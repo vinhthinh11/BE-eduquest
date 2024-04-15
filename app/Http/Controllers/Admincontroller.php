@@ -468,7 +468,6 @@ class Admincontroller extends Controller
 //             default:
 //                 $answer = $answer_d;
 //         }
-// // ni cung ngu
 //         if (empty($question_content) || empty($grade_id) || empty($unit) || empty($level_id) || empty($answer_a) || empty($answer_b) || empty($answer_c) || empty($answer_d) || empty($correct_answer)) {
 //             $result['status_value'] = "Không được bỏ trống các trường nhập!";
 //             $result['status'] = 0;
