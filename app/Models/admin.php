@@ -122,4 +122,6 @@ class admin extends  Authenticatable implements JWTSubject
         return $questOfTest->saveQuietly();
     }
 
+
+
 }

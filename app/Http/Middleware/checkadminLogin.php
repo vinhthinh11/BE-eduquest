@@ -21,11 +21,8 @@ class CheckLoginAdmin
         if ($check) {
             if ($check->permission === 1) {
                 return $next($request);
-            } else {
+            }}
                 return response()->json(['message' => 'Permission denied'], 403);
-            }
-        } else {
-            return redirect('/api/admin/login');
-        }
-    }
+
+}
 }

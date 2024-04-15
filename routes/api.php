@@ -32,7 +32,7 @@ Route::post('/submit-loginTBM', [AdminTBMonController::class, 'submitLogin']);
 
 
 // 'middleware' => 'checkLoginAdmin'
-Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function () {
+Route::group(['prefix' => '/admin'], function () {
     // API route ----------------------------
     // this line was add to check if huong could receive the change in his repo
 
@@ -61,7 +61,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
         Route::post('/update-questions', [Admincontroller::class, 'updateQuestions'])->name(('updateQuestions'));
 
         Route::post('check-add-test', [Admincontroller::class, 'checkAddTest'])->name(('checkAddTest'));
- });
+     });
 
     ///
     //Profile
@@ -104,7 +104,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
 
     //ql TBM
     Route::group(['prefix' => '/truongbomon'], function () {
-        Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
+        Route::get('/get', [AdminTBMonController::class, 'index'])->name('index');
         Route::post('/update-tbm', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
         Route::post('/file', [AdminTBMonController::class, 'check_add_tbm_via_file'])->name('check_add_tbm_via_file');
         Route::post('/create-tbm', [AdminTBMonController::class, 'createTBM'])->name('createTBM');
