@@ -8,6 +8,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Admin\CreateAdminRequest;
+use App\Http\Requests\Admin\Admin\CreateFileAdminRequest;
+use App\Http\Requests\Admin\Admin\DeleteAdminRequest;
+use App\Http\Requests\Admin\Admin\UpdateAdminRequest;
+use App\Http\Requests\Admin\Question\CreateFileQuestionRequest;
+use App\Http\Requests\Admin\Question\CreateQuestionRequest;
+use App\Http\Requests\Admin\Question\DeleteQuestionRequest;
+use App\Http\Requests\Admin\Question\UpdateQuestionRequest;
+use App\Http\Requests\LoginRequest;
 use App\Models\grade;
 use App\Models\level;
 use App\Models\status;
@@ -45,7 +54,7 @@ class Admincontroller extends Controller
     //     $this->middleware('auth:api', ['except' => ['submitLogin']]);
     // }
 
-    public function submitLogin(Request $request)
+    public function submitLogin(LoginRequest $request)
     {
         $result = [];
 
@@ -92,7 +101,7 @@ class Admincontroller extends Controller
     }
 
 
-    public function check_add_admin_via_file(Request $request)
+    public function check_add_admin_via_file(CreateFileAdminRequest $request)
     {
         $result = [];
 
@@ -162,7 +171,7 @@ class Admincontroller extends Controller
     {
         return view('admin.CRUD');
     }
-    public function createAdmin(Request $request)
+    public function createAdmin(CreateAdminRequest $request)
     {
         $result = [];
 
@@ -199,7 +208,7 @@ class Admincontroller extends Controller
         ]);
     }
 
-    public function deleteAdmin(Request $request)
+    public function deleteAdmin(DeleteAdminRequest $request)
     {
         $admin = admin::find($request->id);
 
@@ -216,7 +225,7 @@ class Admincontroller extends Controller
     }
 
 
-    public function updateAdmin(Request $request)
+    public function updateAdmin(UpdateAdminRequest $request)
     {
         $admin = Admin::find($request->admin_id);
         $data = $request->only(['name', 'username', 'gender_id', 'birthday', 'password', 'permission',]);
@@ -286,7 +295,7 @@ class Admincontroller extends Controller
     }
 
 
-    public function checkAddQuestionViaFile(Request $request)
+    public function checkAddQuestionViaFile(CreateFileQuestionRequest $request)
     {
         $result = [];
 
@@ -377,7 +386,7 @@ class Admincontroller extends Controller
         return response()->json($result);
     }
 
-    public function checkAddQuestions(Request $request)
+    public function checkAddQuestions(CreateQuestionRequest $request)
     {
         $result = [];
 
@@ -440,7 +449,7 @@ class Admincontroller extends Controller
         ]);
     }
 
-    public function updateQuestions(Request $request)
+    public function updateQuestions(UpdateQuestionRequest $request)
     {
        $question = questions::find($request->question_id);
        if(!$question)return response()->json(["message" => "Không tìm thấy câu hỏi!"], 400);
@@ -451,7 +460,7 @@ class Admincontroller extends Controller
 
     }
 
-    public function deleteQuestion(Request $request)
+    public function deleteQuestion(DeleteQuestionRequest $request)
     {
         $question_id = $request->question_id;
         $question = questions::find($question_id);

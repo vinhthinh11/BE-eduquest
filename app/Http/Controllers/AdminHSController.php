@@ -2,6 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Admin\Student\CreateFileStudentRequest;
+use App\Http\Requests\Admin\Student\CreateStudentRequest;
+use App\Http\Requests\Admin\Student\DeleteStudentRequest;
+use App\Http\Requests\Admin\Student\UpdateStudentRequest;
+use App\Http\Requests\LoginRequest;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\students;
@@ -27,7 +32,7 @@ class AdminHSController extends Controller
         ]);
     }
 
-    public function submitLogin(Request $request)
+    public function submitLogin(LoginRequest $request)
     {
         $result = [];
 
@@ -66,7 +71,7 @@ class AdminHSController extends Controller
         }
     }
 
-    public function check_add_hs_via_file(Request $request)
+    public function check_add_hs_via_file(CreateFileStudentRequest $request)
     {
         $result = [];
 
@@ -92,7 +97,7 @@ class AdminHSController extends Controller
                 $name = $row['B'];
                 $username = $row['C'];
                 $email = $row['D'];
-                $password = md5($row['E']);
+                $password = bcrypt($row['E']);
                 $birthday = $row['F'];
                 $gender = ($row['G'] == 'Nam') ? 2 : (($row['G'] == 'Nữ') ? 3 : 1);
                 $hs = new students([
@@ -131,13 +136,13 @@ class AdminHSController extends Controller
         //     'result' => $result,
         // ]);
     }
-    public function createHS(Request $request)
+    public function createHS(CreateStudentRequest $request)
     {
         $result = [];
 
         $name = $request->input('name');
         $username = $request->input('username');
-        $password = md5($request->input('password'));
+        $password = bcrypt($request->input('password'));
         $email = $request->input('email');
         $birthday = $request->input('birthday');
         $gender = $request->input('gender');
@@ -176,7 +181,7 @@ class AdminHSController extends Controller
         ]);
     }
 
-    public function deleteHS(Request $request)
+    public function deleteHS(DeleteStudentRequest $request)
     {
         $hs = students::find($request->student_id);
         if ($hs) {
@@ -195,7 +200,7 @@ class AdminHSController extends Controller
 
 
 
-    public function updateHS(Request $request)
+    public function updateHS(UpdateStudentRequest $request)
     {
         $hs = students::find($request->student_id);
         if ($hs) {

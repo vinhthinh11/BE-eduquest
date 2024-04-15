@@ -10,6 +10,7 @@ use App\Http\Controllers\StatistController;
 use App\Http\Controllers\TeacherConTroller;
 use App\Http\Controllers\AdminHSController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TBMDuyetDeThiController;
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -142,6 +143,13 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
 Route::group(['prefix' => '/student', 'middleware' => 'CheckStudent'], function () {
     Route::get('/get', [AdminHSController::class, 'index'])->name('index');
     Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
+
+    Route::post('/update-timing', [StudentController::class, 'updateTiming'])->name('updateTiming');
+    Route::post('/update-doing-exam', [StudentController::class, 'updateDoingExam'])->name('updateDoingExam');
+    Route::post('/reset-doing-exam', [StudentController::class, 'resetDoingExam'])->name('resetDoingExam');
+        Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
+        Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
+        Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
 });
 
 Route::group(['prefix' => '/teacher', 'middleware' => 'CheckTeacher'], function () {
