@@ -5,19 +5,23 @@ return [
 
 
     'defaults' => [
-        'guard' => 'api',
-        'passwords' => 'users',
+        'guard' => 'admins',
+        'passwords' => 'admins',
     ],
 
 
     'guards' => [
-        'api' => [
+        'admins' => [
             'driver' => 'jwt',
             'provider' => 'admins'
         ],
-        'teacher' => [
+        'teachers' => [
             'driver' => 'jwt',
             'provider' => 'teachers'
+        ],
+        'students' => [
+            'driver' => 'jwt',
+            'provider' => 'students'
         ],
     ],
 
@@ -31,9 +35,13 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\admin::class,
         ],
-        'teacher' => [
+        'teachers' => [
             'driver' => 'eloquent',
             'model' => App\Models\teacher::class,
+        ],
+        'students' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\students::class,
         ],
 
 
