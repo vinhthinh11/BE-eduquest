@@ -14,18 +14,18 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TBMDuyetDeThiController;
 
-// Route::group([
+Route::group([
 
-//     'middleware' => 'api',
+    // 'middleware' => 'api',
 
-// ], function ($router) {
+], function ($router) {
 
-//     Route::post('login', [AuthController::class, 'login']);
-//     // Route::post('logout', 'AuthController@logout');
-//     // Route::post('refresh', 'AuthController@refresh');
-//     Route::post('me', [AuthController::class, 'me']);
+    Route::post('login', [AuthController::class, 'login']);
+    // Route::post('logout', 'AuthController@logout');
+    // Route::post('refresh', 'AuthController@refresh');
+    Route::post('me', [AuthController::class, 'me']);
 
-// });
+});
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
@@ -37,17 +37,7 @@ use App\Http\Controllers\TBMDuyetDeThiController;
 // Route::post('/admin/logout', [Admincontroller::class, 'logout'])->name('logout');
 
 
-Route::post('/submit-login', [AdminController::class, 'submitLogin']);
-//Login học sinh
-Route::post('/submit-loginHS', [AdminHSController::class, 'submitLogin']);
-
-//Login giáo viên
-Route::post('/submit-loginGV', [AdminTeacherController::class, 'submitLogin']);
-
-//Login TBM
-Route::post('/submit-loginTBM', [AdminTBMonController::class, 'submitLogin']);
-
-
+// Route::post('/submit-login', [AdminController::class, 'submitLogin']);
 // 'middleware' => 'checkLoginAdmin'
 Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function () {
     // API route ----------------------------

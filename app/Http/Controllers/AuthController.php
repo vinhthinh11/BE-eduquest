@@ -14,7 +14,7 @@ class AuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login']]);
+        $this->middleware('auth:admins', ['except' => ['login']]);
     }
 
     /**
@@ -25,12 +25,16 @@ class AuthController extends Controller
     public function login()
     {
         $credentials = request(['email', 'password']);
-
-        if (! $token = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+        $token = auth('admins')->attempt($credentials);
+        if($token){
+            return response()->json(["message"=>"Duoc tra ve khi tim thay trong model admin","token"=>$token]);
         }
-
-        return $this->respondWithToken($token);
+        $token = auth('students')->attempt($credentials);
+        if($token){
+            return response()->json(["message"=>"Duoc tra ve khi tim thay trong model students","token"=>$token]);
+        }
+        //tim cac model va khong co ket qua thi se tra ve la khong tim
+            return response()->json(['error' => 'Unauthorized'], 401);
     }
 
     /**

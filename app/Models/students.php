@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
+use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class students extends Model
+class students extends Authenticatable implements JWTSubject
 {
+    use Notifiable;
     protected $table = 'students';
     protected $fillable = [
         'student_id',
@@ -33,6 +33,18 @@ class students extends Model
         $getAllHS = DB::select('select * from students');
         return $getAllHS;
     }
+     public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
 
-    
+    /**
+     * Return a key value array, containing any custom claims to be added to the JWT.
+     *
+     * @return array
+     */
+    public function getJWTCustomClaims()
+    {
+        return [];
+    }
 }

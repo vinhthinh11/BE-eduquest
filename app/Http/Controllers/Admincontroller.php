@@ -249,8 +249,8 @@ class Admincontroller extends Controller
 
     public function getQuestion()
     {
-        $data = questions::get();
-        if (!$data) return response()->json([
+        $data = questions::with('teacher')->get();
+        if(!$data)return response()->json([
             'message' => 'No question found!',
         ], 400);
         return response()->json([
@@ -456,11 +456,11 @@ class Admincontroller extends Controller
        $data = $request->only(['question_content', 'level_id', 'answer_a', 'answer_b', 'answer_c', 'answer_d', 'correct_answer', 'grade_id', 'unit','suggest','status_id', 'teacher_id']);
       $updateQuestion  =$question->fill($data)->save();
     return response()->json(["updateData" => $updateQuestion]);
+        }
 
 
-    }
 
-    public function deleteQuestion(DeleteQuestionRequest $request)
+    public function deleteQuestion(Request $request)
     {
         $question_id = $request->question_id;
         $question = questions::find($question_id);
