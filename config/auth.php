@@ -5,31 +5,23 @@ return [
 
 
     'defaults' => [
-        'guard' => 'api',
-        'passwords' => 'users',
+        'guard' => 'admins',
+        'passwords' => 'admins',
     ],
 
 
     'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
-        ],
-        'api' => [
+        'admins' => [
             'driver' => 'jwt',
             'provider' => 'admins',
         ],
-        'apiStudents' => [
+        'teachers' => [
             'driver' => 'jwt',
-            'provider' => 'apiStudents',
+            'provider' => 'teachers'
         ],
-        'apiTeacher' => [
+        'students' => [
             'driver' => 'jwt',
-            'provider' => 'apiTeacher',
-        ],
-        'apiTBM' => [
-            'driver' => 'jwt',
-            'provider' => 'apiTBM',
+            'provider' => 'students'
         ],
     ],
 
@@ -43,18 +35,37 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\admin::class,
         ],
-        'apiStudents' => [
-            'driver' => 'eloquent',
-            'model' => App\Models\student::class,
-        ],
-        'apiTeacher' => [
+        'teachers' => [
             'driver' => 'eloquent',
             'model' => App\Models\teacher::class,
         ],
-        'apiTBM' => [
+        'subject_heads' => [
             'driver' => 'eloquent',
             'model' => App\Models\subject_head::class,
         ],
+        'students' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\students::class,
+        ],
+
+
+    // 'guards' => [
+    //     'api' => [
+    //         'driver' => 'jwt',
+    //         'provider' => 'multi',
+    //     ],
+    // ],
+
+    // 'providers' => [
+    //     'multi' => [
+    //         'driver' => 'eloquent',
+    //         'models' => [
+    //             App\Models\admin::class,
+    //             App\Models\teacher::class,
+    //             App\Models\subject_head::class,
+    //             App\Models\student::class,
+    //         ],
+    //     ],
 
         // 'users' => [
         //     'driver' => 'database',

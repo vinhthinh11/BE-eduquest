@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Admin\Teacher\DeleteTeacherRequest;
+use App\Http\Requests\Teacher\ExportScoreRequest;
 use App\Models\scores;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -11,7 +13,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 class TeacherConTroller extends Controller
 {
     //show điểm
-    public function listScore(Request $request)
+    public function listScore(DeleteTeacherRequest $request)
     {
     $student_id = $request->input('student_id', '1');
     $scoreData  = scores::where('student_id', $student_id)
@@ -23,7 +25,7 @@ class TeacherConTroller extends Controller
     }
 
     //xuất file điểm
-    public function exportScore(Request $request)
+    public function exportScore(ExportScoreRequest $request)
     {
         $test_code = $request->input('test_code', '');
 

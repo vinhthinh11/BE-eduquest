@@ -2,14 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Admin\Teacher\CreateFileTeacherRequest;
+use App\Http\Requests\Admin\Teacher\CreateTeacherRequest;
+use App\Http\Requests\Admin\Teacher\DeleteTeacherRequest;
+use App\Http\Requests\Admin\Teacher\UpdateTeacherRequest;
+use App\Http\Requests\LoginRequest;
 use App\Models\classes;
+use App\Models\questions;
 use App\Models\teacher;
+use CreateTeachersTable;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\Console\Question\Question;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AdminTeacherController extends Controller
@@ -28,7 +36,7 @@ class AdminTeacherController extends Controller
         ]);
     }
 
-    public function submitLogin(Request $request)
+    public function submitLogin(LoginRequest $request)
     {
 
         if ($request->has('email') && $request->has('password')) {
@@ -66,7 +74,7 @@ class AdminTeacherController extends Controller
         }
     }
 
-    public function destroy(Request $request)
+    public function destroy(DeleteTeacherRequest $request)
     {
         $teacher = teacher::find($request->teacher_id);
 
@@ -95,7 +103,7 @@ class AdminTeacherController extends Controller
     }
 
 
-    public function update(Request $request)
+    public function update(DeleteTeacherRequest $request)
     {
         $teacher = teacher::find($request->teacher_id);
         $data = $request->all();
@@ -115,7 +123,7 @@ class AdminTeacherController extends Controller
         }
     }
 
-    public function edit(Request $request)
+    public function edit(UpdateTeacherRequest $request)
     {
         $teacher = teacher::find($request->teacher_id);
         $data = $request->only(['name', 'gender_id', 'birthday', 'password']);
@@ -140,7 +148,7 @@ class AdminTeacherController extends Controller
         ]);
     }
 
-    public function create(Request $request)
+    public function create(CreateTeacherRequest $request)
     {
         $data = $request->all();
         teacher::create($data);
@@ -151,7 +159,7 @@ class AdminTeacherController extends Controller
         ]);
     }
 
-    public function createFileTeacher(Request $request)
+    public function createFileTeacher(CreateFileTeacherRequest $request)
     {
         $result = [];
 
@@ -176,7 +184,7 @@ class AdminTeacherController extends Controller
                 $name = $row['B'];
                 $username = $row['C'];
                 $email = $row['D'];
-                $password = md5($row['E']);
+                $password = bcrypt($row['E']);
                 $birthday = $row['F'];
                 $gender = ($row['G'] == 'Nam') ? 2 : (($row['G'] == 'Nữ') ? 3 : 1);
 
@@ -261,5 +269,95 @@ class AdminTeacherController extends Controller
             'message' => 'Xóa các giáo viên thành công!',
             'deleted_teachers' => $deletedTeachers,
         ]);
+    }
+
+    public function checkAddQuestionViaFile(Request $request) {
+        $result = [];
+
+        $subjectId = $request->subject_id;
+        // $subjectId = 10;
+        $inputFileType = 'Xlsx';
+        $count = 0;
+        $errList = [];
+
+        if ($request->hasFile('file')) {
+            $filePath = $request->file('file')->path();
+
+            $reader = IOFactory::createReader($inputFileType);
+            $spreadsheet = $reader->load($filePath);
+            $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
+
+            foreach ($sheetData as $key => $row) {
+                if ($key < 4 || empty($row['A'])) {
+                    continue;
+                }
+
+                $answers = [];
+                $stt = $row['A'];
+                $questionContent = $row['B'];
+                $levelId = $row['C'];
+                $answerA = $row['D'];
+                $answerB = $row['E'];
+                $answerC = $row['F'];
+                $answerD = $row['G'];
+                $correctAnswer = $row['H'];
+                $gradeId = $row['I'];
+                $unit = $row['J'];
+                $suggest = $row['K'];
+                $teacherId = null;
+                switch ($correctAnswer) {
+                    case "A":
+                        $answer = $answerA;
+                        break;
+                    case "B":
+                        $answer = $answerB;
+                        break;
+                    case "C":
+                        $answer = $answerC;
+                        break;
+                    default:
+                        $answer = $answerD;
+                }
+
+                if (!empty($questionContent) && $teacherId == null) {
+                    $question = new questions([
+                        'subject_id' => $subjectId,
+                        'question_content' => $questionContent,
+                        'level_id' => $levelId,
+                        'answer_a' => $answerA,
+                        'answer_b' => $answerB,
+                        'answer_c' => $answerC,
+                        'answer_d' => $answerD,
+                        'correct_answer' => $answer,
+                        'grade_id' => $gradeId,
+                        'unit' => $unit,
+                        'suggest' => $suggest,
+                        'status_id' => 3,
+                        'teacher_id' => $teacherId,
+                    ]);
+
+                    // Lưu câu hỏi vào cơ sở dữ liệu
+                    if ($question->saveQuietly()) {
+                        $count++;
+                    } else {
+                        $errList[] = $stt;
+                    }
+                }
+            }
+
+            unlink($filePath);
+
+            if (empty($errList)) {
+                $result['status_value'] = "Thêm thành công " . $count . " câu hỏi!";
+                $result['status'] = 1;
+            } else {
+                $result['status_value'] = "Lỗi! Không thể thêm câu hỏi có STT: " . implode(', ', $errList) . ', vui lòng xem lại.';
+                $result['status'] = 0;
+            }
+        } else {
+            $result['status_value'] = "Không tìm thấy tệp được tải lên!";
+            $result['status'] = 0;
+        }
+        return response()->json($result);
     }
 }

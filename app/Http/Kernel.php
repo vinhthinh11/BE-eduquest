@@ -21,7 +21,6 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
-
     ];
 
     /**
@@ -51,6 +50,7 @@ class Kernel extends HttpKernel
             // 'checkLoginAdmin' => \App\Http\Middleware\checkadminLogin::class,
 
         ],
+
         // 'local' => [
         //     // Loại bỏ middleware CSRF trong môi trường local
         //     \App\Http\Middleware\VerifyCsrfToken::class,
@@ -74,7 +74,10 @@ class Kernel extends HttpKernel
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        'checkLoginAdmin' => \App\Http\Middleware\CheckLoginAdmin::class,
+        'admin' => \App\Http\Middleware\CheckAdmin::class,
+        'head_subject' => \App\Http\Middleware\CheckHeadSubject::class,
+        'teacher' => \App\Http\Middleware\CheckTeacher::class,
+        'student' => \App\Http\Middleware\CheckStudent::class,
         'userinfo' => \App\Http\Middleware\InfoMiddleware::class,
         'CheckStudent' => \App\Http\Middleware\CheckStudentToken::class,
         'CheckTeacher' => \App\Http\Middleware\CheckSTeacherLogin::class,
