@@ -12,6 +12,7 @@ use App\Http\Controllers\TeacherConTroller;
 use App\Http\Controllers\AdminHSController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\HSLuyenDeController;
 use App\Http\Controllers\TBMDuyetDeThiController;
 
 
@@ -127,13 +128,23 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     Route::post('/update-timing', [StudentController::class, 'updateTiming'])->name('updateTiming');
     Route::post('/update-doing-exam', [StudentController::class, 'updateDoingExam'])->name('updateDoingExam');
     Route::post('/reset-doing-exam', [StudentController::class, 'resetDoingExam'])->name('resetDoingExam');
-    Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
-    Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
-    Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
+        Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
+        Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
+        Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
+
+    //học sinh luyện đề
+    Route::group(['prefix' => '/luyende'], function () {
+        Route::get('/list', [HSLuyenDeController::class, 'list'])->name('list');
+        Route::post('/', [HSLuyenDeController::class, 'luyenDe'])->name('luyenDe');
+        Route::put('/', [HSLuyenDeController::class, 'nopBai'])->name('nopBai');
+    });
+
 });
 
 Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     Route::get('/get',     [AdminTeacherController::class, 'getTeacher'])->name('getTeacher');
+    Route::post('/check-add-question-via-file', [AdminTeacherController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
+    Route::post('/create', [AdminTeacherController::class, 'checkAddQuestions'])->name('checkAddQuestion');
 });
 
 Route::group(['prefix' => '/TBM', 'middleware' => 'head_subject'], function () {
