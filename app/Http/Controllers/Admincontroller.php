@@ -12,10 +12,11 @@ use App\Http\Requests\Admin\Admin\CreateAdminRequest;
 use App\Http\Requests\Admin\Admin\CreateFileAdminRequest;
 use App\Http\Requests\Admin\Admin\DeleteAdminRequest;
 use App\Http\Requests\Admin\Admin\UpdateAdminRequest;
+use App\Http\Requests\UpdateQuestionRequest;
 use App\Http\Requests\Admin\Question\CreateFileQuestionRequest;
 use App\Http\Requests\Admin\Question\CreateQuestionRequest;
 use App\Http\Requests\Admin\Question\DeleteQuestionRequest;
-use App\Http\Requests\Admin\Question\UpdateQuestionRequest;
+use App\Http\Requests\Admin\Question\UpdateQuestionRequest as QuestionUpdateQuestionRequest;
 use App\Http\Requests\LoginRequest;
 use App\Models\grade;
 use App\Models\level;
@@ -450,14 +451,14 @@ class Admincontroller extends Controller
         ]);
     }
 
-    public function updateQuestions(UpdateQuestionRequest $request)
+    public function updateQuestions(Request $request)
     {
        $question = questions::find($request->question_id);
     if(empty($question)) {
         return response()->json(["message" => "Không tìm thấy câu hỏi!"], 400);
     }
        $validator = Validator::make($request->all(),[
- 'question_content'=>'string|max:255',
+        'question_content'=>'string|max:255',
         'level_id'=>'numeric',
         'answer_a'=>'string',
         'answer_b'=>'string',

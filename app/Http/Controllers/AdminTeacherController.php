@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Admin\Teacher\CreateFileTeacherRequest;
-use App\Http\Requests\Admin\Teacher\CreateTeacherRequest;
+
 use App\Http\Requests\Admin\Teacher\DeleteTeacherRequest;
 use App\Http\Requests\Admin\Teacher\UpdateTeacherRequest;
+use App\Http\Requests\CreateTracherRequest;
 use App\Http\Requests\LoginRequest;
 use App\Models\classes;
 use App\Models\teacher;
-use CreateTeachersTable;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -121,7 +121,7 @@ class AdminTeacherController extends Controller
         }
     }
 
-    public function edit(UpdateTeacherRequest $request)
+    public function edit(Request $request)
     {
         $teacher = teacher::find($request->teacher_id);
         $data = $request->only(['name', 'gender_id', 'birthday', 'password']);
@@ -146,16 +146,17 @@ class AdminTeacherController extends Controller
         ]);
     }
 
-    public function create(CreateTeacherRequest $request)
-    {
-        $data = $request->all();
-        teacher::create($data);
+    public function create()
+{
+    $data = request()->validated();
+    $data['password'] = bcrypt($data['password']);
+    Teacher::create($data);
 
-        return response()->json([
-            'status'    => true,
-            'message'   => 'Đã tạo mới Giáo Viên thành công!',
-        ]);
-    }
+    return response()->json([
+        'status' => true,
+        'message' => 'Đã tạo mới giáo viên thành công!',
+    ]);
+}
 
     public function createFileTeacher(CreateFileTeacherRequest $request)
     {

@@ -16,8 +16,13 @@ use Symfony\Polyfill\Intl\Idn\Info;
 class ProfileController extends Controller
 {
 
-    // public function updateProfile(UpdateProfileRequest $request, Admin $admin)
-    // {
+    public function updateProfile(Request $request, Admin $admin)
+    {
+        $me = Admin::find($request->id); //$request->id
+        $me->name = $request->name;
+        $me->save();
+        return response()->json(['message' => $me]);
+    }
     //     $data = $request->validated();
 
     //     $currentUser = Auth::user(); // Lấy thông tin người dùng đang đăng nhập
