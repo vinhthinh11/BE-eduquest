@@ -14,13 +14,9 @@ use App\Http\Controllers\ProfileController;
 
 Route::group([
 
-    // 'middleware' => 'api',
-
 ], function ($router) {
 
     Route::post('login', [AuthController::class, 'login']);
-    // Route::post('logout', 'AuthController@logout');
-    // Route::post('refresh', 'AuthController@refresh');
     Route::post('me', [AuthController::class, 'me']);
 
 });
@@ -37,12 +33,10 @@ Route::group([
 
 // Route::post('/submit-login', [AdminController::class, 'submitLogin']);
 // 'middleware' => 'checkLoginAdmin'
-Route::group(['prefix' => '/admin'], function () {
-    // API route ----------------------------
-    // this line was add to check if huong could receive the change in his repo
+
+Route::group(['prefix' => '/admin','middleware' => 'admin'], function ($router) {
 
     //ql Admin
-    Route::get('/', function () {return view('welcome');});
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
     Route::post('/check-add-admin-via-file', [AdminController::class, 'check_add_admin_via_file'])->name('admin.check_add_admin_via_file');
     // Route::get('/index', [AdminController::class, 'indexAdmin']);

@@ -13,12 +13,13 @@ class AdminHSController extends Controller
      public function index()
      {
          $data = students::get();
-         if(!$data->isEmpty()){
+         if(empty($data)){
              return response()->json([
                  'data' => $data
              ]);}
          return response()->json([
-             'data' => $data
+             'data' => $data,
+             'admin_id'=>request()->id
          ]);
      }
 
