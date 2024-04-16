@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\subject_head;
+use App\Models\subjects;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -141,7 +142,14 @@ class AdminTBMonController extends Controller
                 $password = bcrypt($row['E']);
                 $birthday = $row['F'];
                 $gender = ($row['G'] == 'Nam') ? 1 : (($row['G'] == 'Nữ') ? 2 : 3);
-                $subject = ($row['H'] == 'Toán') ? 1 : (($row['H'] == 'Ngữ Văn') ? 2 :  3);
+
+                $subjectMappings = subjects::all()->pluck('id', 'name')->toArray();
+
+                $subject = isset($subjectMappings[$row['H']]) ? $subjectMappings[$row['H']] : null;
+                if ($subject === null) {
+                    $errList[] = "Dòng $key: Môn học không hợp lệ";
+                    continue;
+                }
                 $tbm = new subject_head([
                     'name' => $name,
                     'username' => $username,
@@ -158,7 +166,7 @@ class AdminTBMonController extends Controller
                 $count++;
             } catch (\Exception $e) {
                 return response()->json([
-                    'message' => 'Them file khong thanh cong',
+                    'message' => 'Thêm file không thành công',
                 ], 400);
             }
         }
@@ -197,39 +205,23 @@ class AdminTBMonController extends Controller
         }
         $result = [];
 
-        $name = $request->input('name');
-        $username = $request->input('username');
-        $password = bcrypt($request->input('password'));
-        $email = $request->input('email');
-        $birthday = $request->input('birthday');
-        $gender = $request->input('gender');
-        $subject = $request->input('subject');
+        $name = $request->name;
+        $username = $request->username;
+        $password = bcrypt($request->password);
+        $email = $request->email;
+        $birthday = $request->birthday;
+        $gender_id = $request->gender_id;
+        $subject_id = $request->subject_id;
 
-        //giới tính
-        if ($gender == 'Nam') {
-            $gender_id = 2;
-        } else if ($gender == 'Nữ') {
-            $gender_id = 3; // Hoặc bất kỳ giá trị khác tương ứng với giới tính Nam
-        } else {
-            $gender_id = 1;
+        // Kiểm tra xem tên người dùng đã tồn tại chưa
+        $existingUser = subject_head::where('username', $username)->exists();
+
+        if ($existingUser) {
+            return response()->json([
+                'status_value' => "Lỗi! Tài khoản đã tồn tại!",
+                'status' => 0
+            ]);
         }
-
-        // Danh sách các môn học
-        $subjects = [
-            1 => 'Toán',
-            2 => 'Ngữ Văn',
-            3 => 'Lịch sử',
-            4 => 'Địa Lý',
-            5 => 'Vật Lý',
-            6 => 'Công nghệ',
-            7 => 'GDCD',
-            8 => 'Anh',
-            9 => 'Hóa học',
-            10 => 'Sinh học'
-        ];
-        // Chọn một môn học ngẫu nhiên
-        $chosen_subject_id = array_rand($subjects);
-        $chosen_subject = $subjects[$chosen_subject_id];
 
         $tbm = new subject_head([
             'name' => $name,
@@ -238,25 +230,20 @@ class AdminTBMonController extends Controller
             'email' => $email,
             'birthday' => $birthday,
             'gender_id' => $gender_id,
-            'subject_id' => $chosen_subject_id,
+            'subject_id' => $subject_id,
             'last_login' => now(),
-
         ]);
 
-        // Lưu TBM  mới vào cơ sở dữ liệu
         if ($tbm->save()) {
             $result = $tbm->toArray();
             $result['status_value'] = "Thêm thành công!";
             $result['status'] = 1;
         } else {
-            $result['status_value'] = "Lỗi! Tài khoản đã tồn tại!";
+            $result['status_value'] = "Lỗi! Đã xảy ra lỗi khi lưu dữ liệu!";
             $result['status'] = 0;
         }
 
-        // return response()->json($result);
-        return response()->json([
-            'result' => $result,
-        ]);
+        return response()->json(['result' => $result]);
     }
 
     public function deleteTBM(Request $request)

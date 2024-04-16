@@ -47,10 +47,22 @@ class AuthController extends Controller
             ], 422);
         }
         $credentials = request(['email', 'password']);
+        // admin
         $token = auth('admins')->attempt($credentials);
         if($token){
             return response()->json(["access_token"=>$token]);
         }
+        // subject_head
+         $token = auth('head_subjects')->attempt($credentials);
+        if($token){
+            return response()->json(["access_token"=>$token]);
+        }
+        // teachers
+          $token = auth('teachers')->attempt($credentials);
+        if($token){
+            return response()->json(["access_token"=>$token]);
+        }
+        // students
         $token = auth('students')->attempt($credentials);
         if($token){
             return response()->json(["access_token"=>$token]);
