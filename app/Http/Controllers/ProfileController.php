@@ -2,22 +2,40 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Profile\UpdateProfileRequest;
 use App\Models\admin;
 use App\Models\student;
 use App\Models\subject_head;
 use App\Models\teacher;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Concerns\ToArray;
-use Symfony\Polyfill\Intl\Idn\Info;
+use Illuminate\Support\Facades\Validator;
 
 class ProfileController extends Controller
 {
 
     public function updateProfile(Request $request, Admin $admin)
     {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required',
+            'gender_id' => 'required',
+            'birthday' => 'required',
+            'password' => 'required',
+            'email' => 'required|email',
+        ], [
+            'name.required' => 'Vui lòng nhập tên!',
+            'gender_id.required' => 'Vui lòng chon giới tính!',
+            'birthday.required' => 'Vui lòng nhập ngày sinh!',
+            'password.required' => 'Vui lòng nhập mật khẩu!',
+            'email.required' => 'Vui lòng nhập email!',
+            'email.email' => 'Email khong hop le!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $me = Admin::find($request->id); //$request->id
         $me->name = $request->name;
         $me->save();

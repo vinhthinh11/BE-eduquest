@@ -2,17 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Admin\SubjectHead\DuyetDeThiRequest;
 use Illuminate\Http\Request;
-use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\tests;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Validator;
 
 class TBMDuyetDeThiController extends Controller
 {
-    public function duyetDT(DuyetDeThiRequest $request){
+    public function duyetDT(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'test_code' => 'required|string|unique:tests,test_code',
+        ], [
+            'test_code.required' => 'Trường mã đề thi là bắt buộc.',
+            'test_code.string' => 'Mã đề thi phải là một chuỗi.',
+            'test_code.unique' => 'Mã đề thi đã tồn tại trong hệ thống.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
        $test_code = $request->test_code;
        $test = tests::where('test_code', $test_code)->first();
        if ($test) {
@@ -37,7 +49,23 @@ class TBMDuyetDeThiController extends Controller
        }
 
     }
-    public function khongDuyetDT(DuyetDeThiRequest $request){
+    public function khongDuyetDT(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'test_code' => 'required|string|unique:tests,test_code',
+        ], [
+            'test_code.required' => 'Trường mã đề thi là bắt buộc.',
+            'test_code.string' => 'Mã đề thi phải là một chuỗi.',
+            'test_code.unique' => 'Mã đề thi đã tồn tại trong hệ thống.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
         $test_code = $request->test_code;
         $test = tests::where('test_code', $test_code)->first();
         if ($test) {

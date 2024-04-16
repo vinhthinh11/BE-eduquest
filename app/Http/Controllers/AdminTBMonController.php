@@ -2,17 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Admin\Subject_head\CreateFileTBMRequest;
-use App\Http\Requests\Admin\Subject_head\CreateTBMRequest;
-use App\Http\Requests\Admin\Subject_head\DeleteTBMRequest;
-use App\Http\Requests\Admin\Subject_head\UpdateTBMRequest;
-use App\Http\Requests\LoginRequest;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\subject_head;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Validator;
 
 class AdminTBMonController extends Controller
 {
@@ -32,9 +28,28 @@ class AdminTBMonController extends Controller
         ]);
     }
 
-    public function submitLogin(LoginRequest $request)
+    public function submitLogin(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            //'username' => 'required|string|exists:admins,username',
+            'email'    => 'required|email',
+            'password' => 'required|string|max:20|min:6',
+        ], [
+            // 'username.required' => 'Tên đăng nhập là bắt buộc!',
+            // 'username.exists'   => 'Tên đăng nhập không tồn tại!',
+            'email.required'    => 'Email là bắt buộc!',
+            'email.email'       => 'Email phải là định dạng hợp lệ!',
+            'password.required' => 'Mật khẩu là bắt buộc!',
+            'password.min'      => 'Mật khẩu tối thiểu 6 kí tự!',
+            'password.max'      => 'Mật khẩu tối đa 20 kí tự!',
+        ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         if ($request->has('email') && $request->has('password')) {
             $email = $request->input('email');
             $password = $request->input('password');
@@ -70,8 +85,37 @@ class AdminTBMonController extends Controller
         }
     }
 
-    public function check_add_tbm_via_file(CreateFileTBMRequest $request)
+    public function check_add_tbm_via_file(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'name'          => 'required|string|min:6|max:50',
+            'username'      => 'required|string|min:6|max:50|unique:subject_head,username',
+            'gender_id'     => 'required|integer',
+            'password'      => 'required|string|min:6|max:20',
+            'email'         => 'nullable|email|unique:subject_head,email',
+            'permission'    => 'nullable',
+            'birthday'      => 'nullable|date',
+            'file'          => 'required|file|mimes:xlsx',
+        ], [
+            'name.min'           => 'Tên Trưởng bộ môn tối thiểu 6 kí tự!',
+            'name.required'         => 'Tên Trưởng bộ môn không được để trống!',
+            'username.required'     => 'Username không được để trống!',
+            'username.unique'       => 'Username đã tồn tại!',
+            'password.required'     => 'Password không được để trống!',
+            'password.min'          => 'Password tối thiểu 6 kí tự!',
+            'email.email'           => 'Email không đúng định dạng!',
+            'email.unique'          => 'Email đã được sử dụng!',
+            'birthday.date'         => 'Ngày Sinh phải là một ngày hợp lệ!',
+            'file.required'         => 'Chưa nhập file!',
+            'file.mimes'            => 'File nhập vào không hợp lệ!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $result = [];
         if (!$request->hasFile('file'))  return response()->json([
             'message' => 'Chua nhap file',
@@ -123,8 +167,34 @@ class AdminTBMonController extends Controller
                         "mesagge"=> "them thanh cong ". $count . " truong bo mon",
                     ]);
 }
-    public function createTBM(CreateTBMRequest $request)
+    public function createTBM(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'name'          => 'required|string|min:6|max:50',
+            'username'      => 'required|string|min:6|max:50|unique:subject_head,username',
+            'gender_id'     => 'required|integer',
+            'password'      => 'required|string|min:6|max:20',
+            'email'         => 'nullable|email|unique:subject_head,email',
+            'permission'    => 'nullable',
+            'birthday'      => 'nullable|date',
+        ], [
+            'name.min'              => 'Tên Trưởng bộ môn tối thiểu 6 kí tự!',
+            'name.required'         => 'Tên Trưởng bộ môn không được để trống!',
+            'username.required'     => 'Username không được để trống!',
+            'username.unique'       => 'Username đã tồn tại!',
+            'password.required'     => 'Password không được để trống!',
+            'password.min'          => 'Password tối thiểu 6 kí tự!',
+            'email.email'           => 'Email không đúng định dạng!',
+            'email.unique'          => 'Email đã được sử dụng!',
+            'birthday.date'         => 'Ngày Sinh phải là một ngày hợp lệ!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $result = [];
 
         $name = $request->input('name');
@@ -189,8 +259,20 @@ class AdminTBMonController extends Controller
         ]);
     }
 
-    public function deleteTBM(DeleteTBMRequest $request)
+    public function deleteTBM(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'subject_head_id' => 'required|exists:subject_head,subject_head_id'
+        ], [
+            'subject_head_id.*' => 'Trưởng bộ môn không tồn tại!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $tbm = subject_head::findOrFail($request->id);
         // dd($tbm);
         if ($tbm) {
@@ -209,8 +291,31 @@ class AdminTBMonController extends Controller
 
 
 
-    public function updateTBM(UpdateTBMRequest $request)
+    public function updateTBM(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'subject_head_id' => 'required|exists:subject_head,subject_head_id',
+            'name' => 'required|string|min:6|max:50',
+            'gender_id' => 'required|integer',
+            'birthday' => 'nullable|date',
+            'password' => 'nullable|string|min:6|max:20',
+        ], [
+            'subject_head_id.required' => 'Trưởng bộ môn không được để trống!',
+            'student_id.exists' => 'Trưởng bộ môn không tồn tại!',
+            'name.min' => 'Tên Trưởng bộ môn tối thiểu 6 kí tự!',
+            'name.required' => 'Tên Trưởng bộ môn không được để trống!',
+            'gender_id.required' => 'Giới tính không được để trống!',
+            'birthday.date' => 'Ngày Sinh phải là một ngày hợp lệ!',
+            'password.min' => 'Mật khẩu tối thiểu 6 kí tự!',
+            'password.max' => 'Mật khẩu không được quá 20 kí tự!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $tbm = subject_head::find($request->subject_head_id);
         if ($tbm) {
             $data = $request->all();

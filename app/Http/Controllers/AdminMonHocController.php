@@ -2,15 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Admin\Subject\DeleteSubjectRequest;
-use App\Http\Requests\Admin\Subject\Update_CreateSubjectRequest;
 use Illuminate\Http\Request;
 use App\Models\subjects;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use PhpOffice\PhpSpreadsheet\IOFactory;
+use Illuminate\Support\Facades\Validator;
+
 
 class AdminMonHocController extends Controller
 {
@@ -24,7 +19,23 @@ class AdminMonHocController extends Controller
         ], $this->successStatus);
     }
 
-    public function updateMon(Update_CreateSubjectRequest $request){
+    public function updateMon(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'subject_detail'      => 'required|string|max:20',
+        ], [
+            'subject_detail.required'     => 'Môn học không được để trống!',
+            'subject_detail.max'       => 'Tên Môn học tối đa 20 kí tự!',
+            'subject_detail.string'       => 'Tên Môn học phải là dạng chuỗi!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
         $mon = subjects::find($request->subject_id);
         if ($mon) {
             $data = $request->all();
@@ -42,8 +53,21 @@ class AdminMonHocController extends Controller
         }
     }
 
-    public function deleteMon(DeleteSubjectRequest $request)
+    public function deleteMon(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'subject_id' => 'required|exists:subjects,subject_id'
+        ], [
+            'subject_id.*' => 'Môn học không tồn tại!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
         $mon = subjects::find($request->subject_id);
         if ($mon) {
             $mon->delete();
@@ -59,7 +83,22 @@ class AdminMonHocController extends Controller
         }
     }
 
-    public function createMon(Update_CreateSubjectRequest $request){
+    public function createMon(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'subject_detail'      => 'required|string|max:20',
+        ], [
+            'subject_detail.required'     => 'Môn học không được để trống!',
+            'subject_detail.max'       => 'Tên Môn học tối đa 20 kí tự!',
+            'subject_detail.string'       => 'Tên Môn học phải là dạng chuỗi!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $result = [];
         $name = $request->input('subject_detail');
         if ($name !== null) {
