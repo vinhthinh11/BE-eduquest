@@ -97,7 +97,25 @@ class AdminTBMonController extends Controller
                 $password = bcrypt($row['E']);
                 $birthday = $row['F'];
                 $gender = ($row['G'] == 'Nam') ? 1 : (($row['G'] == 'Nữ') ? 2 : 3);
-                $subject = ($row['H'] == 'Toán') ? 1 : (($row['H'] == 'Ngữ Văn') ? 2 :  3);
+
+                // Xác định môn học
+                $subjectMappings = [
+                    'Toán' => 1,
+                    'Ngữ Văn' => 2,
+                    'Lịch sử' => 3,
+                    'Địa Lý' => 4,
+                    'Vật Lý' => 5,
+                    'Công nghệ' => 6,
+                    'GDCD' => 7,
+                    'Anh' => 8,
+                    'Hóa học' => 9,
+                    'Sinh học' => 10
+                ];
+                $subject = isset($subjectMappings[$row['H']]) ? $subjectMappings[$row['H']] : null;
+                if ($subject === null) {
+                    $errList[] = "Dòng $key: Môn học không hợp lệ";
+                    continue;
+                }
                 $tbm = new subject_head([
                     'name' => $name,
                     'username' => $username,
@@ -118,75 +136,52 @@ class AdminTBMonController extends Controller
                 ], 400);
             }
         }
-                    unlink($filePath);
-                    return response()->json([
-                        "mesagge"=> "them thanh cong ". $count . " truong bo mon",
-                    ]);
-}
+        unlink($filePath);
+        return response()->json([
+            "mesagge"=> "them thanh cong ". $count . " truong bo mon",
+        ]); 
+    }
+
     public function createTBM(CreateTBMRequest $request)
     {
         $result = [];
 
-        $name = $request->input('name');
-        $username = $request->input('username');
-        $password = bcrypt($request->input('password'));
-        $email = $request->input('email');
-        $birthday = $request->input('birthday');
-        $gender = $request->input('gender');
-        $subject = $request->input('subject');
+        $name = $request->name;
+        $username = $request->username;
+        $password = bcrypt($request->password);
+        $email = $request->email;
+        $birthday = $request->birthday;
+        $gender_id = $request->gender_id;
+        $subject_id = $request->subject_id;
 
-        //giới tính
-        if ($gender == 'Nam') {
-            $gender_id = 2;
-        } else if ($gender == 'Nữ') {
-            $gender_id = 3; // Hoặc bất kỳ giá trị khác tương ứng với giới tính Nam
-        } else {
-            $gender_id = 1;
-        }
+        // Kiểm tra xem tên người dùng đã tồn tại chưa
+        $existingUser = subject_head::where('username', $username)->exists();
 
-        // Danh sách các môn học
-        $subjects = [
-            1 => 'Toán',
-            2 => 'Ngữ Văn',
-            3 => 'Lịch sử',
-            4 => 'Địa Lý',
-            5 => 'Vật Lý',
-            6 => 'Công nghệ',
-            7 => 'GDCD',
-            8 => 'Anh',
-            9 => 'Hóa học',
-            10 => 'Sinh học'
-        ];
-        // Chọn một môn học ngẫu nhiên
-        $chosen_subject_id = array_rand($subjects);
-        $chosen_subject = $subjects[$chosen_subject_id];
-
-        $tbm = new subject_head([
-            'name' => $name,
-            'username' => $username,
-            'password' => $password,
-            'email' => $email,
-            'birthday' => $birthday,
-            'gender_id' => $gender_id,
-            'subject_id' => $chosen_subject_id,
-            'last_login' => now(),
-
-        ]);
-
-        // Lưu TBM  mới vào cơ sở dữ liệu
-        if ($tbm->save()) {
-            $result = $tbm->toArray();
-            $result['status_value'] = "Thêm thành công!";
-            $result['status'] = 1;
-        } else {
+        if ($existingUser) {
             $result['status_value'] = "Lỗi! Tài khoản đã tồn tại!";
             $result['status'] = 0;
-        }
+        } else {
+            $tbm = new subject_head([
+                'name' => $name,
+                'username' => $username,
+                'password' => $password,
+                'email' => $email,
+                'birthday' => $birthday,
+                'gender_id' => $gender_id,
+                'subject_id' => $subject_id,
+                'last_login' => now(),
+            ]);
 
-        // return response()->json($result);
-        return response()->json([
-            'result' => $result,
-        ]);
+            if ($tbm->save()) {
+                $result = $tbm->toArray();
+                $result['status_value'] = "Thêm thành công!";
+                $result['status'] = 1;
+            } else {
+                $result['status_value'] = "Lỗi! Đã xảy ra lỗi khi lưu dữ liệu!";
+                $result['status'] = 0;
+            }
+        }
+        return response()->json(['result' => $result]);
     }
 
     public function deleteTBM(DeleteTBMRequest $request)
