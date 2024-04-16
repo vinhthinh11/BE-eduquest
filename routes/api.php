@@ -14,14 +14,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TBMDuyetDeThiController;
 
-Route::group([
-
-], function ($router) {
-
     Route::post('login', [AuthController::class, 'login']);
     Route::post('me', [AuthController::class, 'me']);
-
-});
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
@@ -50,7 +44,7 @@ Route::group(['prefix' => '/admin','middleware' => 'admin'], function ($router) 
     //ql Question
     Route::group(['prefix' => 'question'], function () {
         Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
-        Route::post('/check-add-question', [Admincontroller::class, 'checkAddQuestions'])->name('checkAddQuestion');
+        Route::post('/create', [Admincontroller::class, 'checkAddQuestions'])->name('checkAddQuestion');
         Route::get('/get', [Admincontroller::class, 'getQuestion'])->name('getQuestion');
         Route::put('/update', [Admincontroller::class, 'updateQuestions'])->name(('updateQuestions'));
         Route::delete('/delete', [Admincontroller::class, 'deleteQuestion'])->name(('deleteQuestion'));
@@ -61,7 +55,7 @@ Route::group(['prefix' => '/admin','middleware' => 'admin'], function ($router) 
         Route::post('/update-questions', [Admincontroller::class, 'updateQuestions'])->name(('updateQuestions'));
 
         Route::post('check-add-test', [Admincontroller::class, 'checkAddTest'])->name(('checkAddTest'));
-    });
+     });
 
     //Profile
     Route::group(['prefix' => 'profiles'], function () {
@@ -104,7 +98,7 @@ Route::group(['prefix' => '/admin','middleware' => 'admin'], function ($router) 
 
     //ql TBM
     Route::group(['prefix' => '/truongbomon'], function () {
-        Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
+        Route::get('/get', [AdminTBMonController::class, 'index'])->name('index');
         Route::post('/update-tbm', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
         Route::post('/file', [AdminTBMonController::class, 'check_add_tbm_via_file'])->name('check_add_tbm_via_file');
         Route::post('/create-tbm', [AdminTBMonController::class, 'createTBM'])->name('createTBM');
