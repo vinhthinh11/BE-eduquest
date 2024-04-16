@@ -39,6 +39,10 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\teacher::class,
         ],
+        'subject_heads' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\subject_head::class,
+        ],
         'students' => [
             'driver' => 'eloquent',
             'model' => App\Models\students::class,

@@ -26,6 +26,7 @@ use App\Models\subjects;
 use App\Models\tests;
 use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Validator;
 
 
 class Admincontroller extends Controller
@@ -452,10 +453,30 @@ class Admincontroller extends Controller
     public function updateQuestions(UpdateQuestionRequest $request)
     {
        $question = questions::find($request->question_id);
-       if(!$question)return response()->json(["message" => "Không tìm thấy câu hỏi!"], 400);
-       $data = $request->only(['question_content', 'level_id', 'answer_a', 'answer_b', 'answer_c', 'answer_d', 'correct_answer', 'grade_id', 'unit','suggest','status_id', 'teacher_id']);
-      $updateQuestion  =$question->fill($data)->save();
-    return response()->json(["updateData" => $updateQuestion]);
+    if(empty($question)) {
+        return response()->json(["message" => "Không tìm thấy câu hỏi!"], 400);
+    }
+       $validator = Validator::make($request->all(),[
+ 'question_content'=>'string|max:255',
+        'level_id'=>'numeric',
+        'answer_a'=>'string',
+        'answer_b'=>'string',
+        'answer_c'=>'string',
+        'answer_d'=>'string',
+        'correct_answer'=>'numeric',
+        'grade_id'=>'numeric',
+        'unit'=>'numeric',
+        'suggest'=>'string',
+        'status_id'=>'numeric',
+        'teacher_id'=>'numeric',
+       ]);
+       if($validator->fails()){
+        return response($validator->errors()->all(),400);
+       }
+       $data = $request->only(['question_content','level_id','answer_a','answer_b','answer_c','answer_d','correct_answer','grade_id','unit','suggest','status_id','teacher_id']);
+      $question->fill($data);
+    //   $question->fill($data)->save();
+    return response()->json(["question" => $question]);
         }
 
 
