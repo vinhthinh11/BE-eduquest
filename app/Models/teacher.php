@@ -27,6 +27,10 @@ class teacher extends  Authenticatable implements JWTSubject
         'last_login'
     ];
     public $timestamps = false;
+    public function questions()
+    {
+        return $this->hasMany(Questions::class, 'teacher_id');
+    }
     protected $primaryKey = 'teacher_id';
 
 

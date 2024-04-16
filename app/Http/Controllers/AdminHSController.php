@@ -16,21 +16,19 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AdminHSController extends Controller
 {
-    // quản lý hojc sinh
-    public $successStatus = 200;
-
-    public function index()
-    {
-        $data = students::get();
-        if (!$data->isEmpty()) {
-            return response()->json([
-                'data' => $data
-            ]);
-        }
-        return response()->json([
-            'data' => $data
-        ]);
-    }
+     // quản lý hojc sinh
+     public $successStatus = 200;
+     public function index()
+     {
+         $data = students::get();
+         if(empty($data)){
+             return response()->json([
+                 'data' => $data
+             ]);}
+         return response()->json([
+             'data' => $data,
+         ]);
+     }
 
     public function submitLogin(LoginRequest $request)
     {
@@ -131,55 +129,30 @@ class AdminHSController extends Controller
             $result['status'] = 0;
         }
 
-        return response()->json($result);
-        // return response()->json([
-        //     'result' => $result,
-        // ]);
-    }
-    public function createHS(CreateStudentRequest $request)
-    {
-        $result = [];
-
-        $name = $request->input('name');
-        $username = $request->input('username');
-        $password = bcrypt($request->input('password'));
-        $email = $request->input('email');
-        $birthday = $request->input('birthday');
-        $gender = $request->input('gender');
-
-        //giới tính
-        if ($gender == 'Nam') {
-            $gender_id = 2;
-        } else if ($gender == 'Nữ') {
-            $gender_id = 3; // Hoặc bất kỳ giá trị khác tương ứng với giới tính Nam
-        } else {
-            $gender_id = 1;
-        }
-
-        $hs = new students([
-            'name' => $name,
-            'username' => $username,
-            'password' => $password,
-            'email' => $email,
-            'birthday' => $birthday,
-            'gender_id' => $gender_id,
-            'last_login' => now(),
-
+         return response()->json($result);
+         // return response()->json([
+         //     'result' => $result,
+         // ]);
+     }
+     public function createHS(Request $request)
+     {
+        // $result = [];
+        $data = request()->only([
+            'name',
+            'username',
+            'email',
+            'password',
+            'birthday',
+            'last_login',
+            'class_id',
+            'gender_id']);
+            $data['password'] = bcrypt($data['password']);
+            $student = new students($data);
+            $student->save();
+         return response()->json([
+            'student' => $student,
         ]);
-        if ($hs->save()) {
-            $result = $hs->toArray();
-            $result['status_value'] = "Thêm thành công!";
-            $result['status'] = 1;
-        } else {
-            $result['status_value'] = "Lỗi! Tài khoản đã tồn tại!";
-            $result['status'] = 0;
-        }
-
-        // return response()->json($result);
-        return response()->json([
-            'result' => $result,
-        ]);
-    }
+     }
 
     public function deleteHS(DeleteStudentRequest $request)
     {

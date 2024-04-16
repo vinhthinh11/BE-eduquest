@@ -1,0 +1,23 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Tymon\JWTAuth\Facades\JWTAuth;
+
+class CheckStudent
+{
+    public function handle(Request $request, Closure $next)
+    {
+
+        $check = JWTAuth::parseToken()->authenticate();
+        if ($check->permission == 3) {
+            $request->id = $check->student_id;
+            return $next($request);
+        } else {
+            return response()->json(['message' => 'You are unauthorize for this route'],403);
+        }
+
+    }
+}
