@@ -6,12 +6,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
-use Illuminate\Notifications\Notifiable;
 
 class teacher extends  Authenticatable implements JWTSubject
 {
@@ -29,7 +26,14 @@ class teacher extends  Authenticatable implements JWTSubject
         'birthday',
         'last_login'
     ];
+    protected $hidden = [
+        'password',
+    ];
     public $timestamps = false;
+    public function questions()
+    {
+        return $this->hasMany(Questions::class, 'teacher_id');
+    }
     protected $primaryKey = 'teacher_id';
 
 

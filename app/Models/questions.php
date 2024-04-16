@@ -26,7 +26,10 @@ class questions extends  Model
         'suggest',
     ];
     public $timestamps = false;
-    //ngu chua
+    public function teacher()
+    {
+        return $this->belongsTo(Teacher::class, 'teacher_id');
+    }
     protected $primaryKey = 'question_id';
     function getQuestion()
     {

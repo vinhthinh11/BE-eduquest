@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Admin\Classes\DeleteClassRequest;
+use App\Http\Requests\Admin\Classes\Update_CreateClassRequest;
 use App\Models\classes;
 use App\Models\student;
 use Illuminate\Http\Request;
@@ -19,7 +21,7 @@ class AdminClassController extends Controller
     }
 
 
-    public function destroy(Request $request)
+    public function destroy(DeleteClassRequest $request)
     {
         $class = classes::find($request->class_id);
 
@@ -35,7 +37,7 @@ class AdminClassController extends Controller
         $students = student::where('class_id', $class->class_id)->get();
 
         foreach ($students as $student) {
-            $student->class_id = 1; //cái này cần set lại db cho defaul class_id = 1 là lớp chứa những sinh viên bị xóa Lớp nhé ae!
+            $student->class_id = 99; //cái này cần set lại db cho defaul class_id = 99 là lớp chứa những sinh viên bị xóa Lớp nhé ae!
             $student->save();
         }
 
@@ -51,7 +53,7 @@ class AdminClassController extends Controller
         ]);
     }
 
-    public function update(Request $request)
+    public function update(DeleteClassRequest $request)
     {
         $class = classes::find($request->class_id);
         $data = $request->all();
@@ -71,7 +73,7 @@ class AdminClassController extends Controller
         }
     }
 
-    public function edit(Request $request)
+    public function edit(Update_CreateClassRequest $request)
     {
         $class = classes::find($request->class_id);
 
@@ -91,7 +93,7 @@ class AdminClassController extends Controller
         ]);
     }
 
-    public function create(Request $request)
+    public function create(Update_CreateClassRequest $request)
     {
         $data = $request->all();
         classes::create($data);

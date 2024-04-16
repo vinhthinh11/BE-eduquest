@@ -4,21 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Tymon\JWTAuth\Contracts\JWTSubject;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\DB;
 
-class student_test_detail extends  Model
+class student_practice_detail extends Model
 {
-    use Notifiable;
+    use HasFactory;
 
-    protected $table = 'student_test_detail';
+    protected $table = 'student_practice_detail';
 
     protected $fillable = [
         'ID',
         'student_id',
-        'test_code',
+        'practice_code',
         'question_id',
         'answer_a',
         'answer_b',
@@ -27,5 +23,4 @@ class student_test_detail extends  Model
         'student_answer',
         'timest'
     ];
-
 }
