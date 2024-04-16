@@ -21,7 +21,8 @@ class DeleteQuestionRequest extends FormRequest
     public function messages()
     {
         return [
-            'question_id.*' => 'Câu hỏi không tồn tại!',
+            'question_id.exists' => 'Câu hỏi có vẻ không tồn tại!',
+            'question_id.required' => 'ID câu hỏi là bắt buộc!',
         ];
     }
 }

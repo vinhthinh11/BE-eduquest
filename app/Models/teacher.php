@@ -45,4 +45,9 @@ class teacher extends  Authenticatable implements JWTSubject
     {
         return [];
     }
+
+    public function isTeacher()
+    {
+        return $this->role === 'teachers';
+    }
 }

@@ -48,5 +48,13 @@ class admin extends  Authenticatable implements JWTSubject
     {
         return [];
     }
+    public function getAdminInfo($username)
+    {
+        return $this->select('admin_id', 'username', 'avatar', 'email', 'name', 'last_login', 'birthday', 'permission_detail', 'gender_detail', 'genders.gender_id')
+            ->join('permissions', 'admins.permission', '=', 'permissions.permission')
+            ->join('genders', 'admins.gender_id', '=', 'genders.gender_id')
+            ->where('username', $username)
+            ->first();
+    }
 
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Admin\SubjectHead\DuyetDeThiRequest;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\tests;
@@ -11,9 +12,9 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class TBMDuyetDeThiController extends Controller
 {
-    public function duyetDT(Request $request){
+    public function duyetDT(DuyetDeThiRequest $request){
        $test_code = $request->test_code;
-       $test = tests::where('test_code', $test_code)->first(); 
+       $test = tests::where('test_code', $test_code)->first();
        if ($test) {
            if ($test->status_id == 3 || $test->status_id == 5) {
                $test->status_id = 4;
@@ -31,14 +32,14 @@ class TBMDuyetDeThiController extends Controller
        } else {
            return response()->json([
                'status_value' => "Không tìm thấy đề thi!",
-               'status_id' => -1 
+               'status_id' => -1
            ], 404);
        }
 
     }
-    public function khongDuyetDT(Request $request){
+    public function khongDuyetDT(DuyetDeThiRequest $request){
         $test_code = $request->test_code;
-        $test = tests::where('test_code', $test_code)->first(); 
+        $test = tests::where('test_code', $test_code)->first();
         if ($test) {
             if ($test->status_id == 3 || $test->status_id == 4) {
                 $test->status_id = 5;
@@ -56,10 +57,10 @@ class TBMDuyetDeThiController extends Controller
         } else {
             return response()->json([
                 'status_value' => "Không tìm thấy đề thi!",
-                'status_id' => -1 
+                'status_id' => -1
             ], 404);
         }
- 
+
      }
 
 }

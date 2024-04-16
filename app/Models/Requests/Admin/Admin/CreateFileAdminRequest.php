@@ -22,6 +22,7 @@ class CreateFileAdminRequest extends FormRequest
             'birthday' => 'nullable|date',
             'gender' => 'required|string|in:Nam,Nữ,Khác',
             'permission' => 'nullable|string|unique:permissions,permission',
+            'file' => 'required|file|mimes:xlsx',
         ];
     }
 
