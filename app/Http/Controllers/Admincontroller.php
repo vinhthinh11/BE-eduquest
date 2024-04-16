@@ -450,7 +450,7 @@ class Admincontroller extends Controller
         ]);
     }
 
-    public function updateQuestions(UpdateQuestionRequest $request)
+    public function updateQuestions(Request $request)
     {
        $question = questions::find($request->question_id);
     if(empty($question)) {

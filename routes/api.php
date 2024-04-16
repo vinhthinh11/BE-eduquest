@@ -14,18 +14,13 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TBMDuyetDeThiController;
 
-Route::group([
 
-    // 'middleware' => 'api',
-
-], function ($router) {
 
     Route::post('login', [AuthController::class, 'login']);
     // Route::post('logout', 'AuthController@logout');
     // Route::post('refresh', 'AuthController@refresh');
     Route::post('me', [AuthController::class, 'me']);
 
-});
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
@@ -39,7 +34,7 @@ Route::group([
 
 // Route::post('/submit-login', [AdminController::class, 'submitLogin']);
 // 'middleware' => 'checkLoginAdmin'
-Route::group(['prefix' => '/admin'], function () {
+Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function () {
     // API route ----------------------------
     // this line was add to check if huong could receive the change in his repo
 
