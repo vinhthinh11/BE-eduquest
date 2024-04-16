@@ -27,10 +27,6 @@ return [
 
 
     'providers' => [
-        'users' => [
-            'driver' => 'eloquent',
-            'model' => App\Models\User::class,
-        ],
         'admins' => [
             'driver' => 'eloquent',
             'model' => App\Models\admin::class,
@@ -45,7 +41,8 @@ return [
         ],
         'students' => [
             'driver' => 'eloquent',
-            'model' => App\Models\students::class,
+            'model' => App\Models\student::class,
+            'table' => 'students',
         ],
 
 

@@ -22,7 +22,6 @@ class students extends Authenticatable implements JWTSubject
         'birthday',
         'class_id',
         'last_login',
-
     ];
     public $timestamps = false;
     protected $primaryKey = 'student_id';
