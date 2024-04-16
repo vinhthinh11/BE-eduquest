@@ -23,7 +23,7 @@ class AdminHSController extends Controller
          $data = students::get();
          if(empty($data)){
              return response()->json([
-                 'data' => $data
+                 'message' => "Không tìm thấy học sinh nào"
              ]);}
          return response()->json([
              'data' => $data,

@@ -139,7 +139,7 @@ class AdminTBMonController extends Controller
         unlink($filePath);
         return response()->json([
             "mesagge"=> "them thanh cong ". $count . " truong bo mon",
-        ]); 
+        ]);
     }
 
     public function createTBM(CreateTBMRequest $request)

@@ -17,22 +17,9 @@ use App\Http\Controllers\TBMDuyetDeThiController;
 
 
     Route::post('login', [AuthController::class, 'login']);
-    Route::post('me', [AuthController::class, 'me']);
+    Route::get('me', [AuthController::class, 'me']);
 
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-//
-
-// Login
-// Route::get('/admin/login', [Admincontroller::class, 'indexLogin']);
-// Route::post('/admin/logout', [Admincontroller::class, 'logout'])->name('logout');
-
-
-// Route::post('/submit-login', [AdminController::class, 'submitLogin']);
-// 'middleware' => 'checkLoginAdmin'
-
-Route::group(['prefix' => '/admin','middleware' => 'admin'], function ($router) {
+    Route::group(['prefix' => '/admin','middleware' => 'admin'], function () {
 
     //ql Admin
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
@@ -45,7 +32,7 @@ Route::group(['prefix' => '/admin','middleware' => 'admin'], function ($router) 
     //ql Question
     Route::group(['prefix' => 'question'], function () {
         Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
-        Route::post('/create', [Admincontroller::class, 'checkAddQuestions'])->name('checkAddQuestion');
+        Route::post('/check-add-question', [Admincontroller::class, 'checkAddQuestions'])->name('checkAddQuestion');
         Route::get('/get', [Admincontroller::class, 'getQuestion'])->name('getQuestion');
         Route::put('/update', [Admincontroller::class, 'updateQuestions'])->name(('updateQuestions'));
         Route::delete('/delete', [Admincontroller::class, 'deleteQuestion'])->name(('deleteQuestion'));
@@ -56,7 +43,7 @@ Route::group(['prefix' => '/admin','middleware' => 'admin'], function ($router) 
         Route::post('/update-questions', [Admincontroller::class, 'updateQuestions'])->name(('updateQuestions'));
 
         Route::post('check-add-test', [Admincontroller::class, 'checkAddTest'])->name(('checkAddTest'));
-     });
+ });
 
     ///
     //Profile
@@ -99,7 +86,7 @@ Route::group(['prefix' => '/admin','middleware' => 'admin'], function ($router) 
 
     //ql TBM
     Route::group(['prefix' => '/truongbomon'], function () {
-        Route::get('/get', [AdminTBMonController::class, 'index'])->name('index');
+        Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
         Route::post('/update-tbm', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
         Route::post('/file', [AdminTBMonController::class, 'check_add_tbm_via_file'])->name('check_add_tbm_via_file');
         Route::post('/create-tbm', [AdminTBMonController::class, 'createTBM'])->name('createTBM');
@@ -134,7 +121,7 @@ Route::group(['prefix' => '/admin','middleware' => 'admin'], function ($router) 
 });
 
 
-Route::group(['prefix' => '/student', 'middleware' => 'CheckStudent'], function () {
+Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     Route::get('/get', [AdminHSController::class, 'index'])->name('index');
     Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
 
@@ -151,20 +138,20 @@ Route::group(['prefix' => '/student', 'middleware' => 'CheckStudent'], function 
         Route::post('/', [HSLuyenDeController::class, 'luyenDe'])->name('luyenDe');
         Route::put('/', [HSLuyenDeController::class, 'nopBai'])->name('nopBai');
     });
-    
+
 });
 
-Route::group(['prefix' => '/teacher', 'middleware' => 'CheckTeacher'], function () {
+Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     Route::get('/get',     [AdminTeacherController::class, 'getTeacher'])->name('getTeacher');
+    Route::post('/check-add-question-via-file', [AdminTeacherController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
+    Route::post('/create', [AdminTeacherController::class, 'checkAddQuestions'])->name('checkAddQuestion');
 });
 
-Route::group(['prefix' => '/TBM', 'middleware' => 'CheckTBM'], function () {
+Route::group(['prefix' => '/TBM', 'middleware' => 'head_subject'], function () {
     Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
 
     //duyệt đề thi
     Route::post('/', [TBMDuyetDeThiConTroller::class, 'duyetDT'])->name('duyetDT');
     Route::put('/', [TBMDuyetDeThiConTroller::class, 'khongDuyetDT'])->name('khongDuyetDT');
 });
-// Route::group(['prefix' => 'laravel-filemanager'], function () {
-//     \UniSharp\LaravelFilemanager\Lfm::routes();
-// });
+

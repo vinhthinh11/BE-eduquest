@@ -575,12 +575,15 @@ class Admincontroller extends Controller
         ]);
     }
 
+
     public function addTest(Request $request)
     {
         $result   = [];
         $student  = new student();
         $testCode = $request->test_code;
         $password = md5($request->password);
+        $check = Auth::guard('apiStudents')->user();
+        $id = $check->student_id;
         if ($password != $student->getTest($testCode)->password) {
             $result['status_value'] = "Sai mật khẩu";
             $result['status'] = 0;
@@ -596,12 +599,12 @@ class Admincontroller extends Controller
                     $ID = rand(1, time()) + rand(100000, 999999);
                     $time = $student->getTest($testCode)->time_to_do . ':00';
                     if (is_array($array) && count($array) >= 4) {
-                        $student->addStudentQuest(2, $ID, $testCode, $quest->question_id, $array[0], $array[1], $array[2], $array[3]);
+                        $student->addStudentQuest($id, $ID, $testCode, $quest->question_id, $array[0], $array[1], $array[2], $array[3]);
                     } else {
                         $result['status_value'] = "Không có đáp án";
                         $result['status'] = 0;
                     }
-                    $student->updateStudentExam($testCode, $time, 2);
+                    $student->updateStudentExam($testCode, $time, $id);
                 }
                 $result['status_value'] = "Thành công. Chuẩn bị chuyển trang!";
                 $result['status'] = 1;
@@ -614,7 +617,6 @@ class Admincontroller extends Controller
 
         return response()->json([
             'result' => $result,
-            // 'listQuest' => $listQuest,
         ]);
     }
 }
