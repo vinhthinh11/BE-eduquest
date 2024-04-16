@@ -10,6 +10,7 @@ use App\Http\Requests\LoginRequest;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\subject_head;
+use App\Models\subjects;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -70,7 +71,7 @@ class AdminTBMonController extends Controller
         }
     }
 
-    public function check_add_tbm_via_file(CreateFileTBMRequest $request)
+    public function check_add_tbm_via_file(Request $request)
     {
         $result = [];
         if (!$request->hasFile('file'))  return response()->json([
@@ -98,19 +99,8 @@ class AdminTBMonController extends Controller
                 $birthday = $row['F'];
                 $gender = ($row['G'] == 'Nam') ? 1 : (($row['G'] == 'Nữ') ? 2 : 3);
 
-                // Xác định môn học
-                $subjectMappings = [
-                    'Toán' => 1,
-                    'Ngữ Văn' => 2,
-                    'Lịch sử' => 3,
-                    'Địa Lý' => 4,
-                    'Vật Lý' => 5,
-                    'Công nghệ' => 6,
-                    'GDCD' => 7,
-                    'Anh' => 8,
-                    'Hóa học' => 9,
-                    'Sinh học' => 10
-                ];
+                $subjectMappings = subjects::all()->pluck('id', 'name')->toArray();
+
                 $subject = isset($subjectMappings[$row['H']]) ? $subjectMappings[$row['H']] : null;
                 if ($subject === null) {
                     $errList[] = "Dòng $key: Môn học không hợp lệ";
@@ -132,17 +122,17 @@ class AdminTBMonController extends Controller
                 $count++;
             } catch (\Exception $e) {
                 return response()->json([
-                    'message' => 'Them file khong thanh cong',
+                    'message' => 'Thêm file không thành công',
                 ], 400);
             }
         }
         unlink($filePath);
         return response()->json([
-            "mesagge"=> "them thanh cong ". $count . " truong bo mon",
+            "messagge"=> "Thêm thành công ". $count . " trưởng bộ môn",
         ]);
     }
 
-    public function createTBM(CreateTBMRequest $request)
+    public function createTBM(Request $request)
     {
         $result = [];
 
@@ -158,33 +148,36 @@ class AdminTBMonController extends Controller
         $existingUser = subject_head::where('username', $username)->exists();
 
         if ($existingUser) {
-            $result['status_value'] = "Lỗi! Tài khoản đã tồn tại!";
-            $result['status'] = 0;
-        } else {
-            $tbm = new subject_head([
-                'name' => $name,
-                'username' => $username,
-                'password' => $password,
-                'email' => $email,
-                'birthday' => $birthday,
-                'gender_id' => $gender_id,
-                'subject_id' => $subject_id,
-                'last_login' => now(),
+            return response()->json([
+                'status_value' => "Lỗi! Tài khoản đã tồn tại!",
+                'status' => 0
             ]);
-
-            if ($tbm->save()) {
-                $result = $tbm->toArray();
-                $result['status_value'] = "Thêm thành công!";
-                $result['status'] = 1;
-            } else {
-                $result['status_value'] = "Lỗi! Đã xảy ra lỗi khi lưu dữ liệu!";
-                $result['status'] = 0;
-            }
         }
+
+        $tbm = new subject_head([
+            'name' => $name,
+            'username' => $username,
+            'password' => $password,
+            'email' => $email,
+            'birthday' => $birthday,
+            'gender_id' => $gender_id,
+            'subject_id' => $subject_id,
+            'last_login' => now(),
+        ]);
+
+        if ($tbm->save()) {
+            $result = $tbm->toArray();
+            $result['status_value'] = "Thêm thành công!";
+            $result['status'] = 1;
+        } else {
+            $result['status_value'] = "Lỗi! Đã xảy ra lỗi khi lưu dữ liệu!";
+            $result['status'] = 0;
+        }
+
         return response()->json(['result' => $result]);
     }
 
-    public function deleteTBM(DeleteTBMRequest $request)
+    public function deleteTBM(Request $request)
     {
         $tbm = subject_head::findOrFail($request->id);
         // dd($tbm);
@@ -204,7 +197,7 @@ class AdminTBMonController extends Controller
 
 
 
-    public function updateTBM(UpdateTBMRequest $request)
+    public function updateTBM(Request $request)
     {
         $tbm = subject_head::find($request->subject_head_id);
         if ($tbm) {
