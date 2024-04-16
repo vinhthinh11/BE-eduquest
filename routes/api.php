@@ -140,7 +140,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'checkLoginAdmin'], function
 
 Route::group(['prefix' => '/student', 'middleware' => 'CheckStudent'], function () {
     Route::get('/get', [AdminHSController::class, 'index'])->name('index');
-    Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
+    Route::post('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
 });
 
 Route::group(['prefix' => '/teacher', 'middleware' => 'CheckTeacher'], function () {

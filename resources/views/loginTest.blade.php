@@ -23,7 +23,7 @@
 
             var formData = new FormData(this);
 
-            fetch('/api/admin/submit-login', {
+            fetch('/api/submit-login', {
                     method: 'POST',
                     body: formData
                 })
