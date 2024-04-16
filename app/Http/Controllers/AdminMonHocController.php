@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Admin\Subject\DeleteSubjectRequest;
+use App\Http\Requests\Admin\Subject\Update_CreateSubjectRequest;
 use Illuminate\Http\Request;
 use App\Models\subjects;
 use Illuminate\Support\Facades\Session;
@@ -19,10 +21,10 @@ class AdminMonHocController extends Controller
         return response()->json([
             'response' => 'success',
             'data' => $getAllMon
-        ], $this->successStatus); 
+        ], $this->successStatus);
     }
 
-    public function updateMon(Request $request){
+    public function updateMon(Update_CreateSubjectRequest $request){
         $mon = subjects::find($request->subject_id);
         if ($mon) {
             $data = $request->all();
@@ -40,7 +42,7 @@ class AdminMonHocController extends Controller
         }
     }
 
-    public function deleteMon(Request $request)
+    public function deleteMon(DeleteSubjectRequest $request)
     {
         $mon = subjects::find($request->subject_id);
         if ($mon) {
@@ -57,7 +59,7 @@ class AdminMonHocController extends Controller
         }
     }
 
-    public function createMon(Request $request){
+    public function createMon(Update_CreateSubjectRequest $request){
         $result = [];
         $name = $request->input('subject_detail');
         if ($name !== null) {

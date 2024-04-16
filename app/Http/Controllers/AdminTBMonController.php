@@ -2,6 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Admin\Subject_head\CreateFileTBMRequest;
+use App\Http\Requests\Admin\Subject_head\CreateTBMRequest;
+use App\Http\Requests\Admin\Subject_head\DeleteTBMRequest;
+use App\Http\Requests\Admin\Subject_head\UpdateTBMRequest;
+use App\Http\Requests\LoginRequest;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\subject_head;
@@ -27,7 +32,7 @@ class AdminTBMonController extends Controller
         ]);
     }
 
-    public function submitLogin(Request $request)
+    public function submitLogin(LoginRequest $request)
     {
 
         if ($request->has('email') && $request->has('password')) {
@@ -65,7 +70,7 @@ class AdminTBMonController extends Controller
         }
     }
 
-    public function check_add_tbm_via_file(Request $request)
+    public function check_add_tbm_via_file(CreateFileTBMRequest $request)
     {
         $result = [];
         if (!$request->hasFile('file'))  return response()->json([
@@ -89,7 +94,7 @@ class AdminTBMonController extends Controller
                 $name = $row['B'];
                 $username = $row['C'];
                 $email = $row['D'];
-                $password = md5($row['E']);
+                $password = bcrypt($row['E']);
                 $birthday = $row['F'];
                 $gender = ($row['G'] == 'Nam') ? 1 : (($row['G'] == 'Nữ') ? 2 : 3);
                 $subject = ($row['H'] == 'Toán') ? 1 : (($row['H'] == 'Ngữ Văn') ? 2 :  3);
@@ -118,13 +123,13 @@ class AdminTBMonController extends Controller
                         "mesagge"=> "them thanh cong ". $count . " truong bo mon",
                     ]);
 }
-    public function createTBM(Request $request)
+    public function createTBM(CreateTBMRequest $request)
     {
         $result = [];
 
         $name = $request->input('name');
         $username = $request->input('username');
-        $password = md5($request->input('password'));
+        $password = bcrypt($request->input('password'));
         $email = $request->input('email');
         $birthday = $request->input('birthday');
         $gender = $request->input('gender');
@@ -184,7 +189,7 @@ class AdminTBMonController extends Controller
         ]);
     }
 
-    public function deleteTBM(Request $request)
+    public function deleteTBM(DeleteTBMRequest $request)
     {
         $tbm = subject_head::findOrFail($request->id);
         // dd($tbm);
@@ -204,7 +209,7 @@ class AdminTBMonController extends Controller
 
 
 
-    public function updateTBM(Request $request)
+    public function updateTBM(UpdateTBMRequest $request)
     {
         $tbm = subject_head::find($request->subject_head_id);
         if ($tbm) {

@@ -8,6 +8,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\Admin\CreateAdminRequest;
+use App\Http\Requests\Admin\Admin\CreateFileAdminRequest;
+use App\Http\Requests\Admin\Admin\DeleteAdminRequest;
+use App\Http\Requests\Admin\Admin\UpdateAdminRequest;
+use App\Http\Requests\Admin\Question\CreateFileQuestionRequest;
+use App\Http\Requests\Admin\Question\CreateQuestionRequest;
+use App\Http\Requests\Admin\Question\DeleteQuestionRequest;
+use App\Http\Requests\Admin\Question\UpdateQuestionRequest;
+use App\Http\Requests\LoginRequest;
 use App\Models\grade;
 use App\Models\level;
 use App\Models\status;
@@ -45,7 +54,7 @@ class Admincontroller extends Controller
     //     $this->middleware('auth:api', ['except' => ['submitLogin']]);
     // }
 
-    public function submitLogin(Request $request)
+    public function submitLogin(LoginRequest $request)
     {
         $result = [];
 
@@ -92,7 +101,7 @@ class Admincontroller extends Controller
     }
 
 
-    public function check_add_admin_via_file(Request $request)
+    public function check_add_admin_via_file(CreateFileAdminRequest $request)
     {
         $result = [];
 
@@ -162,7 +171,7 @@ class Admincontroller extends Controller
     {
         return view('admin.CRUD');
     }
-    public function createAdmin(Request $request)
+    public function createAdmin(CreateAdminRequest $request)
     {
         $result = [];
 
@@ -199,7 +208,7 @@ class Admincontroller extends Controller
         ]);
     }
 
-    public function deleteAdmin(Request $request)
+    public function deleteAdmin(DeleteAdminRequest $request)
     {
         $admin = admin::find($request->id);
 
@@ -216,7 +225,7 @@ class Admincontroller extends Controller
     }
 
 
-    public function updateAdmin(Request $request)
+    public function updateAdmin(UpdateAdminRequest $request)
     {
         $admin = Admin::find($request->admin_id);
         $data = $request->only(['name', 'username', 'gender_id', 'birthday', 'password', 'permission',]);
@@ -240,8 +249,8 @@ class Admincontroller extends Controller
 
     public function getQuestion()
     {
-        $data = questions::get();
-        if (!$data) return response()->json([
+        $data = questions::with('teacher')->get();
+        if(!$data)return response()->json([
             'message' => 'No question found!',
         ], 400);
         return response()->json([
@@ -286,7 +295,7 @@ class Admincontroller extends Controller
     }
 
 
-    public function checkAddQuestionViaFile(Request $request)
+    public function checkAddQuestionViaFile(CreateFileQuestionRequest $request)
     {
         $result = [];
 
@@ -377,7 +386,7 @@ class Admincontroller extends Controller
         return response()->json($result);
     }
 
-    public function checkAddQuestions(Request $request)
+    public function checkAddQuestions(CreateQuestionRequest $request)
     {
         $result = [];
 
@@ -440,16 +449,16 @@ class Admincontroller extends Controller
         ]);
     }
 
-    public function updateQuestions(Request $request)
+    public function updateQuestions(UpdateQuestionRequest $request)
     {
        $question = questions::find($request->question_id);
        if(!$question)return response()->json(["message" => "Không tìm thấy câu hỏi!"], 400);
        $data = $request->only(['question_content', 'level_id', 'answer_a', 'answer_b', 'answer_c', 'answer_d', 'correct_answer', 'grade_id', 'unit','suggest','status_id', 'teacher_id']);
       $updateQuestion  =$question->fill($data)->save();
     return response()->json(["updateData" => $updateQuestion]);
+        }
 
 
-    }
 
     public function deleteQuestion(Request $request)
     {

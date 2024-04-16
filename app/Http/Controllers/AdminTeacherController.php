@@ -2,8 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Admin\Teacher\CreateFileTeacherRequest;
+use App\Http\Requests\Admin\Teacher\CreateTeacherRequest;
+use App\Http\Requests\Admin\Teacher\DeleteTeacherRequest;
+use App\Http\Requests\Admin\Teacher\UpdateTeacherRequest;
+use App\Http\Requests\LoginRequest;
 use App\Models\classes;
 use App\Models\teacher;
+use CreateTeachersTable;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -28,7 +34,7 @@ class AdminTeacherController extends Controller
         ]);
     }
 
-    public function submitLogin(Request $request)
+    public function submitLogin(LoginRequest $request)
     {
 
         if ($request->has('email') && $request->has('password')) {
@@ -66,7 +72,7 @@ class AdminTeacherController extends Controller
         }
     }
 
-    public function destroy(Request $request)
+    public function destroy(DeleteTeacherRequest $request)
     {
         $teacher = teacher::find($request->teacher_id);
 
@@ -95,7 +101,7 @@ class AdminTeacherController extends Controller
     }
 
 
-    public function update(Request $request)
+    public function update(DeleteTeacherRequest $request)
     {
         $teacher = teacher::find($request->teacher_id);
         $data = $request->all();
@@ -115,7 +121,7 @@ class AdminTeacherController extends Controller
         }
     }
 
-    public function edit(Request $request)
+    public function edit(UpdateTeacherRequest $request)
     {
         $teacher = teacher::find($request->teacher_id);
         $data = $request->only(['name', 'gender_id', 'birthday', 'password']);
@@ -140,7 +146,7 @@ class AdminTeacherController extends Controller
         ]);
     }
 
-    public function create(Request $request)
+    public function create(CreateTeacherRequest $request)
     {
         $data = $request->all();
         teacher::create($data);
@@ -151,7 +157,7 @@ class AdminTeacherController extends Controller
         ]);
     }
 
-    public function createFileTeacher(Request $request)
+    public function createFileTeacher(CreateFileTeacherRequest $request)
     {
         $result = [];
 
@@ -176,7 +182,7 @@ class AdminTeacherController extends Controller
                 $name = $row['B'];
                 $username = $row['C'];
                 $email = $row['D'];
-                $password = md5($row['E']);
+                $password = bcrypt($row['E']);
                 $birthday = $row['F'];
                 $gender = ($row['G'] == 'Nam') ? 2 : (($row['G'] == 'Nữ') ? 3 : 1);
 
