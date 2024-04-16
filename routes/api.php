@@ -14,29 +14,11 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TBMDuyetDeThiController;
 
-Route::group([
-
-], function ($router) {
 
     Route::post('login', [AuthController::class, 'login']);
-    Route::post('me', [AuthController::class, 'me']);
+    Route::get('me', [AuthController::class, 'me']);
 
-});
-
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-//
-
-// Login
-// Route::get('/admin/login', [Admincontroller::class, 'indexLogin']);
-// Route::post('/admin/logout', [Admincontroller::class, 'logout'])->name('logout');
-
-
-// Route::post('/submit-login', [AdminController::class, 'submitLogin']);
-// 'middleware' => 'checkLoginAdmin'
-
-Route::group(['prefix' => '/admin','middleware' => 'admin'], function ($router) {
+    Route::group(['prefix' => '/admin','middleware' => 'admin'], function () {
 
     //ql Admin
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
@@ -104,11 +86,11 @@ Route::group(['prefix' => '/admin','middleware' => 'admin'], function ($router) 
     //ql TBM
     Route::group(['prefix' => '/truongbomon'], function () {
         Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
-        Route::post('/update-tbm', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
+        Route::post('/update', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
         Route::post('/file', [AdminTBMonController::class, 'check_add_tbm_via_file'])->name('check_add_tbm_via_file');
-        Route::post('/create-tbm', [AdminTBMonController::class, 'createTBM'])->name('createTBM');
-        Route::delete('/delete-tbm', [AdminTBMonController::class, 'deleteTBM'])->name('deleteTBM');
-        Route::put('/update-tbm', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
+        Route::post('/create', [AdminTBMonController::class, 'createTBM'])->name('createTBM');
+        Route::delete('/delete', [AdminTBMonController::class, 'deleteTBM'])->name('deleteTBM');
+        Route::put('/update', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
     });
 
     //ql Môn học
@@ -138,29 +120,26 @@ Route::group(['prefix' => '/admin','middleware' => 'admin'], function ($router) 
 });
 
 
-Route::group(['prefix' => '/student', 'middleware' => 'CheckStudent'], function () {
+Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     Route::get('/get', [AdminHSController::class, 'index'])->name('index');
     Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
 
     Route::post('/update-timing', [StudentController::class, 'updateTiming'])->name('updateTiming');
     Route::post('/update-doing-exam', [StudentController::class, 'updateDoingExam'])->name('updateDoingExam');
     Route::post('/reset-doing-exam', [StudentController::class, 'resetDoingExam'])->name('resetDoingExam');
-        Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
-        Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
-        Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
+    Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
+    Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
+    Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
 });
 
-Route::group(['prefix' => '/teacher', 'middleware' => 'CheckTeacher'], function () {
+Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     Route::get('/get',     [AdminTeacherController::class, 'getTeacher'])->name('getTeacher');
 });
 
-Route::group(['prefix' => '/TBM', 'middleware' => 'CheckTBM'], function () {
+Route::group(['prefix' => '/TBM', 'middleware' => 'head_subject'], function () {
     Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
 
     //duyệt đề thi
     Route::post('/', [TBMDuyetDeThiConTroller::class, 'duyetDT'])->name('duyetDT');
     Route::put('/', [TBMDuyetDeThiConTroller::class, 'khongDuyetDT'])->name('khongDuyetDT');
 });
-// Route::group(['prefix' => 'laravel-filemanager'], function () {
-//     \UniSharp\LaravelFilemanager\Lfm::routes();
-// });
