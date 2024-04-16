@@ -14,13 +14,8 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TBMDuyetDeThiController;
 
-
-
     Route::post('login', [AuthController::class, 'login']);
-    // Route::post('logout', 'AuthController@logout');
-    // Route::post('refresh', 'AuthController@refresh');
     Route::post('me', [AuthController::class, 'me']);
-
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
@@ -34,14 +29,10 @@ use App\Http\Controllers\TBMDuyetDeThiController;
 
 // Route::post('/submit-login', [AdminController::class, 'submitLogin']);
 // 'middleware' => 'checkLoginAdmin'
-Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function () {
-    // API route ----------------------------
-    // this line was add to check if huong could receive the change in his repo
+
+Route::group(['prefix' => '/admin','middleware' => 'admin'], function ($router) {
 
     //ql Admin
-    Route::get('/', function () {
-        return view('welcome');
-    });
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
     Route::post('/check-add-admin-via-file', [AdminController::class, 'check_add_admin_via_file'])->name('admin.check_add_admin_via_file');
     // Route::get('/index', [AdminController::class, 'indexAdmin']);
@@ -52,7 +43,7 @@ Route::group(['prefix' => '/admin','middleware' => 'checkLoginAdmin'], function 
     //ql Question
     Route::group(['prefix' => 'question'], function () {
         Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
-        Route::post('/check-add-question', [Admincontroller::class, 'checkAddQuestions'])->name('checkAddQuestion');
+        Route::post('/create', [Admincontroller::class, 'checkAddQuestions'])->name('checkAddQuestion');
         Route::get('/get', [Admincontroller::class, 'getQuestion'])->name('getQuestion');
         Route::put('/update', [Admincontroller::class, 'updateQuestions'])->name(('updateQuestions'));
         Route::delete('/delete', [Admincontroller::class, 'deleteQuestion'])->name(('deleteQuestion'));

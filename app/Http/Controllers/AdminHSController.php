@@ -16,21 +16,19 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AdminHSController extends Controller
 {
-    // quản lý hojc sinh
-    public $successStatus = 200;
-
-    public function index()
-    {
-        $data = students::get();
-        if (!$data->isEmpty()) {
-            return response()->json([
-                'data' => $data
-            ]);
-        }
-        return response()->json([
-            'data' => $data
-        ]);
-    }
+     // quản lý hojc sinh
+     public $successStatus = 200;
+     public function index()
+     {
+         $data = students::get();
+         if(empty($data)){
+             return response()->json([
+                 'data' => $data
+             ]);}
+         return response()->json([
+             'data' => $data,
+         ]);
+     }
 
     public function submitLogin(LoginRequest $request)
     {
@@ -138,7 +136,6 @@ class AdminHSController extends Controller
      }
      public function createHS(Request $request)
      {
-        // $result = [];
         $data = request()->only([
             'name',
             'username',
@@ -152,7 +149,7 @@ class AdminHSController extends Controller
             $student = new students($data);
             $student->save();
          return response()->json([
-            'student' => $student,
+            'student' => $data,
         ]);
      }
 

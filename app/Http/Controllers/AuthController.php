@@ -27,14 +27,14 @@ class AuthController extends Controller
         $credentials = request(['email', 'password']);
         $token = auth('admins')->attempt($credentials);
         if($token){
-            return response()->json(["message"=>"Duoc tra ve khi tim thay trong model admin","access_token"=>$token]);
+            return response()->json(["access_token"=>$token]);
         }
         $token = auth('students')->attempt($credentials);
         if($token){
-            return response()->json(["message"=>"Duoc tra ve khi tim thay trong model students","access_token"=>$token]);
+            return response()->json(["access_token"=>$token]);
         }
         //tim cac model va khong co ket qua thi se tra ve la khong tim
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json(['error' => 'Wrong email or password'], 400);
     }
 
     /**
