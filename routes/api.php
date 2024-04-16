@@ -12,7 +12,9 @@ use App\Http\Controllers\TeacherConTroller;
 use App\Http\Controllers\AdminHSController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\HSLuyenDeController;
 use App\Http\Controllers\TBMDuyetDeThiController;
+
 
     Route::post('login', [AuthController::class, 'login']);
     Route::post('me', [AuthController::class, 'me']);
@@ -142,6 +144,14 @@ Route::group(['prefix' => '/student', 'middleware' => 'CheckStudent'], function 
         Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
         Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
         Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
+
+    //học sinh luyện đề
+    Route::group(['prefix' => '/luyende'], function () {
+        Route::get('/list', [HSLuyenDeController::class, 'list'])->name('list');
+        Route::post('/', [HSLuyenDeController::class, 'luyenDe'])->name('luyenDe');
+        Route::put('/', [HSLuyenDeController::class, 'nopBai'])->name('nopBai');
+    });
+
 });
 
 Route::group(['prefix' => '/teacher', 'middleware' => 'CheckTeacher'], function () {
