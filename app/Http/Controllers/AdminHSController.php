@@ -23,7 +23,7 @@ class AdminHSController extends Controller
          $data = students::get();
          if(empty($data)){
              return response()->json([
-                 'data' => $data
+                 'message' => "Không tìm thấy học sinh nào"
              ]);}
          return response()->json([
              'data' => $data,
@@ -136,7 +136,6 @@ class AdminHSController extends Controller
      }
      public function createHS(Request $request)
      {
-        // $result = [];
         $data = request()->only([
             'name',
             'username',
@@ -150,7 +149,7 @@ class AdminHSController extends Controller
             $student = new students($data);
             $student->save();
          return response()->json([
-            'student' => $student,
+            'student' => $data,
         ]);
      }
 

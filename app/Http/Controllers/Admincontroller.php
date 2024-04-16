@@ -387,72 +387,36 @@ class Admincontroller extends Controller
         return response()->json($result);
     }
 
-    public function checkAddQuestions(CreateQuestionRequest $request)
+    public function checkAddQuestions(Request $request)
     {
-        $result = [];
 
-        $subjectId = $request->subject_id;
-        $questionContent = $request->question_content;
-        $gradeId = $request->grade_id;
-        $levelId = $request->level_id;
-        $unit = $request->unit;
-        $answerA = $request->answer_a;
-        $answerB = $request->answer_b;
-        $answerC = $request->answer_c;
-        $answerD = $request->answer_d;
-        $status = $request->status_id;
-        $suggest = $request->suggest;
-        $correct_answer = $request->correct_answer;
-        $teacherId = null;
-
-        switch ($correct_answer) {
-            case "A":
-                $answer = $answerA;
-                break;
-            case "B":
-                $answer = $answerB;
-                break;
-            case "C":
-                $answer = $answerC;
-                break;
-            default:
-                $answer = $answerD;
+        $validator = Validator::make($request->all(),[
+            'question_content'=>'string|max:255',
+                   'level_id'=>'numeric',
+                   'answer_a'=>'string',
+                   'answer_b'=>'string',
+                   'answer_c'=>'string',
+                   'answer_d'=>'string',
+                   'correct_answer'=>'numeric',
+                   'grade_id'=>'numeric',
+                   'unit'=>'numeric',
+                   'suggest'=>'string',
+                   'status_id'=>'numeric',
+                   'teacher_id'=>'numeric',
+                   'subject_id'=>'numeric',
+                  ]);
+                  if($validator->fails()){
+                   return response($validator->errors()->all(),400);
+                  }
+                  $data = request()->only(['question_content','level_id','answer_a','answer_b','subject_id','answer_c','answer_d','correct_answer','grade_id','unit','suggest','status_id','teacher_id']);
+               $question =  questions::create($data);
+               return response()->json(['question' => $question]);
         }
 
-        if (!empty($questionContent) && $teacherId == null) {
-            $question = new questions([
-                'subject_id' => $subjectId,
-                'question_content' => $questionContent,
-                'level_id' => $levelId,
-                'answer_a' => $answerA,
-                'answer_b' => $answerB,
-                'answer_c' => $answerC,
-                'answer_d' => $answerD,
-                'correct_answer' => $answer,
-                'grade_id' => $gradeId,
-                'unit' => $unit,
-                'suggest' => $suggest,
-                'status_id' => $status,
-                'teacher_id' => $teacherId,
-            ]);
-        }
 
-        if ($question->save()) {
-            $result = $question->toArray();
-            $result['status_value'] = "Thêm thành công!";
-            $result['status'] = 1;
-        } else {
-            $result['status_value'] = "Lỗi! câu hỏi đã tồn tại!";
-            $result['status'] = 0;
-        }
-        return response()->json([
-            'result' => $result,
-        ]);
-    }
-
-    public function updateQuestions(UpdateQuestionRequest $request)
+    public function updateQuestions(Request $request)
     {
-       $question = questions::find($request->question_id);
+       $question = questions::find(request()->question_id);
     if(empty($question)) {
         return response()->json(["message" => "Không tìm thấy câu hỏi!"], 400);
     }
@@ -469,15 +433,16 @@ class Admincontroller extends Controller
         'suggest'=>'string',
         'status_id'=>'numeric',
         'teacher_id'=>'numeric',
+        'subject_id'=>'numeric',
        ]);
        if($validator->fails()){
         return response($validator->errors()->all(),400);
        }
-       $data = $request->only(['question_content','level_id','answer_a','answer_b','answer_c','answer_d','correct_answer','grade_id','unit','suggest','status_id','teacher_id']);
+       $data = $request->only(['question_content','level_id','answer_a','answer_b','subject_id','answer_c','answer_d','correct_answer','grade_id','unit','suggest','status_id','teacher_id']);
       $question->fill($data);
-    //   $question->fill($data)->save();
+      $question->fill($data)->save();
     return response()->json(["question" => $question]);
-        }
+}
 
 
 

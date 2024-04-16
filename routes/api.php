@@ -86,11 +86,11 @@ use App\Http\Controllers\TBMDuyetDeThiController;
     //ql TBM
     Route::group(['prefix' => '/truongbomon'], function () {
         Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
-        Route::post('/update', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
+        Route::post('/update-tbm', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
         Route::post('/file', [AdminTBMonController::class, 'check_add_tbm_via_file'])->name('check_add_tbm_via_file');
-        Route::post('/create', [AdminTBMonController::class, 'createTBM'])->name('createTBM');
-        Route::delete('/delete', [AdminTBMonController::class, 'deleteTBM'])->name('deleteTBM');
-        Route::put('/update', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
+        Route::post('/create-tbm', [AdminTBMonController::class, 'createTBM'])->name('createTBM');
+        Route::delete('/delete-tbm', [AdminTBMonController::class, 'deleteTBM'])->name('deleteTBM');
+        Route::put('/update-tbm', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
     });
 
     //ql Môn học
@@ -143,3 +143,4 @@ Route::group(['prefix' => '/TBM', 'middleware' => 'head_subject'], function () {
     Route::post('/', [TBMDuyetDeThiConTroller::class, 'duyetDT'])->name('duyetDT');
     Route::put('/', [TBMDuyetDeThiConTroller::class, 'khongDuyetDT'])->name('khongDuyetDT');
 });
+

@@ -26,6 +26,9 @@ class teacher extends  Authenticatable implements JWTSubject
         'birthday',
         'last_login'
     ];
+    protected $hidden = [
+        'password',
+    ];
     public $timestamps = false;
     public function questions()
     {
