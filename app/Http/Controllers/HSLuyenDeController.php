@@ -7,6 +7,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\practice;
 use App\Models\questions;
 use App\Models\quest_of_pratice;
+use App\Models\student_pratice_detail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -45,7 +46,7 @@ class HSLuyenDeController extends Controller
             $result['status_value'] = "Không được bỏ trống các trường nhập!";
             $result['status'] = 0;
         } else {
-            if ($total > $total_question) {
+            if ($total >= $total_question) {
                 $practice_code  = rand(10, 999999);
     
                 $practice = new practice([
@@ -58,27 +59,28 @@ class HSLuyenDeController extends Controller
                     'student_id' => $student_id,
                 ]);
                 $practice->saveQuietly();
-                if ($practice) {
-                    // Lấy danh sách câu hỏi đủ điều kiện
-                    $questions = questions::where('grade_id', $grade_id)
-                        ->where('subject_id', $subject_id)
-                        ->where('level_id', $level_id)
-                        ->inRandomOrder()
-                        ->limit($total_question)
-                        ->pluck('id');
-    
-                    // Lưu practice_code và question_id vào bảng quest_of_pratice
-                    foreach ($questions as $question_id) {
-                        DB::table('quest_of_pratice')->insert([
-                            'practice_code' => $practice_code,
-                            'question_id' => $question_id,
-                        ]);
+                $listQuest =  $student->getQuestOfPractice($practice_code);
+                if ($listQuest !== null) {
+                    foreach ($listQuest as $quest) {
+                        $array = array();
+                        $array[0] = $quest->answer_a;
+                        $array[1] = $quest->answer_b;
+                        $array[2] = $quest->answer_c;
+                        $array[3] = $quest->answer_d;
+                        $ID = rand(1, time()) + rand(100000, 999999);
+                        $time = $student->getPractice($practice_code)->time_to_do . ':00';
+                        if (is_array($array) && count($array) >= 4) {
+                            $student->addStudentQuest(2, $ID, $practice_code, $quest->question_id, $array[0], $array[1], $array[2], $array[3]);
+                        } else {
+                            $result['status_value'] = "Không có đáp án";
+                            $result['status'] = 0;
+                        }
+                        $student->updateStudentExam($practice_code, $time, 2);
                     }
-    
-                    $result['status_value'] = "Thành công. Đang chuyển hướng trang!";
+                    $result['status_value'] = "Thành công. Chuẩn bị chuyển trang!";
                     $result['status'] = 1;
                 } else {
-                    $result['status_value'] = "Thất bại. Vui lòng chọn lại!";
+                    $result['status_value'] = "Không có câu hỏi cho bài kiểm tra này";
                     $result['status'] = 0;
                 }
             } else {
@@ -94,30 +96,38 @@ class HSLuyenDeController extends Controller
         ]);
     }
     public function nopBai(Request $request){
-        $student_id = $request->student_id;
-        $practice_id = $request->practice_id;
-        $score_number = $request->score_number;
-        $score_detail = $request->score_detail;
-        $completion_time = $request->completion_time;
+    //     $student_id = $request->student_id;
+    //     $practice_id = $request->practice_id;
+    //     $score_number = $request->score_number;
+    //     $score_detail = $request->score_detail;
+    //     $completion_time = $request->completion_time;
 
-        $score_practice = new ScorePractice([
-            'student_id' => $student_id,
-            'practice_id' => $practice_id,
-            'score_number' => $score_number,
-            'score_detail' => $score_detail,
-            'completion_time' => $completion_time,
-        ]);
+    //     // Tính toán điểm số và chi tiết điểm
+    //     $total_correct_answers = $score_number; 
+    //     $total_questions = 30; 
+    //     $score_number = ($total_correct_answers / $total_questions) * 10;
 
-        $score_practice->save();
+    //     // Chi tiết điểm
+    //     $score_detail = $total_correct_answers . '/' . $total_questions;
 
-        if ($score_practice) {
-            return response()->json([
-                'message' => 'Nộp bài thi thành công',
-            ], 200);
-        } else {
-            return response()->json([
-                'message' => 'Nộp bài thi thất bại',
-            ], 400);
-        }
+    //     $score_practice = new score_practice([
+    //         'student_id' => $student_id,
+    //         'practice_id' => $practice_id,
+    //         'score_number' => $score_number,
+    //         'score_detail' => $score_detail,
+    //         'completion_time' => $completion_time,
+    //     ]);
+
+    //     $score_practice->save();
+
+    //     if ($score_practice) {
+    //         return response()->json([
+    //             'message' => 'Nộp bài thi thành công',
+    //         ], 200);
+    //     } else {
+    //         return response()->json([
+    //             'message' => 'Nộp bài thi thất bại',
+    //         ], 400);
+    //     }
     }
 }
