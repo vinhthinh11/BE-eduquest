@@ -20,7 +20,10 @@ use App\Http\Controllers\TBMDuyetDeThiController;
     Route::get('me', [AuthController::class, 'me']);
 
     Route::group(['prefix' => '/admin','middleware' => 'admin'], function () {
-        Route::put('/update-profile',      [ProfileController::class, 'updateProfile'])->name('updateProfile');
+    //Profile
+    Route::put('/update-profile',      [ProfileController::class, 'updateProfileAdmin'])->name('updateProfileAdmin');
+    // Route::put('/update-profile',      [ProfileController::class, 'updateProfile'])->name('updateProfile');
+
     //ql Admin
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
     Route::post('/check-add-admin-via-file', [AdminController::class, 'check_add_admin_via_file'])->name('admin.check_add_admin_via_file');
@@ -116,6 +119,10 @@ use App\Http\Controllers\TBMDuyetDeThiController;
 
 
 Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
+    //Profile
+    Route::put('/update-profile',      [ProfileController::class, 'updateProfileStudent'])->name('updateProfileStudent');
+    // Route::put('/update-profile',      [ProfileController::class, 'updateProfile'])->name('updateProfile');
+
     Route::get('/get', [AdminHSController::class, 'index'])->name('index');
     Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
 
@@ -137,6 +144,9 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
 
 Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     Route::get('/get',     [AdminTeacherController::class, 'getTeacher'])->name('getTeacher');
+    //Profile
+    Route::put('/update-profile',      [ProfileController::class, 'updateProfileTeacher'])->name('updateProfileTeacher');
+    // Route::put('/update-profile',      [ProfileController::class, 'updateProfile'])->name('updateProfile');
 
     Route::group(['prefix' => '/question'], function () {
         Route::post('/add-question',        [TeacherConTroller::class, 'addQuestion'])->name('addQuestion');
@@ -155,6 +165,10 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
 });
 
 Route::group(['prefix' => '/TBM', 'middleware' => 'head_subject'], function () {
+    //Profile
+    Route::put('/update-profile',      [ProfileController::class, 'updateProfileSubjectHead'])->name('updateProfileSubjectHead');
+    // Route::put('/update-profile',      [ProfileController::class, 'updateProfile'])->name('updateProfile');
+
     Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
 
     //duyệt đề thi

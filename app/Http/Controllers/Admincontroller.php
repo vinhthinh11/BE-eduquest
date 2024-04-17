@@ -216,7 +216,7 @@ class Admincontroller extends Controller
     public function createAdmin(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name'          => 'required|string|min:6|max:50',
+            'name'          => 'required|string|min:3|max:50',
             'username'      => 'required|string|min:6|max:50|unique:admins,username',
             'gender_id'     => 'required|integer',
             'password'      => 'required|string|min:6|max:20',
@@ -224,7 +224,7 @@ class Admincontroller extends Controller
             'permission'    => 'nullable',
             'birthday'      => 'nullable|date',
         ], [
-            'name.min'           => 'Tên Admin tối thiểu 6 kí tự!',
+            'name.min'           => 'Tên Admin tối thiểu 3 kí tự!',
             'name.required'         => 'Tên Admin không được để trống!',
             'username.required'     => 'Username không được để trống!',
             'username.unique'       => 'Username đã tồn tại!',
@@ -243,37 +243,37 @@ class Admincontroller extends Controller
         }
         $result = [];
 
-        // $name = $request->input('name');
-        // $username = $request->input('username');
-        // $password = bcrypt($request->input('password'));
-        // $email = $request->input('email');
-        // $birthday = $request->input('birthday');
-        // $gender = $request->input('gender');
+        $name = $request->input('name');
+        $username = $request->input('username');
+        $password = bcrypt($request->input('password'));
+        $email = $request->input('email');
+        $birthday = $request->input('birthday');
+        $gender = $request->input('gender');
 
-        // $admin = new Admin([
-        //     'name' => $name,
-        //     'username' => $username,
-        //     'password' => $password,
-        //     'email' => $email,
-        //     'birthday' => $birthday,
-        //     'gender_id' => $gender,
-        //     'last_login' => now(),
+        $admin = new Admin([
+            'name' => $name,
+            'username' => $username,
+            'password' => $password,
+            'email' => $email,
+            'birthday' => $birthday,
+            'gender_id' => $gender,
+            'last_login' => now(),
 
-        // ]);
+        ]);
 
-        // // Lưu admin mới vào cơ sở dữ liệu
-        // if ($admin->save()) {
-        //     $result = $admin->toArray();
-        //     $result['status_value'] = "Thêm thành công!";
-        //     $result['status'] = 1;
-        // } else {
-        //     $result['status_value'] = "Lỗi! Tài khoản đã tồn tại!";
-        //     $result['status'] = 0;
-        // }
-        // // return response()->json($result);
-        // return response()->json([
-        //     'result' => $result,
-        // ]);
+        // Lưu admin mới vào cơ sở dữ liệu
+        if ($admin->save()) {
+            $result = $admin->toArray();
+            $result['status_value'] = "Thêm thành công!";
+            $result['status'] = 1;
+        } else {
+            $result['status_value'] = "Lỗi! Tài khoản đã tồn tại!";
+            $result['status'] = 0;
+        }
+        // return response()->json($result);
+        return response()->json([
+            'result' => $result,
+        ]);
     }
 
     public function deleteAdmin(Request $request)
