@@ -15,12 +15,13 @@ class ProfileController extends Controller
 
     public function updateProfile(Request $request)
     {
+        $data['id'] = $request->id;
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:3|max:255',
             'gender_id' => 'required',
             'birthday' => 'required',
             'password' => 'required|min:6|max:20',
-            'email' => 'required|email|unique:admins,email,',
+            'email' => 'required|email|unique:admins,email,' ,
         ], [
             'name.required' => 'Vui lòng nhập tên!',
             'name.min' => 'Tên cần ít nhất 3 ký tự!',
@@ -34,22 +35,24 @@ class ProfileController extends Controller
             'email.unique' => 'Email da ton tai!',
         ]);
 
+
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
                 'errors' => $validator->errors(),
             ], 422);
         }
-        $me = Admin::find($request->admin_id);
-        $me->update([
-                    'name' => $request['name'],
-                    'email' => $request['email'],
-                    'gender_id' => $request['gender_id'],
-                    'birthday' => $request['birthday'],
-                    'password' => bcrypt($request['password']),
-                ]);
-        $me->save();
-        return response()->json(['message' => $me]);
+        return response()->json(['message' => $request->all()],400);
+        // $me = Admin::find($request->id);
+        // $me->update([
+        //             'name' => $request['name'],
+        //             'email' => $request['email'],
+        //             'gender_id' => $request['gender_id'],
+        //             'birthday' => $request['birthday'],
+        //             'password' => bcrypt($request['password']),
+        //         ]);
+        // $me->save();
+        // return response()->json(['message' => $me]);
     }
     //     $data = $request->validated();
 

@@ -14,6 +14,7 @@ class CheckAdmin
             return response()->json(['message' => 'You are unauthorize for this route'],403);
     }
     $request->id = $request->user('admins')->admin_id;
+    // return response()->json(['message' => $request]);
         return $next($request);
     }
 }

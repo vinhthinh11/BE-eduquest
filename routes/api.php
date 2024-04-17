@@ -20,7 +20,7 @@ use App\Http\Controllers\TBMDuyetDeThiController;
     Route::get('me', [AuthController::class, 'me']);
 
     Route::group(['prefix' => '/admin','middleware' => 'admin'], function () {
-
+        Route::put('/update-profile',      [ProfileController::class, 'updateProfile'])->name('updateProfile');
     //ql Admin
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
     Route::post('/check-add-admin-via-file', [AdminController::class, 'check_add_admin_via_file'])->name('admin.check_add_admin_via_file');
@@ -48,7 +48,7 @@ use App\Http\Controllers\TBMDuyetDeThiController;
 
     //Profile
     Route::group(['prefix' => 'profiles'], function () {
-        Route::put('/update-profile',      [ProfileController::class, 'updateProfile'])->name('updateProfile');
+
         Route::post('/update-last-login',  [ProfileController::class, 'updateLastLogin'])->name('updateLastLogin');
         Route::post('/update-avatar',      [ProfileController::class, 'updateAvatar'])->name('updateAvatarProfile');
         Route::get('get-profile',         [Admincontroller::class, 'getProfiles'])->name('getProfiles');
