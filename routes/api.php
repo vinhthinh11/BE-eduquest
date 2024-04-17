@@ -29,6 +29,7 @@ use App\Http\Controllers\TBMDuyetDeThiController;
     Route::delete('/delete', [AdminController::class, 'deleteAdmin'])->name('deleteAdmin');
     Route::put('/update', [AdminController::class, 'updateAdmin'])->name('updateAdmin');
 
+
     //ql Question
     Route::group(['prefix' => 'question'], function () {
         Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
@@ -45,13 +46,13 @@ use App\Http\Controllers\TBMDuyetDeThiController;
         Route::post('check-add-test', [Admincontroller::class, 'checkAddTest'])->name(('checkAddTest'));
  });
 
-    ///
     //Profile
     Route::group(['prefix' => 'profiles'], function () {
         Route::put('/update-profile',      [ProfileController::class, 'updateProfile'])->name('updateProfile');
         Route::post('/update-last-login',  [ProfileController::class, 'updateLastLogin'])->name('updateLastLogin');
         Route::post('/update-avatar',      [ProfileController::class, 'updateAvatar'])->name('updateAvatarProfile');
-        Route::post('/admin-info',         [ProfileController::class, 'adminInfo'])->name('adminInfo');
+        Route::get('get-profile',         [Admincontroller::class, 'getProfiles'])->name('getProfiles');
+        Route::get('admin-info{username}',         [Admincontroller::class, 'getAdminInfo'])->name('getAdminInfo');
         Route::post('/teacher-info',       [ProfileController::class, 'teacherInfo'])->name('teacherInfo');
         Route::post('/student-info',       [ProfileController::class, 'studentInfo'])->name('studentInfo');
         Route::post('/subject-head-info',  [ProfileController::class, 'subjectheadInfo'])->name('subjectheadInfo');
@@ -65,7 +66,7 @@ use App\Http\Controllers\TBMDuyetDeThiController;
     Route::group(['prefix' => 'teacher'], function () {
         Route::get('/get',     [AdminTeacherController::class, 'getTeacher'])->name('getTeacher');
         Route::post('/delete', [AdminTeacherController::class, 'destroy'])->name('destroyTeacher');
-        Route::put('/update', [AdminTeacherController::class, 'update'])->name('updateTeacher');
+        Route::put('/update',  [AdminTeacherController::class, 'update'])->name('updateTeacher');
         Route::post('/edit',   [AdminTeacherController::class, 'edit'])->name('editTeacher');
         Route::post('/create', [AdminTeacherController::class, 'create'])->name('createTeacher');
         Route::post('/search', [AdminTeacherController::class, 'search'])->name('searchTeacher');
@@ -143,6 +144,19 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
 
 Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     Route::get('/get',     [AdminTeacherController::class, 'getTeacher'])->name('getTeacher');
+
+    Route::group(['prefix' => '/question'], function () {
+        Route::post('/add-question',        [TeacherConTroller::class, 'addQuestion'])->name('addQuestion');
+        Route::post('/add-file-question',      [TeacherConTroller::class, 'addFileQuestion'])->name('addFileQuestion');
+        // Route::post('/delete-question',      [TeacherConTroller::class, 'destroyQuestion'])->name('destroyQuestion');
+        Route::delete('/delete-question/{question_id}', [TeacherConTroller::class, 'destroyQuestion'])->name('destroyQuestion');
+        Route::put('/update-question/{question_id}', [TeacherConTroller::class, 'updateQuestion'])->name('updateQuestion');
+        Route::post('/multi-delete-question', [TeacherConTroller::class, 'multiDeleteQuestion'])->name('multiDeleteQuestion');
+    });
+    Route::group(['prefix' => '/score'], function () {
+        Route::post('/list',        [TeacherConTroller::class, 'listScore'])->name('listScore');
+        Route::post('/export',      [TeacherConTroller::class, 'exportScore'])->name('exportScore');
+    });
     Route::post('/check-add-question-via-file', [AdminTeacherController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
     Route::post('/create', [AdminTeacherController::class, 'checkAddQuestions'])->name('checkAddQuestion');
 });

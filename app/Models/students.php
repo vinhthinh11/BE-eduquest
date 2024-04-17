@@ -29,8 +29,8 @@ class students extends Authenticatable implements JWTSubject
 
     function getHS()
     {
-        $getAllHS = DB::select('select * from students');
-        return $getAllHS;
+        // $getAllHS = DB::select('select * from students');
+        // return $getAllHS;
     }
      public function getJWTIdentifier()
     {

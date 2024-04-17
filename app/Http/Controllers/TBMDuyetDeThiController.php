@@ -3,17 +3,30 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\tests;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Validator;
 
 class TBMDuyetDeThiController extends Controller
 {
-    public function duyetDT(Request $request){
+    public function duyetDT(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'test_code' => 'required|string|unique:tests,test_code',
+        ], [
+            'test_code.required' => 'Trường mã đề thi là bắt buộc.',
+            'test_code.string' => 'Mã đề thi phải là một chuỗi.',
+            'test_code.unique' => 'Mã đề thi đã tồn tại trong hệ thống.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
        $test_code = $request->test_code;
-       $test = tests::where('test_code', $test_code)->first(); 
+       $test = tests::where('test_code', $test_code)->first();
        if ($test) {
            if ($test->status_id == 3 || $test->status_id == 5) {
                $test->status_id = 4;
@@ -31,14 +44,30 @@ class TBMDuyetDeThiController extends Controller
        } else {
            return response()->json([
                'status_value' => "Không tìm thấy đề thi!",
-               'status_id' => -1 
+               'status_id' => -1
            ], 404);
        }
 
     }
-    public function khongDuyetDT(Request $request){
+    public function khongDuyetDT(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'test_code' => 'required|string|unique:tests,test_code',
+        ], [
+            'test_code.required' => 'Trường mã đề thi là bắt buộc.',
+            'test_code.string' => 'Mã đề thi phải là một chuỗi.',
+            'test_code.unique' => 'Mã đề thi đã tồn tại trong hệ thống.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
         $test_code = $request->test_code;
-        $test = tests::where('test_code', $test_code)->first(); 
+        $test = tests::where('test_code', $test_code)->first();
         if ($test) {
             if ($test->status_id == 3 || $test->status_id == 4) {
                 $test->status_id = 5;
@@ -56,10 +85,10 @@ class TBMDuyetDeThiController extends Controller
         } else {
             return response()->json([
                 'status_value' => "Không tìm thấy đề thi!",
-                'status_id' => -1 
+                'status_id' => -1
             ], 404);
         }
- 
+
      }
 
 }

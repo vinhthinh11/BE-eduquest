@@ -111,4 +111,9 @@ class student extends  Authenticatable implements JWTSubject
 
         return $status;
     }
+
+    public function isStudent()
+    {
+        return $this->role === 'students';
+    }
 }

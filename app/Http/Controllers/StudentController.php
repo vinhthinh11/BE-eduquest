@@ -2,11 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Admin\Student\DeleteStudentRequest;
-use App\Http\Requests\Student\GetPracticeRequest;
-use App\Http\Requests\Student\ShowResultRequest;
-use App\Http\Requests\Student\UpdateDoingExamRequest;
-use App\Http\Requests\Student\UpdateTimingRequest;
 use App\Models\practice;
 use App\Models\practice_scores;
 use App\Models\scores;
@@ -14,12 +9,32 @@ use App\Models\student;
 use App\Models\student_practice_detail;
 use App\Models\student_test_detail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Ramsey\Uuid\Uuid;
 
 class StudentController extends Controller
 {
-    public function updateDoingExam(UpdateDoingExamRequest $request)
+    public function updateDoingExam(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'student_id' => 'required|exists:students,student_id',
+            'doing_exam' => 'required|boolean',
+            'time_remaining' => 'required|integer|min:0|max:3600', //2700s=45p 3600s=1h
+        ], [
+            'student_id.required' => 'Trường student_id là bắt buộc.',
+            'student_id.exists' => 'Học sinh không tồn tại.',
+            'doing_exam.required' => 'Trường doing_exam là bắt buộc.',
+            'doing_exam.boolean' => 'Trường doing_exam phải là boolean (true hoặc false).',
+            'time_remaining.min' => 'Trường time_remaining không được nhỏ hơn 0 giây.',
+            'time_remaining.max' => 'Trường time_remaining không được lớn hơn 3600 giây.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $data = $request->only(['student_id', 'doing_exam', 'time_remaining']);
 
         if (!isset($data['student_id']) || !isset($data['doing_exam']) || !isset($data['time_remaining'])) {
@@ -41,8 +56,28 @@ class StudentController extends Controller
         return response()->json(['status' => true, 'message' => 'Cập Nhập thao tác Thi thành công!'], 200);
     }
 
-    public function resetDoingExam(UpdateDoingExamRequest $request)
+    public function resetDoingExam(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'student_id' => 'required|exists:students,student_id',
+            'doing_exam' => 'required|boolean',
+            'time_remaining' => 'required|integer|min:0|max:3600', //2700s=45p 3600s=1h
+        ], [
+            'student_id.required' => 'Trường student_id là bắt buộc.',
+            'student_id.exists' => 'Học sinh không tồn tại.',
+            'doing_exam.required' => 'Trường doing_exam là bắt buộc.',
+            'doing_exam.boolean' => 'Trường doing_exam phải là boolean (true hoặc false).',
+            'time_remaining.min' => 'Trường time_remaining không được nhỏ hơn 0 giây.',
+            'time_remaining.max' => 'Trường time_remaining không được lớn hơn 3600 giây.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
         $student = Student::find($request->input('student_id'));
 
         if (!$student) {
@@ -58,8 +93,29 @@ class StudentController extends Controller
         return response()->json(['status' => true, 'message' => 'Reset bài thi thành công!'], 200);
     }
 
-    public function updateTiming(UpdateTimingRequest $request)
+    public function updateTiming(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'student_id' => 'required|exists:students,student_id',
+            'min' => 'required|integer|min:0|max:59',
+            'sec' => 'required|integer|min:0|max:59',
+        ], [
+            'student_id.required' => 'Trường student_id là bắt buộc.',
+            'student_id.exists' => 'Học sinh không tồn tại.',
+            'min.required' => 'Trường min là bắt buộc.',
+            'min.min' => 'Trường min không được nhỏ hơn 0.',
+            'min.max' => 'Trường min không được lớn hơn 59.',
+            'sec.required' => 'Trường sec là bắt buộc.',
+            'sec.min' => 'Trường sec không được nhỏ hơn 0.',
+            'sec.max' => 'Trường sec không được lớn hơn 59.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $data = $request->only(['student_id', 'min', 'sec']);
 
         $student = Student::find($data['student_id']);
@@ -75,8 +131,25 @@ class StudentController extends Controller
         return response()->json(['status' => true, 'message' => 'Cập Nhập thời gian thi Thành công!'], 200);
     }
 
-    public function getPractice(GetPracticeRequest $request)
+    public function getPractice(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'student_id' => 'required|exists:students,student_id',
+            'practice_code' => 'required|exists:practices,practice_code',
+        ], [
+            'student_id.required' => 'Trường student_id là bắt buộc.',
+            'student_id.exists' => 'Học sinh không tồn tại.',
+            'practice_code.required' => 'Trường practice_code là bắt buộc.',
+            'practice_code.exists' => 'Bài tập không tồn tại.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
         $practiceCode = $request->input('practice_code', '493205');
         $student = Student::find($request->input('student_id'));
 
@@ -111,8 +184,21 @@ class StudentController extends Controller
         return response()->json(['status' => true, 'message' => 'Thành công. Chuẩn bị chuyển trang!'], 200);
     }
 
-    public function acceptTest(DeleteStudentRequest $request) //dùng request này vì chỉ cần lấy ID Học sinh
+    public function acceptTest(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'student_id' => 'required|exists:students,student_id'
+        ], [
+            'student_id.*' => 'Học Sinh không tồn tại!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
         $student = Student::find($request->input('student_id'));
 
         if (!$student) {
@@ -150,8 +236,20 @@ class StudentController extends Controller
         return response()->json(['status' => true, 'message' => 'Nộp bài Thành Công!'], 200);
     }
 
-    public function acceptPractice(DeleteStudentRequest $request)
+    public function acceptPractice(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'student_id' => 'required|exists:students,student_id'
+        ], [
+            'student_id.*' => 'Học Sinh không tồn tại!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $student = Student::find($request->input('student_id'));
 
         if (!$student) {
@@ -195,8 +293,24 @@ class StudentController extends Controller
         return response()->json(['status' => true, 'message' => 'Nộp bài Thành Công!'], 200);
     }
 
-    public function showResult(ShowResultRequest $request)
+    public function showResult(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'student_id' => 'required|exists:students,student_id',
+            'test_code' => 'required|exists:tests,test_code',
+        ], [
+            'student_id.required' => 'Trường student_id là bắt buộc.',
+            'student_id.exists' => 'Học sinh không tồn tại.',
+            'test_code.required' => 'Trường test_code là bắt buộc.',
+            'test_code.exists' => 'Bài thi không tồn tại.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $student = Student::find($request->input('student_id'));
 
         if (!$student) {
