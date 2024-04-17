@@ -20,7 +20,6 @@ use App\Http\Controllers\TBMDuyetDeThiController;
     Route::get('me', [AuthController::class, 'me']);
 
     Route::group(['prefix' => '/admin','middleware' => 'admin'], function () {
-        Route::put('/update-profile',      [ProfileController::class, 'updateProfile'])->name('updateProfile');
     //ql Admin
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
     // Route::get('/index', [AdminController::class, 'indexAdmin']);
@@ -32,8 +31,7 @@ use App\Http\Controllers\TBMDuyetDeThiController;
 
     //ql Question
     Route::group(['prefix' => 'question'], function () {
-        Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
-        Route::post('/check-add-question', [Admincontroller::class, 'checkAddQuestions'])->name('checkAddQuestion');
+        Route::post('/create', [Admincontroller::class, 'checkAddQuestions'])->name('checkAddQuestion');
         Route::get('/get', [Admincontroller::class, 'getQuestion'])->name('getQuestion');
         Route::put('/update', [Admincontroller::class, 'updateQuestions'])->name(('updateQuestions'));
         Route::delete('/delete', [Admincontroller::class, 'deleteQuestion'])->name(('deleteQuestion'));
@@ -41,8 +39,7 @@ use App\Http\Controllers\TBMDuyetDeThiController;
         Route::get('/get-status', [Admincontroller::class, 'getStatus'])->name('getStatus');
         Route::get('/get-subjects', [Admincontroller::class, 'getSubjects'])->name('getSubjects');
         Route::get('/get-level', [Admincontroller::class, 'getLevels'])->name('getLevel');
-        Route::post('/update-questions', [Admincontroller::class, 'updateQuestions'])->name(('updateQuestions'));
-
+        Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
         Route::post('check-add-test', [Admincontroller::class, 'checkAddTest'])->name(('checkAddTest'));
  });
 
@@ -71,7 +68,7 @@ use App\Http\Controllers\TBMDuyetDeThiController;
         Route::post('/create', [AdminTeacherController::class, 'create'])->name('createTeacher');
         Route::post('/search', [AdminTeacherController::class, 'search'])->name('searchTeacher');
         Route::post('/delete-check-box', [AdminTeacherController::class, 'deleteCh2eckbox'])->name('deleteCheckbox');
-        Route::post('/check-add-teacher-via-file', [AdminTeacherController::class, 'createFileTeacher'])->name('check_add_teacher_via_file');
+        Route::post('/file', [AdminTeacherController::class, 'createFileTeacher'])->name('check_add_teacher_via_file');
     });
 
     //ql Class
@@ -89,9 +86,9 @@ use App\Http\Controllers\TBMDuyetDeThiController;
     Route::group(['prefix' => '/truongbomon'], function () {
         Route::get('/get', [AdminTBMonController::class, 'index'])->name('index');
         Route::put('/update', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
-        Route::post('/file', [AdminTBMonController::class, 'check_add_tbm_via_file'])->name('check_add_tbm_via_file');
         Route::post('/create', [AdminTBMonController::class, 'createTBM'])->name('createTBM');
         Route::delete('/delete', [AdminTBMonController::class, 'deleteTBM'])->name('deleteTBM');
+        Route::post('/file', [AdminTBMonController::class, 'check_add_tbm_via_file'])->name('check_add_tbm_via_file');
     });
 
     //ql Môn học
@@ -121,28 +118,27 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     Route::post('/update-timing', [StudentController::class, 'updateTiming'])->name('updateTiming');
     Route::post('/update-doing-exam', [StudentController::class, 'updateDoingExam'])->name('updateDoingExam');
     Route::post('/reset-doing-exam', [StudentController::class, 'resetDoingExam'])->name('resetDoingExam');
-        Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
-        Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
-        Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
+    Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
+    Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
+    Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
 
     //học sinh luyện đề
     Route::group(['prefix' => '/luyende'], function () {
-        Route::get('/list', [HSLuyenDeController::class, 'list'])->name('list');
-        Route::post('/', [HSLuyenDeController::class, 'luyenDe'])->name('luyenDe');
-        Route::put('/', [HSLuyenDeController::class, 'nopBai'])->name('nopBai');
+        Route::get('/get', [HSLuyenDeController::class, 'list'])->name('list');
+        Route::post('/create', [HSLuyenDeController::class, 'luyenDe'])->name('luyenDe');
+        Route::put('/update', [HSLuyenDeController::class, 'nopBai'])->name('nopBai');
     });
 
 });
 
 Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
-    Route::get('/get',     [AdminTeacherController::class, 'getTeacher'])->name('getTeacher');
 
     Route::group(['prefix' => '/question'], function () {
-        Route::post('/add-question',        [TeacherConTroller::class, 'addQuestion'])->name('addQuestion');
-        Route::post('/add-file-question',      [TeacherConTroller::class, 'addFileQuestion'])->name('addFileQuestion');
+        Route::post('/create',        [TeacherConTroller::class, 'addQuestion'])->name('addQuestion');
+        Route::post('/file',      [TeacherConTroller::class, 'addFileQuestion'])->name('addFileQuestion');
         // Route::post('/delete-question',      [TeacherConTroller::class, 'destroyQuestion'])->name('destroyQuestion');
-        Route::delete('/delete-question/{question_id}', [TeacherConTroller::class, 'destroyQuestion'])->name('destroyQuestion');
-        Route::put('/update-question/{question_id}', [TeacherConTroller::class, 'updateQuestion'])->name('updateQuestion');
+        Route::delete('/delete/{question_id}', [TeacherConTroller::class, 'destroyQuestion'])->name('destroyQuestion');
+        Route::put('/update/{question_id}', [TeacherConTroller::class, 'updateQuestion'])->name('updateQuestion');
         Route::post('/multi-delete-question', [TeacherConTroller::class, 'multiDeleteQuestion'])->name('multiDeleteQuestion');
     });
     Route::group(['prefix' => '/score'], function () {

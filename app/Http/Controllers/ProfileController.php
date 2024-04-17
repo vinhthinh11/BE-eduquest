@@ -21,7 +21,7 @@ class ProfileController extends Controller
             'gender_id' => 'required',
             'birthday' => 'required',
             'password' => 'required|min:6|max:20',
-            'email' => 'required|email|unique:admins,email,' ,
+            'email' => 'required|email|unique:admins,email,'.$data['id'].',admin_id',
         ], [
             'name.required' => 'Vui lòng nhập tên!',
             'name.min' => 'Tên cần ít nhất 3 ký tự!',
@@ -42,7 +42,8 @@ class ProfileController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-        return response()->json(['message' => $request->all()],400);
+        $data = array_merge($request->all(), ["admin_id"=>$data['id']]);
+        return response()->json(['data' => $data]);
         // $me = Admin::find($request->id);
         // $me->update([
         //             'name' => $request['name'],

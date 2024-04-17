@@ -241,7 +241,7 @@ class Admincontroller extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-       $admin = request()->all();
+       $admin = admin::create(request()->all());
         return response()->json([
             'message'   => 'Thêm Admin thành công!',
             'admin'   => $admin,
