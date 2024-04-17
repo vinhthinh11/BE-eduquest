@@ -216,7 +216,7 @@ class Admincontroller extends Controller
     public function createAdmin(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name'          => 'required|string|min:6|max:50',
+            'name'          => 'required|string|min:3|max:50',
             'username'      => 'required|string|min:6|max:50|unique:admins,username',
             'gender_id'     => 'required|integer',
             'password'      => 'required|string|min:6|max:20',
@@ -224,7 +224,7 @@ class Admincontroller extends Controller
             'permission'    => 'nullable',
             'birthday'      => 'nullable|date',
         ], [
-            'name.min'           => 'Tên Admin tối thiểu 6 kí tự!',
+            'name.min'           => 'Tên Admin tối thiểu 3 kí tự!',
             'name.required'         => 'Tên Admin không được để trống!',
             'username.required'     => 'Username không được để trống!',
             'username.unique'       => 'Username đã tồn tại!',

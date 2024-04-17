@@ -4,37 +4,108 @@ namespace App\Http\Controllers;
 
 use App\Models\admin;
 use App\Models\student;
+use App\Models\students;
 use App\Models\subject_head;
 use App\Models\teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+
 
 class ProfileController extends Controller
 {
+    // public function updateProfile(Request $request)
+    // {
+    //     $data = [
+    //         'id' => $request->id,
+    //     ];
 
-    public function updateProfile(Request $request)
+    //     $models = [
+    //         Admin::class => 'admins',
+    //         Student::class => 'students',
+    //         Teacher::class => 'teachers',
+    //         Subject_Head::class => 'subject_head',
+    //     ];
+
+    //     $modelName = $request->admin_id ? Admin::class : $request->student_id ? Student::class : $request->teacher_id ? Teacher::class : $request->subject_head_id ? Subject_Head::class : null;
+    //     if (!isset($models[$modelName])) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Model không hợp lệ!',
+    //         ], 400);
+    //     }
+
+    //     $rules = [];
+
+    //     foreach ($models as $model) {
+    //         $rules[$model] = [
+    //             'email' => 'nullable|email|unique:' . $model . ',' . 'email,' . $data['id'] . ',' . Str::singular($model) . '_id',
+    //         ];
+    //     }
+
+    //     $validation = Validator::make($data, $rules);
+    //     $validator = Validator::make($request->all(), [
+    //         'name' => 'required|min:3|max:255',
+    //         'gender_id' => 'required',
+    //         'birthday' => 'nullable|date',
+    //         'password' => 'required|min:6|max:20',
+    //     ], [
+    //         'name.required' => 'Vui lòng nhập tên!',
+    //         'name.min' => 'Tên cần ít nhất 3 ký tự!',
+    //         'name.max' => 'Tên dài nhất 255 ký tự!',
+    //         'gender_id.required' => 'Vui lòng chọn giới tính!',
+    //         'birthday.date' => 'Ngày sinh chưa đúng định dạng!',
+    //         'password.required' => 'Vui lòng nhập mật khẩu!',
+    //         'password.min' => 'Vui lòng nhập ít nhất 6 ký tự!',
+    //         'email.email' => 'Vui lòng nhập email hợp lệ!',
+    //         'email.unique' => 'Email đã tồn tại!',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'errors' => $validator->errors(),
+    //         ], 422);
+    //     }
+
+
+
+    //     $modelClass = $models[$modelName];
+    //     $me = $modelClass::find($request->id);
+    //     $me->update([
+    //         'name' => $request['name'],
+    //         'email' => $request['email'],
+    //         'gender_id' => $request['gender_id'],
+    //         'birthday' => $request['birthday'],
+    //         'password' => bcrypt($request['password']),
+    //     ]);
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => "Cập nhật tài khoản cá nhân thành công!",
+    //     ]);
+    // }
+    public function updateProfileAdmin(Request $request)git 
     {
         $data['id'] = $request->id;
         $validator = Validator::make($request->all(), [
             'name' => 'required|min:3|max:255',
             'gender_id' => 'required',
-            'birthday' => 'required',
+            'birthday' => 'nullable|date',
             'password' => 'required|min:6|max:20',
-            'email' => 'required|email|unique:admins,email,'.$data['id'].',admin_id',
+            'email' => 'nullable|email|unique:admins,email,'.$data['id'].',admin_id',
         ], [
             'name.required' => 'Vui lòng nhập tên!',
             'name.min' => 'Tên cần ít nhất 3 ký tự!',
             'name.max' => 'Tên dài nhất 255 ký tự!',
             'gender_id.required' => 'Vui lòng chon giới tính!',
-            'birthday.required' => 'Vui lòng nhập ngày sinh!',
+            'birthday.date' => 'Ngày sinh chưa đúng định dạng!',
             'password.required' => 'Vui lòng nhập mật khẩu!',
             'password.min' => 'Vui nhap it nhat 6 ky tu!',
-            'email.required' => 'Vui lòng nhập email!',
-            'email.email' => 'Email khong hop le!',
+            'email.email' => 'Vui long nhap email hop le!',
             'email.unique' => 'Email da ton tai!',
         ]);
-
 
         if ($validator->fails()) {
             return response()->json([
@@ -42,26 +113,146 @@ class ProfileController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-        $data = array_merge($request->all(), ["admin_id"=>$data['id']]);
-        return response()->json(['data' => $data]);
-        // $me = Admin::find($request->id);
-        // $me->update([
-        //             'name' => $request['name'],
-        //             'email' => $request['email'],
-        //             'gender_id' => $request['gender_id'],
-        //             'birthday' => $request['birthday'],
-        //             'password' => bcrypt($request['password']),
-        //         ]);
-        // $me->save();
-        // return response()->json(['message' => $me]);
+        $me = Admin::find($request->id);
+        $me->update([
+                    'name' => $request['name'],
+                    'email' => $request['email'],
+                    'gender_id' => $request['gender_id'],
+                    'birthday' => $request['birthday'],
+                    'password' => bcrypt($request['password']),
+                ]);
+        return response()->json([
+            'status' => true,
+            'message' => "Cập nhập tài khoản cá nhân thành công!"
+        ]);
+    }
+    public function updateProfileStudent(Request $request)
+    {
+        $data['id'] = $request->id;
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|min:3|max:255',
+            'gender_id' => 'required',
+            'birthday' => 'nullable|date',
+            'password' => 'required|min:6|max:20',
+            'email' => 'nullable|email|unique:students,email,'.$data['id'].',student_id',
+        ], [
+            'name.required' => 'Vui lòng nhập tên!',
+            'name.min' => 'Tên cần ít nhất 3 ký tự!',
+            'name.max' => 'Tên dài nhất 255 ký tự!',
+            'gender_id.required' => 'Vui lòng chon giới tính!',
+            'birthday.date' => 'Ngày sinh chưa đúng định dạng!',
+            'password.required' => 'Vui lòng nhập mật khẩu!',
+            'password.min' => 'Vui nhap it nhat 6 ky tu!',
+            'email.email' => 'Vui long nhap email hop le!',
+            'email.unique' => 'Email da ton tai!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+        $me = students::find($request->id);
+        $me->update([
+                    'name' => $request['name'],
+                    'email' => $request['email'],
+                    'gender_id' => $request['gender_id'],
+                    'birthday' => $request['birthday'],
+                    'password' => bcrypt($request['password']),
+                ]);
+        return response()->json([
+            'status' => true,
+            'message' => "Cập nhập tài khoản cá nhân thành công!"
+        ]);
+    }
+    public function updateProfileTeacher(Request $request)
+    {
+        $data['id'] = $request->id;
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|min:3|max:255',
+            'gender_id' => 'required',
+            'birthday' => 'nullable|date',
+            'password' => 'required|min:6|max:20',
+            'email' => 'nullable|email|unique:teachers,email,'.$data['id'].',teacher_id',
+        ], [
+            'name.required' => 'Vui lòng nhập tên!',
+            'name.min' => 'Tên cần ít nhất 3 ký tự!',
+            'name.max' => 'Tên dài nhất 255 ký tự!',
+            'gender_id.required' => 'Vui lòng chon giới tính!',
+            'birthday.date' => 'Ngày sinh chưa đúng định dạng!',
+            'password.required' => 'Vui lòng nhập mật khẩu!',
+            'password.min' => 'Vui nhap it nhat 6 ky tu!',
+            'email.email' => 'Vui long nhap email hop le!',
+            'email.unique' => 'Email da ton tai!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+        $me = teacher::find($request->id);
+        $me->update([
+                    'name' => $request['name'],
+                    'email' => $request['email'],
+                    'gender_id' => $request['gender_id'],
+                    'birthday' => $request['birthday'],
+                    'password' => bcrypt($request['password']),
+                ]);
+        return response()->json([
+            'status' => true,
+            'message' => "Cập nhập tài khoản cá nhân thành công!"
+        ]);
+    }
+    public function updateProfileSubjectHead(Request $request)
+    {
+        $data['id'] = $request->id;
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|min:3|max:255',
+            'gender_id' => 'required',
+            'birthday' => 'nullable|date',
+            'password' => 'required|min:6|max:20',
+            'email' => 'nullable|email|unique:subject_head,email,'.$data['id'].',subject_head_id',
+        ], [
+            'name.required' => 'Vui lòng nhập tên!',
+            'name.min' => 'Tên cần ít nhất 3 ký tự!',
+            'name.max' => 'Tên dài nhất 255 ký tự!',
+            'gender_id.required' => 'Vui lòng chon giới tính!',
+            'birthday.date' => 'Ngày sinh chưa đúng định dạng!',
+            'password.required' => 'Vui lòng nhập mật khẩu!',
+            'password.min' => 'Vui nhap it nhat 6 ky tu!',
+            'email.email' => 'Vui long nhap email hop le!',
+            'email.unique' => 'Email da ton tai!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+        $me = subject_head::find($request->id);
+        $me->update([
+                    'name' => $request['name'],
+                    'email' => $request['email'],
+                    'gender_id' => $request['gender_id'],
+                    'birthday' => $request['birthday'],
+                    'password' => bcrypt($request['password']),
+                ]);
+        return response()->json([
+            'status' => true,
+            'message' => "Cập nhập tài khoản cá nhân thành công!"
+        ]);
     }
     //     $data = $request->validated();
 
-    //     $currentUser = Auth::user(); // Lấy thông tin người dùng đang đăng nhập
+        // $currentUser = Auth::user();
 
-    //     if ($user->id !== $currentUser->id && !$currentUser->isAdmin() && !($currentUser->isTeacher() || $currentUser->isStudent())) {
-    //         return response()->json(['status_value' => 'Bạn không có quyền thay đổi thông tin của người dùng khác!', 'status' => 0]);
-    //     }
+        // if ($user->id !== $currentUser->id && !$currentUser->isAdmin() && !($currentUser->isTeacher() || $currentUser->isStudent())) {
+        //     return response()->json(['status_value' => 'Bạn không có quyền thay đổi thông tin của người dùng khác!', 'status' => 0]);
+        // }
 
     //     $user->update([
     //         'name' => $data['name'],
