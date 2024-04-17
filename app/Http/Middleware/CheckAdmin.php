@@ -10,9 +10,10 @@ class CheckAdmin
 {
     public function handle(Request $request, Closure $next)
     {
-        $check = JWTAuth::parseToken()->authenticate();
-        if (!$check) return response()->json(['message' => 'You are unauthorize for this route'],403);
-            $request->id = $check->admin_id;
-            return $next($request);
+    if(!$request->user('admins')){
+            return response()->json(['message' => 'You are unauthorize for this route'],403);
+    }
+    $request->id = $request->user('admins')->admin_id;
+        return $next($request);
     }
 }

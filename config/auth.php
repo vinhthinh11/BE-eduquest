@@ -2,11 +2,9 @@
 
 return [
 
-
-
     'defaults' => [
-        'guard' => 'admins',
-        'passwords' => 'admins',
+        'guard' => 'students',
+        'passwords' => 'students',
     ],
 
 
@@ -41,8 +39,7 @@ return [
         ],
         'students' => [
             'driver' => 'eloquent',
-            'model' => App\Models\student::class,
-            'table' => 'students',
+            'model' => App\Models\students::class,
         ],
 
 
