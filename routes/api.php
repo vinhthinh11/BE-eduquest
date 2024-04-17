@@ -112,13 +112,6 @@ use App\Http\Controllers\TBMDuyetDeThiController;
         Route::post('/file', [AdminHSController::class, 'check_add_hs_via_file'])->name('check_add_hs_via_file');
     });
 
-    //Teacher controller
-    Route::group(['prefix' => '/teacher'], function () {
-        Route::group(['prefix' => '/score'], function () {
-            Route::post('/list',        [TeacherConTroller::class, 'listScore'])->name('listScore');
-            Route::post('/export',      [TeacherConTroller::class, 'exportScore'])->name('exportScore');
-        });
-    });
 });
 
 

@@ -13,21 +13,25 @@ use Illuminate\Support\Facades\Validator;
 class ProfileController extends Controller
 {
 
-    public function updateProfile(Request $request, Admin $admin)
+    public function updateProfile(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required',
+            'name' => 'required|min:3|max:255',
             'gender_id' => 'required',
             'birthday' => 'required',
-            'password' => 'required',
-            'email' => 'required|email',
+            'password' => 'required|min:6|max:20',
+            'email' => 'required|email|unique:admins,email,',
         ], [
             'name.required' => 'Vui lòng nhập tên!',
+            'name.min' => 'Tên cần ít nhất 3 ký tự!',
+            'name.max' => 'Tên dài nhất 255 ký tự!',
             'gender_id.required' => 'Vui lòng chon giới tính!',
             'birthday.required' => 'Vui lòng nhập ngày sinh!',
             'password.required' => 'Vui lòng nhập mật khẩu!',
+            'password.min' => 'Vui nhap it nhat 6 ky tu!',
             'email.required' => 'Vui lòng nhập email!',
             'email.email' => 'Email khong hop le!',
+            'email.unique' => 'Email da ton tai!',
         ]);
 
         if ($validator->fails()) {
@@ -36,8 +40,14 @@ class ProfileController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-        $me = Admin::find($request->id); //$request->id
-        $me->name = $request->name;
+        $me = Admin::find($request->admin_id);
+        $me->update([
+                    'name' => $request['name'],
+                    'email' => $request['email'],
+                    'gender_id' => $request['gender_id'],
+                    'birthday' => $request['birthday'],
+                    'password' => bcrypt($request['password']),
+                ]);
         $me->save();
         return response()->json(['message' => $me]);
     }
