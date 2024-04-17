@@ -241,39 +241,11 @@ class Admincontroller extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-        $result = [];
-
-        // $name = $request->input('name');
-        // $username = $request->input('username');
-        // $password = bcrypt($request->input('password'));
-        // $email = $request->input('email');
-        // $birthday = $request->input('birthday');
-        // $gender = $request->input('gender');
-
-        // $admin = new Admin([
-        //     'name' => $name,
-        //     'username' => $username,
-        //     'password' => $password,
-        //     'email' => $email,
-        //     'birthday' => $birthday,
-        //     'gender_id' => $gender,
-        //     'last_login' => now(),
-
-        // ]);
-
-        // // Lưu admin mới vào cơ sở dữ liệu
-        // if ($admin->save()) {
-        //     $result = $admin->toArray();
-        //     $result['status_value'] = "Thêm thành công!";
-        //     $result['status'] = 1;
-        // } else {
-        //     $result['status_value'] = "Lỗi! Tài khoản đã tồn tại!";
-        //     $result['status'] = 0;
-        // }
-        // // return response()->json($result);
-        // return response()->json([
-        //     'result' => $result,
-        // ]);
+       $admin = request()->all();
+        return response()->json([
+            'message'   => 'Thêm Admin thành công!',
+            'admin'   => $admin,
+        ]);
     }
 
     public function deleteAdmin(Request $request)
