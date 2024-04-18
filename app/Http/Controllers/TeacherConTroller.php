@@ -6,6 +6,8 @@ use App\Models\questions;
 use App\Models\scores;
 use App\Models\students;
 use App\Models\teacher;
+use Carbon\Carbon;
+use Carbon\CarbonTimeZone;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -15,6 +17,100 @@ use Illuminate\Support\Facades\Validator;
 
 class TeacherConTroller extends Controller
 {
+    public function getInfo($username)
+    {
+        $teacher = teacher::select('teachers.teacher_id', 'teachers.username', 'teachers.avatar', 'teachers.email', 'teachers.name', 'teachers.last_login', 'teachers.birthday', 'permissions.permission_detail', 'genders.gender_detail', 'genders.gender_id')
+            ->join('permissions', 'teachers.permission', '=', 'permissions.permission')
+            ->join('genders', 'teachers.gender_id', '=', 'genders.gender_id')
+            ->where('teachers.username', '=', $username)
+            ->first();
+        if ($teacher) {
+            //đẩy view ở đây nha!!
+            //return view('teacher.info', ['teacher' => $teacher]);
+            return response()->json(['teacher' => $teacher], 200);
+        }
+            return response()->json(['message' => 'Giáo viên không tồn tại!'], 404);
+    }
+    public function updateProfile(Request $request)
+    {
+        $data['id'] = $request->id;
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|min:3|max:255',
+            'gender_id' => 'required',
+            'birthday' => 'nullable|date',
+            'password' => 'required|min:6|max:20',
+            'email' => 'nullable|email|unique:teachers,email,'.$data['id'].',teacher_id',
+        ], [
+            'name.required' => 'Vui lòng nhập tên!',
+            'name.min' => 'Tên cần ít nhất 3 ký tự!',
+            'name.max' => 'Tên dài nhất 255 ký tự!',
+            'gender_id.required' => 'Vui lòng chon giới tính!',
+            'birthday.date' => 'Ngày sinh chưa đúng định dạng!',
+            'password.required' => 'Vui lòng nhập mật khẩu!',
+            'password.min' => 'Vui nhap it nhat 6 ky tu!',
+            'email.email' => 'Vui long nhap email hop le!',
+            'email.unique' => 'Email da ton tai!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+        $me = teacher::find($request->id);
+        $me->update([
+                    'name' => $request['name'],
+                    'email' => $request['email'],
+                    'gender_id' => $request['gender_id'],
+                    'birthday' => $request['birthday'],
+                    'password' => bcrypt($request['password']),
+                    'last_login' => Carbon::now(CarbonTimeZone::createFromHourOffset(7 * 60))->timezone('Asia/Ho_Chi_Minh'),
+                ]);
+        return response()->json([
+            'status' => true,
+            'message' => "Cập nhập tài khoản cá nhân thành công!"
+        ]);
+    }
+
+    public function updateAvatarProfile(Request $request)
+    {
+        $teacher = teacher::find($request->id);
+
+        if (!$teacher) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Giáo viên không tồn tại!',
+            ], 404);
+        }
+
+        if ($request->hasFile('avatar')) {
+            $validator = Validator::make($request->all(), [
+                'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            ], [
+                'avatar.required' => 'Vui lòng chọn hình ảnh đại diện',
+                'avatar.image' => 'Vui lòng chọn hình ảnh đại diện',
+                'avatar.mimes' => 'Vui lòng chọn hình ảnh đúng định dạng (jpeg, png, jpg, gif, svg)',
+                'avatar.max' => 'Kích thước hình ảnh không được vượt quá 2048KB',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            $image = $request->file('avatar');
+            $path = $image->store('images');
+            $teacher->avatar = $path;
+            $teacher->save();
+
+            return response()->json(['message' => 'Tải lên thành công', 'path' => $path], 200);
+        } else {
+            return response()->json(['message' => 'Không có tệp nào được tải lên'], 404);
+        }
+    }
     //show điểm
     public function listScore(Request $request)
     {

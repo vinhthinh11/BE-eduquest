@@ -13,16 +13,18 @@ use App\Http\Controllers\AdminHSController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\HSLuyenDeController;
+use App\Http\Controllers\SubjectHeadController;
 use App\Http\Controllers\TBMDuyetDeThiController;
 
 
-    Route::post('login', [AuthController::class, 'login']);
-    Route::get('me', [AuthController::class, 'me']);
+Route::post('login', [AuthController::class, 'login']);
+Route::get('me', [AuthController::class, 'me']);
 
-    Route::group(['prefix' => '/admin','middleware' => 'admin'], function () {
+Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
     //Profile
-    Route::put('/update-profile',      [ProfileController::class, 'updateProfileAdmin'])->name('updateProfileAdmin');
-    // Route::put('/update-profile',      [ProfileController::class, 'updateProfile'])->name('updateProfile');
+    Route::get('/info/{username}', [Admincontroller::class, 'getInfo'])->name('getInfo');
+    Route::put('/update-profile',      [Admincontroller::class, 'updateProfile'])->name('updateProfile');
+    Route::put('/update-avatar',      [Admincontroller::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
 
     //ql Admin
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
@@ -45,20 +47,8 @@ use App\Http\Controllers\TBMDuyetDeThiController;
         Route::get('/get-level', [Admincontroller::class, 'getLevels'])->name('getLevel');
         Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
         Route::post('check-add-test', [Admincontroller::class, 'checkAddTest'])->name(('checkAddTest'));
- });
-
-    //Profile
-    Route::group(['prefix' => 'profiles'], function () {
-
-        Route::post('/update-last-login',  [ProfileController::class, 'updateLastLogin'])->name('updateLastLogin');
-        Route::post('/update-avatar',      [ProfileController::class, 'updateAvatar'])->name('updateAvatarProfile');
-        Route::get('get-profile',         [Admincontroller::class, 'getProfiles'])->name('getProfiles');
-        Route::get('admin-info{username}', [Admincontroller::class, 'getAdminInfo'])->name('getAdminInfo');
-        Route::post('/teacher-info',       [ProfileController::class, 'teacherInfo'])->name('teacherInfo');
-        Route::post('/student-info',       [ProfileController::class, 'studentInfo'])->name('studentInfo');
-        Route::post('/subject-head-info',  [ProfileController::class, 'subjectheadInfo'])->name('subjectheadInfo');
     });
-
+    
     //Thong Ke
     Route::post('/list-statist', [StatistController::class, 'listStatist'])->name('listStatist');
     Route::post('/list-statis2t-scores', [StatistController::class, 'listStatistScores'])->name('listStatistScores');
@@ -111,14 +101,14 @@ use App\Http\Controllers\TBMDuyetDeThiController;
         Route::put('/update', [AdminHSController::class, 'updateHS'])->name('updateHS');
         Route::post('/file', [AdminHSController::class, 'check_add_hs_via_file'])->name('check_add_hs_via_file');
     });
-
 });
 
 
 Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     //Profile
-    Route::put('/update-profile',      [ProfileController::class, 'updateProfileStudent'])->name('updateProfileStudent');
-    // Route::put('/update-profile',      [ProfileController::class, 'updateProfile'])->name('updateProfile');
+    Route::get('/info/{username}', [StudentController::class, 'getInfo'])->name('getInfo');
+    Route::put('/update-profile',      [StudentController::class, 'updateProfile'])->name('updateProfile');
+    Route::put('/update-avatar',      [StudentController::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
 
     Route::get('/get', [AdminHSController::class, 'index'])->name('index');
     Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
@@ -136,14 +126,15 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
         Route::post('/create', [HSLuyenDeController::class, 'luyenDe'])->name('luyenDe');
         Route::put('/update', [HSLuyenDeController::class, 'nopBai'])->name('nopBai');
     });
-
 });
 
 Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     Route::get('/get',     [AdminTeacherController::class, 'getTeacher'])->name('getTeacher');
+
     //Profile
-    Route::put('/update-profile',      [ProfileController::class, 'updateProfileTeacher'])->name('updateProfileTeacher');
-    // Route::put('/update-profile',      [ProfileController::class, 'updateProfile'])->name('updateProfile');
+    Route::get('/info/{username}', [TeacherConTroller::class, 'getInfo'])->name('getInfo');
+    Route::put('/update-profile',      [TeacherConTroller::class, 'updateProfile'])->name('updateProfile');
+    Route::put('/update-avatar',      [TeacherConTroller::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
 
     Route::group(['prefix' => '/question'], function () {
         Route::post('/create',        [TeacherConTroller::class, 'addQuestion'])->name('addQuestion');
@@ -163,8 +154,9 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
 
 Route::group(['prefix' => '/TBM', 'middleware' => 'head_subject'], function () {
     //Profile
-    Route::put('/update-profile',      [ProfileController::class, 'updateProfileSubjectHead'])->name('updateProfileSubjectHead');
-    // Route::put('/update-profile',      [ProfileController::class, 'updateProfile'])->name('updateProfile');
+    Route::get('/info/{username}', [SubjectHeadController::class, 'getInfo'])->name('getInfo');
+    Route::put('/update-profile',      [SubjectHeadController::class, 'updateProfile'])->name('updateProfile');
+    Route::put('/update-avatar',      [SubjectHeadController::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
 
     Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
 
@@ -173,3 +165,6 @@ Route::group(['prefix' => '/TBM', 'middleware' => 'head_subject'], function () {
     Route::put('/', [TBMDuyetDeThiConTroller::class, 'khongDuyetDT'])->name('khongDuyetDT');
 });
 
+Route::group(['prefix' => 'laravel-filemanager', 'middleware' => ['web', 'auth']], function () {
+    \UniSharp\LaravelFilemanager\Lfm::routes();
+});
