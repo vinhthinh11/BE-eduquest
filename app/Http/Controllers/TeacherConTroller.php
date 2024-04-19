@@ -485,6 +485,11 @@ class TeacherConTroller extends Controller
         $data  = tests::with('subject')->where('subject_id', $id)->get();
         return response()->json(["data"=> $data]);
     }
+    public function getTestDetail(Request $request,$test_code){
+        // teacher môn nào chỉ có thể xem test của môn đó
+        $data  = tests::find($test_code)->with('questions')->get();
+        return response()->json(["data"=> $data]);
+    }
     public function deleteTest(Request $request){
         // chỉ delete những đề chưa duyệt, và đề nào đã duyêtj rồi thi không xóa được
         $id = $request->user('teachers')->subject_id;
