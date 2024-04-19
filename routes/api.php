@@ -151,9 +151,12 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
 // ----- Route for Teacher -----
 Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
 
-    // qly de thi
+    // teacher qly test
     Route::group(['prefix' => '/test'], function () {
-
+        Route::get('/get', [TeacherConTroller::class,'getTest'])->name('teacherGetTest');
+        Route::put('/update', [TeacherConTroller::class,'updateTest'])->name('teacherUpdateTest');
+        Route::post('/create', [TeacherConTroller::class,'createTest'])->name('teacherCreateTest');
+        Route::delete('/delete', [TeacherConTroller::class,'deleteTest'])->name('teacherDeleteTest');
     });
 
     // qly câu hỏi

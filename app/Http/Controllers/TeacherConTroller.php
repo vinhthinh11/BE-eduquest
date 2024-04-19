@@ -6,6 +6,7 @@ use App\Models\questions;
 use App\Models\scores;
 use App\Models\students;
 use App\Models\teacher;
+use App\Models\tests;
 use Carbon\Carbon;
 use Carbon\CarbonTimeZone;
 use Illuminate\Http\Request;
@@ -477,5 +478,51 @@ class TeacherConTroller extends Controller
             DB::rollBack();
             return false;
         }
+    }
+    public function getTest(Request $request){
+        // teacher môn nào chỉ có thể xem test của môn đó
+        $id = $request->user('teachers')->subject_id;
+        $data  = tests::with('subject')->where('subject_id', $id)->get();
+        return response()->json(["data"=> $data]);
+    }
+    public function deleteTest(Request $request){
+        // chỉ delete những đề chưa duyệt, và đề nào đã duyêtj rồi thi không xóa được
+        $id = $request->user('teachers')->subject_id;
+        $data  = tests::with('subject')->where('subject_id', $id)->get();
+        return response()->json(["data"=> $data]);
+    }
+    public function updateTest(Request $request){
+        // cap nhap de cua test
+        $id = $request->user('teachers')->subject_id;
+        $data  = tests::with('subject')->where('subject_id', $id)->get();
+        return response()->json(["data"=> $data]);
+    }
+    public function createTest(Request $request){
+
+        // tạo đề thi
+        /*
+        nhung thông tin cân có để tạo đề thi
+        {
+                "password":"123456",
+                "grade_id":10,
+                "subject_id":10,
+                "total_questions":20,
+                "time_to_do":30,
+                "level_id":1,
+                "note":"Không",
+                "status_id":3,
+                "test_name":"Đề vippro 0"
+                khi tao đề sẽ sinh ra thông tin đè và chi tiết đề của đề đó
+}
+        */
+        // kiểm tra số lượng câu hỏi trong ngân hàng đề thi có đủ hay không
+        $numQuestion = questions::where('subject_id', $request->subject_id)->where('grade_id', $request->grade_id)->where('level_id', $request->level_id)->count();
+        if($numQuestion < $request->total_questions){
+            return response()->json(["message"=> "Số lượng câu hỏi trong ngân hàng câu hỏi không đủ!"],400);
+            // tạo đề thi
+
+            // tạo chi tiết đề thi
+        }
+        return response()->json(["data"=> $numQuestion]);
     }
 }
