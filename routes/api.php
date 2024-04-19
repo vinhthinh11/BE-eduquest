@@ -55,7 +55,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
      Route::get('/detail/{test_code}', [Admincontroller::class, 'getTestDetail'])->name(('getTestDetail'));
 
     });
- });
+
     //Profile
     Route::group(['prefix' => 'profiles'], function () {
 
@@ -120,6 +120,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::put('/update', [AdminHSController::class, 'updateHS'])->name('updateHS');
         Route::post('/file', [AdminHSController::class, 'check_add_hs_via_file'])->name('check_add_hs_via_file');
     });
+});
 
 // ----- Route for Student -----
 Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
