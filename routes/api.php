@@ -44,9 +44,15 @@ use App\Http\Controllers\TBMDuyetDeThiController;
         Route::get('/get-subjects', [Admincontroller::class, 'getSubjects'])->name('getSubjects');
         Route::get('/get-level', [Admincontroller::class, 'getLevels'])->name('getLevel');
         Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
-        Route::post('check-add-test', [Admincontroller::class, 'checkAddTest'])->name(('checkAddTest'));
  });
+//  ql test
+ Route::group(['prefix' => 'test'], function () {
+     Route::post('/create', [Admincontroller::class, 'checkAddTest'])->name(('checkAddTest'));
+     Route::get('/get', [Admincontroller::class, 'getTest'])->name(('getTest'));
+     Route::get('/detail/{test_code}', [Admincontroller::class, 'getTestDetail'])->name(('getTestDetail'));
 
+    });
+ });
     //Profile
     Route::group(['prefix' => 'profiles'], function () {
 
@@ -112,7 +118,6 @@ use App\Http\Controllers\TBMDuyetDeThiController;
         Route::post('/file', [AdminHSController::class, 'check_add_hs_via_file'])->name('check_add_hs_via_file');
     });
 
-});
 
 
 Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {

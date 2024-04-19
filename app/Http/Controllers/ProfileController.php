@@ -86,7 +86,7 @@ class ProfileController extends Controller
     //         'message' => "Cập nhật tài khoản cá nhân thành công!",
     //     ]);
     // }
-    public function updateProfileAdmin(Request $request)git 
+    public function updateProfileAdmin(Request $request)
     {
         $data['id'] = $request->id;
         $validator = Validator::make($request->all(), [
