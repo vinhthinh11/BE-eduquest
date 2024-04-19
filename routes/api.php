@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminClassController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SubjectHeadController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admincontroller;
 use App\Http\Controllers\AdminTBMonController;
@@ -13,7 +14,6 @@ use App\Http\Controllers\AdminHSController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\HSLuyenDeController;
-use App\Http\Controllers\SubjectHeadController;
 use App\Http\Controllers\TBMDuyetDeThiController;
 
 
@@ -46,8 +46,16 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::get('/get-subjects', [Admincontroller::class, 'getSubjects'])->name('getSubjects');
         Route::get('/get-level', [Admincontroller::class, 'getLevels'])->name('getLevel');
         Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
-        Route::post('check-add-test', [Admincontroller::class, 'checkAddTest'])->name(('checkAddTest'));
+
+ });
+//  ql test
+ Route::group(['prefix' => 'test'], function () {
+     Route::post('/create', [Admincontroller::class, 'checkAddTest'])->name(('checkAddTest'));
+     Route::get('/get', [Admincontroller::class, 'getTest'])->name(('getTest'));
+     Route::get('/detail/{test_code}', [Admincontroller::class, 'getTestDetail'])->name(('getTestDetail'));
+
     });
+ });
 
     //Thong Ke
     Route::post('/list-statist',         [StatistController::class, 'listStatist'])->name('listStatist');
@@ -77,7 +85,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
     });
 
     //ql TBM
-    Route::group(['prefix' => '/truongbomon'], function () {
+    Route::group(['prefix' => '/subject-head'], function () {
         Route::get('/get', [AdminTBMonController::class, 'index'])->name('index');
         Route::put('/update', [AdminTBMonController::class, 'updateTBM'])->name('updateTBM');
         Route::post('/create', [AdminTBMonController::class, 'createTBM'])->name('createTBM');
@@ -86,7 +94,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
     });
 
     //ql Môn học
-    Route::group(['prefix' => '/mon'], function () {
+    Route::group(['prefix' => '/subject'], function () {
         Route::get('/get', [AdminMonHocController::class, 'index'])->name('index');
         Route::post('/create', [AdminMonHocController::class, 'createMon'])->name('createMon');
         Route::delete('/delete', [AdminMonHocController::class, 'deleteMon'])->name('deleteMon');
@@ -101,16 +109,16 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::put('/update', [AdminHSController::class, 'updateHS'])->name('updateHS');
         Route::post('/file', [AdminHSController::class, 'check_add_hs_via_file'])->name('check_add_hs_via_file');
     });
-});
 
+// ----- Route for Student -----
 Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     //Profile
     Route::get('/info/{username}', [StudentController::class, 'getInfo'])->name('getInfo');
     Route::put('/update-profile',      [StudentController::class, 'updateProfile'])->name('updateProfile');
     Route::put('/update-avatar',      [StudentController::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
 
-    Route::get('/get', [AdminHSController::class, 'index'])->name('index');
-    Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
+    // Route::get('/get', [AdminHSController::class, 'index'])->name('index');
+
 
     Route::post('/update-timing',       [StudentController::class, 'updateTiming'])->name('updateTiming');
     Route::post('/update-doing-exam',   [StudentController::class, 'updateDoingExam'])->name('updateDoingExam');
@@ -120,38 +128,51 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     Route::post('/accpet-practice',     [StudentController::class, 'acceptPractice'])->name('acceptPractice');
 
     //học sinh luyện đề
-    Route::group(['prefix' => '/luyende'], function () {
+    Route::group(['prefix' => '/practice'], function () {
         Route::get('/get', [HSLuyenDeController::class, 'list'])->name('list');
         Route::post('/create', [HSLuyenDeController::class, 'luyenDe'])->name('luyenDe');
         Route::put('/update', [HSLuyenDeController::class, 'nopBai'])->name('nopBai');
     });
 });
 
+// ----- Route for Teacher -----
 Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
-    Route::get('/get',     [AdminTeacherController::class, 'getTeacher'])->name('getTeacher');
+
+    // qly de thi
+    Route::group(['prefix' => '/test'], function () {
+    Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
+    });
+
+    // qly câu hỏi
+    Route::group(['prefix' => '/question'], function () {
+        Route::post('/create', [TeacherConTroller::class, 'addQuestion'])->name('addQuestion');
+        Route::delete('/delete/{question_id}', [TeacherConTroller::class, 'destroyQuestion'])->name('destroyQuestion');
+        Route::put('/update/{question_id}', [TeacherConTroller::class, 'updateQuestion'])->name('updateQuestion');
+        Route::post('/multi-delete-question', [TeacherConTroller::class, 'multiDeleteQuestion'])->name('multiDeleteQuestion');
+        Route::post('/file', [TeacherConTroller::class, 'addFileQuestion'])->name('addFileQuestion');
+    });
 
     //Profile
     Route::get('/info/{username}', [TeacherConTroller::class, 'getInfo'])->name('getInfo');
     Route::put('/update-profile',      [TeacherConTroller::class, 'updateProfile'])->name('updateProfile');
     Route::put('/update-avatar',      [TeacherConTroller::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
 
-    Route::group(['prefix' => '/question'], function () {
-        Route::post('/create',        [TeacherConTroller::class, 'addQuestion'])->name('addQuestion');
-        Route::post('/file',      [TeacherConTroller::class, 'addFileQuestion'])->name('addFileQuestion');
-        // Route::post('/delete-question',      [TeacherConTroller::class, 'destroyQuestion'])->name('destroyQuestion');
-        Route::delete('/delete/{question_id}', [TeacherConTroller::class, 'destroyQuestion'])->name('destroyQuestion');
-        Route::put('/update/{question_id}', [TeacherConTroller::class, 'updateQuestion'])->name('updateQuestion');
-        Route::post('/multi-delete-question', [TeacherConTroller::class, 'multiDeleteQuestion'])->name('multiDeleteQuestion');
-    });
+// qly điểm
     Route::group(['prefix' => '/score'], function () {
         Route::post('/list',        [TeacherConTroller::class, 'listScore'])->name('listScore');
         Route::post('/export',      [TeacherConTroller::class, 'exportScore'])->name('exportScore');
     });
-    Route::post('/check-add-question-via-file', [AdminTeacherController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
-    Route::post('/create', [AdminTeacherController::class, 'checkAddQuestions'])->name('checkAddQuestion');
+
+// qly lớp
+    Route::group(['prefix' => '/class'], function () {
+        Route::post('/list',        [TeacherConTroller::class, 'listClass'])->name('listClass');
+        Route::post('/list-class-by-teacher',      [TeacherConTroller::class, 'listClassByTeacher'])->name('listClassByTeacher');
+    });
+    // Route::post('/check-add-question-via-file', [AdminTeacherController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
+    // Route::post('/create', [AdminTeacherController::class, 'checkAddQuestions'])->name('checkAddQuestion');
 });
 
-Route::group(['prefix' => '/TBM', 'middleware' => 'head_subject'], function () {
+Route::group(['prefix' => '/subject-head', 'middleware' => 'head_subject'], function () {
     //Profile
     Route::get('/info/{username}', [SubjectHeadController::class, 'getInfo'])->name('getInfo');
     Route::put('/update-profile',      [SubjectHeadController::class, 'updateProfile'])->name('updateProfile');

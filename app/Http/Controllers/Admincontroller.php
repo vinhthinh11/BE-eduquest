@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\admin;
+use App\Models\quest_of_test;
 use App\Models\questions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -641,24 +642,6 @@ class Admincontroller extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-        // $validator = Validator::make($request->all(),[
-        //     'question_content'=>'string|max:255',
-        //            'level_id'=>'numeric',
-        //            'answer_a'=>'string',
-        //            'answer_b'=>'string',
-        //            'answer_c'=>'string',
-        //            'answer_d'=>'string',
-        //            'correct_answer'=>'numeric',
-        //            'grade_id'=>'numeric',
-        //            'unit'=>'numeric',
-        //            'suggest'=>'string',
-        //            'status_id'=>'numeric',
-        //            'teacher_id'=>'numeric',
-        //            'subject_id'=>'numeric',
-        //           ]);
-        //           if($validator->fails()){
-        //            return response($validator->errors()->all(),400);
-        //           }
         $data = request()->only(['question_content', 'level_id', 'answer_a', 'answer_b', 'subject_id', 'answer_c', 'answer_d', 'correct_answer', 'grade_id', 'unit', 'suggest', 'status_id', 'teacher_id']);
         $question =  questions::create($data);
         return response()->json(['question' => $question]);
@@ -867,6 +850,26 @@ class Admincontroller extends Controller
         return response()->json([
             'result' => $result,
 
+        ]);
+    }
+    public function getTest()
+    {
+        $data = tests::get();
+        if ($data->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No test found!',
+            ], 400);
+        }
+        return response()->json([
+            'data'    => $data,
+        ]);
+    }
+      public function getTestDetail( $test_code)
+    {
+        $data = tests::find($test_code)->questions()->get();
+        return response()->json([
+            'data'    => $data,
         ]);
     }
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\DB;
 
 class questions extends  Model
@@ -30,11 +31,18 @@ class questions extends  Model
     {
         return $this->belongsTo(Teacher::class, 'teacher_id');
     }
+    public function questOfTest()
+    {
+        return $this->belongsToMany(quest_of_test::class, 'test_code');
+    }
     protected $primaryKey = 'question_id';
     function getQuestion()
     {
         $getAllQuestion = DB::select('select * from questions');
         return $getAllQuestion;
+    }
+    public function tests():BelongsToMany{
+        return $this->belongsToMany(tests::class, 'quest_of_test', 'question_id', 'test_code');
     }
 
 }

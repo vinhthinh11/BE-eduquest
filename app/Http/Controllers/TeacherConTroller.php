@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\classes;
 use App\Models\questions;
 use App\Models\scores;
+use App\Models\student;
 use App\Models\students;
 use App\Models\teacher;
 use Carbon\Carbon;
@@ -477,5 +479,69 @@ class TeacherConTroller extends Controller
             DB::rollBack();
             return false;
         }
+    }
+
+    public function listClass(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'class_id' => 'integer|unique:classes,class_id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'class_id không hợp lệ',
+            ], 400);
+        }
+
+        $class_id = $request->input('class_id', '2');
+
+        $classDetail = student::select('students.student_id', 'students.avatar', 'students.username', 'students.name', 'students.birthday', 'genders.gender_detail', 'students.last_login', 'classes.class_name')
+            ->join('genders', 'genders.gender_id', '=', 'students.gender_id')
+            ->join('classes', 'students.class_id', '=', 'classes.class_id')
+            ->where('students.class_id', $class_id)
+            ->get();
+
+    if ($classDetail->isNotEmpty()) {
+        return response()->json([
+            'status' => true,
+            'message' => 'Lấy dữ liệu Lớp thành công!',
+            'data' => $classDetail
+        ], 200);
+    }
+    else
+        return response()->json(['error' => 'Giáo viên không có lớp'], 404);
+    }
+
+    public function listClassByTeacher(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'teacher_id' => 'integer|exists:teachers,teacher_id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Giáo viên không hợp lệ',
+            ], 400);
+        }
+
+        $teacher_id = $request->teacher_id;
+        $data = classes::select('classes.class_id', 'classes.class_name', 'grades.detail as grade')
+            ->join('grades', 'grades.grade_id', '=', 'classes.grade_id')
+            ->where('teacher_id', $teacher_id)
+            ->get();
+
+        if ($data->isNotEmpty()) {
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Lấy dữ liệu Lớp này thành công!',
+                    'data' => $data
+                ]);
+            }
+            return response()->json([
+                'status'    => false,
+                'message'   => 'Giáo viên không có lớp',
+            ]);
     }
 }

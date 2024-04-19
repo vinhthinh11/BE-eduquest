@@ -13,7 +13,14 @@ class quest_of_test extends  Model
        'timest'
     ];
     public $timestamps = false;
-    // protected $primaryKey = 'test_code';
-    // protected $primaryKey2 = 'question_id';
+    // public function test()
+    // {
+    //     return $this->belongsTo(tests::class, 'test_code');
+    // }
+    // public function question()
+    // {
+    //     return $this->hasOne(questions::class, 'question_id');
+    // }
+
 
 }
