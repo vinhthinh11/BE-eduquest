@@ -27,6 +27,6 @@ class tests extends  Model {
     protected $primaryKey = 'test_code';
     public function questions():BelongsToMany
     {
-        return $this->belongsToMany(questions::class, 'quest_of_test', 'test_code', 'question_id');
+        return $this->belongsToMany(questions::class, 'quest_of_test', 'test_code', 'question_id',);
     }
 }
