@@ -219,6 +219,21 @@ class ProfileController extends Controller
     //         return response()->json(['message' => 'Không có tệp nào được tải lên']);
     //     }
     // }
+    public function update_avatar(Request $request, $username)
+    {
+        $validatedData = $request->validate([
+            'avatar' => 'required|string',
+        ]);
+
+        $admin = Admin::where('username', $username)->first();
+
+        if ($admin) {
+            $admin->update($validatedData);
+            return response()->json(['message' => 'Avatar updated successfully'], 200);
+        }
+
+        return response()->json(['message' => 'Admin not found'], 404);
+    }
     public function updateAvatar(Request $request)
     {
         $avatar = $request->input('avatar');

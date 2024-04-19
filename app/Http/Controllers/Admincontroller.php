@@ -22,8 +22,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
-
-
 class Admincontroller extends Controller
 {
     public function getAdmin()
@@ -763,6 +761,7 @@ class Admincontroller extends Controller
         $questionDifficult = $request->question_difficult;
         $timeToDo   = $request->time_to_do;
         $note       = $request->note;
+
         $testCode   = rand(100000, 999999);
         $teacher    = new admin();
         $total      = $teacher->getCountQuestions($subjectId, $gradeId);

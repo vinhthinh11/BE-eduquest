@@ -29,4 +29,8 @@ class tests extends  Model {
     {
         return $this->belongsToMany(questions::class, 'quest_of_test', 'test_code', 'question_id',);
     }
+    public function subject()
+    {
+        return $this->belongsTo(subjects::class, 'subject_id');
+    }
 }
