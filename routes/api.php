@@ -55,7 +55,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
      Route::get('/detail/{test_code}', [Admincontroller::class, 'getTestDetail'])->name(('getTestDetail'));
 
     });
- });
+
 
     //Thong Ke
     Route::post('/list-statist',         [StatistController::class, 'listStatist'])->name('listStatist');
@@ -108,7 +108,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::put('/update', [AdminHSController::class, 'updateHS'])->name('updateHS');
         Route::post('/file', [AdminHSController::class, 'check_add_hs_via_file'])->name('check_add_hs_via_file');
     });
-
+});
 // ----- Route for Student -----
 Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     //Profile
@@ -140,6 +140,7 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
 
     // teacher qly test
     Route::group(['prefix' => '/test'], function () {
+        // teacher quan ly de thi
         Route::get('/get', [TeacherConTroller::class,'getTest'])->name('teacherGetTest');
          Route::get('/get/{test_code}', [TeacherConTroller::class,'getTestDetail'])->name('teacherGetTestDetail');
         Route::put('/update', [TeacherConTroller::class,'updateTest'])->name('teacherUpdateTest');
