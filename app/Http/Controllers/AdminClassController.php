@@ -118,8 +118,8 @@ class AdminClassController extends Controller
         $class->save();
 
         return response()->json([
-            'status' => true,
-            'message' => 'Sửa thông tin lớp thành công!',
+            'message'   => 'Sửa thông tin lớp thành công!',
+            "class" => $class
         ]);
     }
 
@@ -144,11 +144,11 @@ class AdminClassController extends Controller
             ], 422);
         }
         $data = $request->all();
-        classes::create($data);
+        $class = classes::create($data);
 
         return response()->json([
-            'status'    => true,
             'message'   => 'Đã tạo mới Lớp thành công!',
+            "class" => $class
         ]);
     }
 

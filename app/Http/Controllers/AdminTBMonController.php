@@ -185,6 +185,7 @@ class AdminTBMonController extends Controller
             'email'         => 'nullable|email|unique:subject_head,email',
             'permission'    => 'nullable',
             'birthday'      => 'nullable|date',
+            'subject_id'      => 'required|integer',
         ], [
             'name.min'              => 'Tên Trưởng bộ môn tối thiểu 6 kí tự!',
             'name.required'         => 'Tên Trưởng bộ môn không được để trống!',
@@ -203,7 +204,6 @@ class AdminTBMonController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-        $result = [];
 
         $name = $request->name;
         $username = $request->username;
@@ -260,21 +260,12 @@ class AdminTBMonController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-        $tbm = subject_head::findOrFail($request->id);
-        // dd($tbm);
-        if ($tbm) {
-            $tbm->delete();
+        $tbm = subject_head::find($request->subject_head_id)->delete();
             return response()->json([
-                'status'    => true,
-                'message'   => 'Xoá trưởng bộ môn thành công!',
-            ]);
-        } else {
-            return response()->json([
-                'status'    => false,
-                'message'   => 'Không tìm thấy trưởng bộ môn!',
-            ], 404);
+                'tbm'    => $tbm,
+                'message'   => 'Xoá trưởng bộ môn thành công!']);
         }
-    }
+
 
 
 

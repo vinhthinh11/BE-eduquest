@@ -63,7 +63,6 @@ use App\Http\Controllers\TBMDuyetDeThiController;
     Route::group(['prefix' => 'teacher'], function () {
         Route::get('/get',     [AdminTeacherController::class, 'getTeacher'])->name('getTeacher');
         Route::delete('/delete', [AdminTeacherController::class, 'destroy'])->name('destroyTeacher');
-        // Route::put('/update',  [AdminTeacherController::class, 'update'])->name('updateTeacher');
         Route::put('/update',   [AdminTeacherController::class, 'edit'])->name('editTeacher');
         Route::post('/create', [AdminTeacherController::class, 'create'])->name('createTeacher');
         Route::post('/search', [AdminTeacherController::class, 'search'])->name('searchTeacher');
