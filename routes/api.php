@@ -132,6 +132,7 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     // Route::get('/get', [AdminHSController::class, 'index'])->name('index');
 
 
+    Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
     Route::post('/update-timing', [StudentController::class, 'updateTiming'])->name('updateTiming');
     Route::post('/update-doing-exam', [StudentController::class, 'updateDoingExam'])->name('updateDoingExam');
     Route::post('/reset-doing-exam', [StudentController::class, 'resetDoingExam'])->name('resetDoingExam');
@@ -152,7 +153,7 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
 
     // qly de thi
     Route::group(['prefix' => '/test'], function () {
-    Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
+
     });
 
     // qly câu hỏi
@@ -187,6 +188,7 @@ Route::group(['prefix' => '/subject-head', 'middleware' => 'head_subject'], func
     Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
 
     //duyệt đề thi
+
     Route::post('/', [TBMDuyetDeThiConTroller::class, 'duyetDT'])->name('duyetDT');
     Route::put('/', [TBMDuyetDeThiConTroller::class, 'khongDuyetDT'])->name('khongDuyetDT');
 });
