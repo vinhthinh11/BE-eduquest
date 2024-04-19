@@ -86,166 +86,10 @@ class ProfileController extends Controller
     //         'message' => "Cập nhật tài khoản cá nhân thành công!",
     //     ]);
     // }
-    public function updateProfileAdmin(Request $request)
-    {
-        $data['id'] = $request->id;
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|min:3|max:255',
-            'gender_id' => 'required',
-            'birthday' => 'nullable|date',
-            'password' => 'required|min:6|max:20',
-            'email' => 'nullable|email|unique:admins,email,'.$data['id'].',admin_id',
-        ], [
-            'name.required' => 'Vui lòng nhập tên!',
-            'name.min' => 'Tên cần ít nhất 3 ký tự!',
-            'name.max' => 'Tên dài nhất 255 ký tự!',
-            'gender_id.required' => 'Vui lòng chon giới tính!',
-            'birthday.date' => 'Ngày sinh chưa đúng định dạng!',
-            'password.required' => 'Vui lòng nhập mật khẩu!',
-            'password.min' => 'Vui nhap it nhat 6 ky tu!',
-            'email.email' => 'Vui long nhap email hop le!',
-            'email.unique' => 'Email da ton tai!',
-        ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-        $me = Admin::find($request->id);
-        $me->update([
-                    'name' => $request['name'],
-                    'email' => $request['email'],
-                    'gender_id' => $request['gender_id'],
-                    'birthday' => $request['birthday'],
-                    'password' => bcrypt($request['password']),
-                ]);
-        return response()->json([
-            'status' => true,
-            'message' => "Cập nhập tài khoản cá nhân thành công!"
-        ]);
-    }
-    public function updateProfileStudent(Request $request)
-    {
-        $data['id'] = $request->id;
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|min:3|max:255',
-            'gender_id' => 'required',
-            'birthday' => 'nullable|date',
-            'password' => 'required|min:6|max:20',
-            'email' => 'nullable|email|unique:students,email,'.$data['id'].',student_id',
-        ], [
-            'name.required' => 'Vui lòng nhập tên!',
-            'name.min' => 'Tên cần ít nhất 3 ký tự!',
-            'name.max' => 'Tên dài nhất 255 ký tự!',
-            'gender_id.required' => 'Vui lòng chon giới tính!',
-            'birthday.date' => 'Ngày sinh chưa đúng định dạng!',
-            'password.required' => 'Vui lòng nhập mật khẩu!',
-            'password.min' => 'Vui nhap it nhat 6 ky tu!',
-            'email.email' => 'Vui long nhap email hop le!',
-            'email.unique' => 'Email da ton tai!',
-        ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-        $me = students::find($request->id);
-        $me->update([
-                    'name' => $request['name'],
-                    'email' => $request['email'],
-                    'gender_id' => $request['gender_id'],
-                    'birthday' => $request['birthday'],
-                    'password' => bcrypt($request['password']),
-                ]);
-        return response()->json([
-            'status' => true,
-            'message' => "Cập nhập tài khoản cá nhân thành công!"
-        ]);
-    }
-    public function updateProfileTeacher(Request $request)
-    {
-        $data['id'] = $request->id;
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|min:3|max:255',
-            'gender_id' => 'required',
-            'birthday' => 'nullable|date',
-            'password' => 'required|min:6|max:20',
-            'email' => 'nullable|email|unique:teachers,email,'.$data['id'].',teacher_id',
-        ], [
-            'name.required' => 'Vui lòng nhập tên!',
-            'name.min' => 'Tên cần ít nhất 3 ký tự!',
-            'name.max' => 'Tên dài nhất 255 ký tự!',
-            'gender_id.required' => 'Vui lòng chon giới tính!',
-            'birthday.date' => 'Ngày sinh chưa đúng định dạng!',
-            'password.required' => 'Vui lòng nhập mật khẩu!',
-            'password.min' => 'Vui nhap it nhat 6 ky tu!',
-            'email.email' => 'Vui long nhap email hop le!',
-            'email.unique' => 'Email da ton tai!',
-        ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-        $me = teacher::find($request->id);
-        $me->update([
-                    'name' => $request['name'],
-                    'email' => $request['email'],
-                    'gender_id' => $request['gender_id'],
-                    'birthday' => $request['birthday'],
-                    'password' => bcrypt($request['password']),
-                ]);
-        return response()->json([
-            'status' => true,
-            'message' => "Cập nhập tài khoản cá nhân thành công!"
-        ]);
-    }
-    public function updateProfileSubjectHead(Request $request)
-    {
-        $data['id'] = $request->id;
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|min:3|max:255',
-            'gender_id' => 'required',
-            'birthday' => 'nullable|date',
-            'password' => 'required|min:6|max:20',
-            'email' => 'nullable|email|unique:subject_head,email,'.$data['id'].',subject_head_id',
-        ], [
-            'name.required' => 'Vui lòng nhập tên!',
-            'name.min' => 'Tên cần ít nhất 3 ký tự!',
-            'name.max' => 'Tên dài nhất 255 ký tự!',
-            'gender_id.required' => 'Vui lòng chon giới tính!',
-            'birthday.date' => 'Ngày sinh chưa đúng định dạng!',
-            'password.required' => 'Vui lòng nhập mật khẩu!',
-            'password.min' => 'Vui nhap it nhat 6 ky tu!',
-            'email.email' => 'Vui long nhap email hop le!',
-            'email.unique' => 'Email da ton tai!',
-        ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-        $me = subject_head::find($request->id);
-        $me->update([
-                    'name' => $request['name'],
-                    'email' => $request['email'],
-                    'gender_id' => $request['gender_id'],
-                    'birthday' => $request['birthday'],
-                    'password' => bcrypt($request['password']),
-                ]);
-        return response()->json([
-            'status' => true,
-            'message' => "Cập nhập tài khoản cá nhân thành công!"
-        ]);
-    }
     //     $data = $request->validated();
 
         // $currentUser = Auth::user();
@@ -325,7 +169,56 @@ class ProfileController extends Controller
     //     }
     // }
 
+    public function updateAvatarProfile(Request $request)
+    {
+        $admin = Admin::find($request->id);
 
+        if (!$admin) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Admin không tồn tại!',
+            ], 404);
+        }
+
+        if ($request->hasFile('avatar')) {
+            $validator = Validator::make($request->all(), [
+                'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            ], [
+                'avatar.required' => 'Vui lòng chọn hình ảnh đại diện',
+                'avatar.image' => 'Vui lòng chọn hình ảnh đại diện',
+                'avatar.mimes' => 'Vui lòng chọn hình ảnh đúng định dạng (jpeg, png, jpg, gif, svg)',
+                'avatar.max' => 'Kích thước hình ảnh không được vượt quá 2048KB',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            $image = $request->file('avatar');
+            $path = $image->store('images');
+            $admin->avatar = $path;
+            $admin->save();
+
+            return response()->json(['message' => 'Tải lên thành công', 'path' => $path], 200);
+        } else {
+            return response()->json(['message' => 'Không có tệp nào được tải lên'], 404);
+        }
+    }
+    // public function updateavatarProfile(Request $request)
+    // {
+    //     $hinhAnh = admin::find($request->hinh_anh);
+
+    //     if ($request->hasFile('avatar')) {
+    //         $image = $request->file('avatar');
+    //         $path = $image->store('images');
+    //         return response()->json(['message' => 'Tải lên thành công', 'path' => $path]);
+    //     } else {
+    //         return response()->json(['message' => 'Không có tệp nào được tải lên']);
+    //     }
+    // }
     public function updateAvatar(Request $request)
     {
         $avatar = $request->input('avatar');
@@ -348,20 +241,21 @@ class ProfileController extends Controller
             'message'   => 'Cập Nhập avatar thành công!'
         ]);
     }
+    // public function updateLastLogin(Request $request, $data_id)
+    // {
+    //     // $adminId = $request->input('admin_id');
 
-    public function updateLastLogin(Request $request)
-    {
-        $adminId = $request->input('admin_id');
+    //     // $result = DB::table('admins')
+    //     //     ->where('admin_id', $adminId)
+    //     //     ->update(['last_login' => now()]);
+    //     DB::table('admins')
+    //     ->where('admin_id', $admin_id)
+    //     ->update(['last_login' => DB::raw('CURRENT_TIMESTAMP')]);
 
-        $result = DB::table('admins')
-            ->where('admin_id', $adminId)
-            ->update(['last_login' => now()]);
-
-        return response()->json([
-            'result' => $result,
-
-        ]);
-    }
+    //     return response()->json([
+    //         'admin' => $admin_id,
+    //     ]);
+    // }
 
     // public function adminInfo(Request $request)
     // {

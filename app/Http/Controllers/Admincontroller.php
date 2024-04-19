@@ -16,6 +16,8 @@ use App\Models\student;
 use App\Models\students;
 use App\Models\subjects;
 use App\Models\tests;
+use Carbon\Carbon;
+use Carbon\CarbonTimeZone;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -38,6 +40,101 @@ class Admincontroller extends Controller
         ]);
     }
 
+    public function getInfo($username)
+    {
+        $admin = Admin::select('admins.admin_id', 'admins.username', 'admins.avatar', 'admins.email', 'admins.name', 'admins.last_login', 'admins.birthday', 'permissions.permission_detail', 'genders.gender_detail', 'genders.gender_id')
+            ->join('permissions', 'admins.permission', '=', 'permissions.permission')
+            ->join('genders', 'admins.gender_id', '=', 'genders.gender_id')
+            ->where('admins.username', '=', $username)
+            ->first();
+    if ($admin) {
+        //đẩy view ở đây nha!!
+        //return view('admin.info', ['admin' => $admin]);
+        return response()->json(['admin' => $admin], 200);
+    }
+        return response()->json(['message' => 'Admin không tồn tại!'], 404);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $data['id'] = $request->id;
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|min:3|max:255',
+            'gender_id' => 'required',
+            'birthday' => 'nullable|date',
+            'password' => 'required|min:6|max:20',
+            'email' => 'nullable|email|unique:admins,email,'.$data['id'].',admin_id',
+        ], [
+            'name.required' => 'Vui lòng nhập tên!',
+            'name.min' => 'Tên cần ít nhất 3 ký tự!',
+            'name.max' => 'Tên dài nhất 255 ký tự!',
+            'gender_id.required' => 'Vui lòng chon giới tính!',
+            'birthday.date' => 'Ngày sinh chưa đúng định dạng!',
+            'password.required' => 'Vui lòng nhập mật khẩu!',
+            'password.min' => 'Vui nhap it nhat 6 ky tu!',
+            'email.email' => 'Vui long nhap email hop le!',
+            'email.unique' => 'Email da ton tai!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+        $me = Admin::find($request->id);
+        $me->update([
+                    'name' => $request['name'],
+                    'email' => $request['email'],
+                    'gender_id' => $request['gender_id'],
+                    'birthday' => $request['birthday'],
+                    'password' => bcrypt($request['password']),
+                    'last_login' => Carbon::now(CarbonTimeZone::createFromHourOffset(7 * 60))->timezone('Asia/Ho_Chi_Minh'),
+                ]);
+        return response()->json([
+            'status' => true,
+            'message' => "Cập nhập tài khoản cá nhân thành công!"
+        ]);
+    }
+    public function updateAvatarProfile(Request $request)
+    {
+        $admin = Admin::find($request->id);
+        if (!$admin) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Admin không tồn tại!',
+            ], 404);
+        }
+
+        if ($request->hasFile('avatar')) {
+            $validator = Validator::make($request->all(), [
+                'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            ], [
+                'avatar.required' => 'Vui lòng chọn hình ảnh đại diện',
+                'avatar.image' => 'Vui lòng chọn hình ảnh đại diện',
+                'avatar.mimes' => 'Vui lòng chọn hình ảnh đúng định dạng (jpeg, png, jpg, gif, svg)',
+                'avatar.max' => 'Kích thước hình ảnh không được vượt quá 2048KB',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            $image = $request->file('avatar');
+            $path = $image->store('images');
+            $admin->avatar = $path;
+            $admin->save();
+            return response()->json(['message' => 'Tải lên thành công', 'path' => $path], 200);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'Không có tệp nào được tải lên'
+            ], 404);
+        }
+    }
     public function indexLogin()
     {
         return view('loginTest');
