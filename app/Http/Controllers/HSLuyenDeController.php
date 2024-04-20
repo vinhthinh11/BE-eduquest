@@ -29,26 +29,27 @@ class HSLuyenDeController extends Controller
     }
     public function luyenDe(Request $request){
         $result = [];
-    
+
         $grade_id = $request->grade_id;
         $subject_id = $request->subject_id;
         $level_id = $request->level_id;
         $time_to_do = 30;
-        $total_question = 30; 
+        $total_question = 30;
         $student_id = $request->student_id;
-    
+        $student = $request->user('students');
+
         $total = questions::where('grade_id', $grade_id)
                         ->where('subject_id', $subject_id)
                         ->where('level_id', $level_id)
                         ->count();
-    
+
         if (empty($grade_id) || empty($subject_id) || empty($level_id)) {
             $result['status_value'] = "Không được bỏ trống các trường nhập!";
             $result['status'] = 0;
         } else {
             if ($total >= $total_question) {
                 $practice_code  = rand(10, 999999);
-    
+
                 $practice = new practice([
                     'practice_code' => $practice_code,
                     'grade_id' => $grade_id,
@@ -103,8 +104,8 @@ class HSLuyenDeController extends Controller
     //     $completion_time = $request->completion_time;
 
     //     // Tính toán điểm số và chi tiết điểm
-    //     $total_correct_answers = $score_number; 
-    //     $total_questions = 30; 
+    //     $total_correct_answers = $score_number;
+    //     $total_questions = 30;
     //     $score_number = ($total_correct_answers / $total_questions) * 10;
 
     //     // Chi tiết điểm

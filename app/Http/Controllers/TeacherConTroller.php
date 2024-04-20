@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\classes;
+use App\Models\quest_of_test;
 use App\Models\questions;
 use App\Models\scores;
-use App\Models\student;
 use App\Models\students;
 use App\Models\teacher;
+use App\Models\tests;
 use Carbon\Carbon;
 use Carbon\CarbonTimeZone;
 use Illuminate\Http\Request;
@@ -31,7 +31,7 @@ class TeacherConTroller extends Controller
             //return view('teacher.info', ['teacher' => $teacher]);
             return response()->json(['teacher' => $teacher], 200);
         }
-            return response()->json(['message' => 'Giáo viên không tồn tại!'], 404);
+        return response()->json(['message' => 'Giáo viên không tồn tại!'], 404);
     }
     public function updateProfile(Request $request)
     {
@@ -41,7 +41,7 @@ class TeacherConTroller extends Controller
             'gender_id' => 'required',
             'birthday' => 'nullable|date',
             'password' => 'required|min:6|max:20',
-            'email' => 'nullable|email|unique:teachers,email,'.$data['id'].',teacher_id',
+            'email' => 'nullable|email|unique:teachers,email,' . $data['id'] . ',teacher_id',
         ], [
             'name.required' => 'Vui lòng nhập tên!',
             'name.min' => 'Tên cần ít nhất 3 ký tự!',
@@ -62,13 +62,13 @@ class TeacherConTroller extends Controller
         }
         $me = teacher::find($request->id);
         $me->update([
-                    'name' => $request['name'],
-                    'email' => $request['email'],
-                    'gender_id' => $request['gender_id'],
-                    'birthday' => $request['birthday'],
-                    'password' => bcrypt($request['password']),
-                    'last_login' => Carbon::now(CarbonTimeZone::createFromHourOffset(7 * 60))->timezone('Asia/Ho_Chi_Minh'),
-                ]);
+            'name' => $request['name'],
+            'email' => $request['email'],
+            'gender_id' => $request['gender_id'],
+            'birthday' => $request['birthday'],
+            'password' => bcrypt($request['password']),
+            'last_login' => Carbon::now(CarbonTimeZone::createFromHourOffset(7 * 60))->timezone('Asia/Ho_Chi_Minh'),
+        ]);
         return response()->json([
             'status' => true,
             'message' => "Cập nhập tài khoản cá nhân thành công!"
@@ -464,6 +464,19 @@ class TeacherConTroller extends Controller
             'message' => 'Cập nhật câu hỏi thành công!',
         ], 200);
     }
+    /**
+     * Get the number of questions by level
+     */
+    public function getQuestion(Request $request)
+    {
+        $user = $request->user('teachers');
+        $numQuestion = DB::table('questions')
+            ->select(DB::raw('count(question_id) as total_question, level_id, subject_id'))
+            ->where('subject_id', $user->subject_id)
+            ->groupBy('subject_id', 'level_id')
+            ->get();
+        return response()->json(["data" => $numQuestion]);
+    }
 
     public function multiDeleteQuestion(Request $request, $question_ids)
     {
@@ -480,68 +493,117 @@ class TeacherConTroller extends Controller
             return false;
         }
     }
-
-    public function listClass(Request $request)
+    /**
+     * 1. Giáo viên môn nào thì chỉ xem được để của môn đó
+     */
+    public function getTest(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'class_id' => 'integer|unique:classes,class_id',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'class_id không hợp lệ',
-            ], 400);
-        }
-
-        $class_id = $request->input('class_id', '2');
-
-        $classDetail = student::select('students.student_id', 'students.avatar', 'students.username', 'students.name', 'students.birthday', 'genders.gender_detail', 'students.last_login', 'classes.class_name')
-            ->join('genders', 'genders.gender_id', '=', 'students.gender_id')
-            ->join('classes', 'students.class_id', '=', 'classes.class_id')
-            ->where('students.class_id', $class_id)
-            ->get();
-
-    if ($classDetail->isNotEmpty()) {
-        return response()->json([
-            'status' => true,
-            'message' => 'Lấy dữ liệu Lớp thành công!',
-            'data' => $classDetail
-        ], 200);
+        // teacher môn nào chỉ có thể xem test của môn đó
+        $id = $request->user('teachers')->subject_id;
+        $data  = tests::with('subject')->where('subject_id', $id)->get();
+        return response()->json(["data" => $data]);
     }
-    else
-        return response()->json(['error' => 'Giáo viên không có lớp'], 404);
+    /**
+     * Xem chi tiết đề thi
+     */
+    public function getTestDetail(Request $request, $test_code)
+    {
+        // teacher môn nào chỉ có thể xem test của môn đó
+        $data  = tests::find($test_code)->with('questions')->get();
+        return response()->json(["data" => $data]);
     }
-
-    public function listClassByTeacher(Request $request)
+    public function deleteTest(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'teacher_id' => 'integer|exists:teachers,teacher_id',
+            'subject_id' => 'integer|exists:tests,subject_id',
+        ],[
+            'teacher_id.exists' => 'Không tìm thấy Giáo viên!',
+            'subject_id.exists' => 'Không tìm thấy Môn học!',
         ]);
-
         if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Giáo viên không hợp lệ',
-            ], 400);
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+        // chỉ delete những đề chưa duyệt, và đề nào đã duyêtj rồi thi không xóa được
+        $id = $request->user('teachers')->subject_id;
+        $data  = tests::with('subject')->where('subject_id', $id)->get();
+        return response()->json(["data" => $data]);
+    }
+    /**
+     * 1. Chỉ update những đề chưa duyệt, và đề nào đã duyệt rồi thi không update được
+     * 2. Chỉ update những đề của môn học mà giáo viên đó dạy
+     * 3. Số lượng câu hỏi sẽ không thay đổi được tại vì khi tạo đề từ số lượng câu hỏi sẽ sinh ra chi tiết đề
+     * 4. Khi update đề thì chỉ update được password của đề thi, thời gian làm bài, ghi chú
+     */
+    public function updateTest(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'teacher_id' => 'integer|exists:teachers,teacher_id',
+            'subject_id' => 'integer|exists:tests,subject_id',
+        ],[
+            'teacher_id.exists' => 'Không tìm thấy Giáo viên!',
+            'subject_id.exists' => 'Không tìm thấy Môn học!',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
         }
 
-        $teacher_id = $request->teacher_id;
-        $data = classes::select('classes.class_id', 'classes.class_name', 'grades.detail as grade')
-            ->join('grades', 'grades.grade_id', '=', 'classes.grade_id')
-            ->where('teacher_id', $teacher_id)
-            ->get();
-
-        if ($data->isNotEmpty()) {
-                return response()->json([
-                    'status' => true,
-                    'message' => 'Lấy dữ liệu Lớp này thành công!',
-                    'data' => $data
-                ]);
+        $id = $request->user('teachers')->subject_id;
+        $data  = tests::with('subject')->where('subject_id', $id)->get();
+        return response()->json(["data" => $data]);
+    }
+    /**
+     * Tạo đề tự động số câu hỏi sẽ được lấy ngẫu nhiên từ ngân hàng câu hỏi, dựa theo môn học, khối học, cấp độ
+     */
+    public function createTest(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'teacher_id' => 'integer|exists:teachers,teacher_id',
+            'subject_id' => 'integer|exists:tests,subject_id',
+            'test_name'  => 'string|unique:tests,test_name',
+            'total_questions' => 'integer|min:10|max:100',
+            'password'      => 'required|string|min:6|max:10',
+            'grade_id' => 'integer|exists:grades,grade_id',
+            'test_code' => 'string|unique:tests,test_code',
+            'level_id' => 'required|integer|exists:levels,level_id',
+        ],[
+            'teacher_id.exists' => 'Không tìm thấy Giáo viên!',
+            'subject_id.exists' => 'Không tìm thấy Môn học!',
+            'test_name.unique'  => 'Tên đề không nên trùng nhau!',
+            'password.min'      => 'Password tối thiểu 6 kí tự!',
+            'password.max'      => 'Password tối thiểu 10 kí tự!',
+            'grade_id.exists'   => 'Không tìm thấy Lớp!',
+            'total_questions.min' => 'Tối thieu 10 câu hỏi trong đề!',
+            'total_questions.max' => 'Tối đa 100 câu hỏi trong đề!',
+            'level_id.exists' => 'Không tìm thấy Cấp độ cho đề!',
+            'level_id.required' => 'Level_id là bắt buộc!',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+        // kiểm tra số lượng câu hỏi trong ngân hàng đề thi có đủ hay không
+        $numQuestion = questions::where('subject_id', $request->subject_id)->where('grade_id', $request->grade_id)->where('level_id', $request->level_id)->count();
+        if ($numQuestion > $request->total_questions) return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi không đủ!"], 400);
+        $user = $request->user('teachers');
+        DB::beginTransaction();
+        try {
+            $test_code = time();;
+            $data = $request->all();
+            $test = (array_merge($data, ['test_code' => $test_code, 'subject_id' => $user->subject_id, 'status_id' => 3, 'password' => bcrypt($request->password)]));
+            // tạo chi tiết đề thi
+            $testCreate = tests::create($test);
+            $questions = questions::where('subject_id', $request->subject_id)->where('grade_id', $request->grade_id)->where('level_id', $request->level_id)->inRandomOrder()->limit($request->total_questions)->get('question_id');
+            foreach ($questions as $question) {
+                quest_of_test::create(['test_code' => $test_code, 'question_id' => $question->question_id]);
             }
+            DB::commit();
             return response()->json([
-                'status'    => false,
-                'message'   => 'Giáo viên không có lớp',
+                'message' => "Tạo đề thi thành công!",
+                "test" => $testCreate
             ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(["message" => "Tạo đề thi thất bại!", "error" => $e->getMessage()], 400);
+        }
     }
 }

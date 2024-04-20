@@ -34,6 +34,10 @@ class teacher extends  Authenticatable implements JWTSubject
     {
         return $this->hasMany(Questions::class, 'teacher_id');
     }
+    public function subject()
+    {
+        return $this->hasOne(subjects::class, 'subject_id');
+    }
     protected $primaryKey = 'teacher_id';
 
 
