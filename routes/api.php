@@ -151,6 +151,7 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     // qly câu hỏi
     Route::group(['prefix' => '/question'], function () {
         Route::post('/create', [TeacherConTroller::class, 'addQuestion'])->name('addQuestion');
+        Route::get('/get', [TeacherConTroller::class, 'getQuestion'])->name('addQuestion');
         Route::delete('/delete/{question_id}', [TeacherConTroller::class, 'destroyQuestion'])->name('destroyQuestion');
         Route::put('/update/{question_id}', [TeacherConTroller::class, 'updateQuestion'])->name('updateQuestion');
         Route::post('/multi-delete-question', [TeacherConTroller::class, 'multiDeleteQuestion'])->name('multiDeleteQuestion');

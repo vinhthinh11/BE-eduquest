@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\quest_of_test;
 use App\Models\questions;
 use App\Models\scores;
 use App\Models\students;
@@ -463,6 +464,18 @@ class TeacherConTroller extends Controller
             'message' => 'Cập nhật câu hỏi thành công!',
         ], 200);
     }
+    /**
+     * Get the number of questions by level
+     */
+    public function getQuestion(Request $request){
+        $user = $request->user('teachers');
+        $numQuestion = DB::table('questions')
+             ->select(DB::raw('count(question_id) as total_question, level_id, subject_id'))
+             ->where('subject_id', $user->subject_id)
+             ->groupBy('subject_id','level_id')
+             ->get();
+        return response()->json(["data"=> $numQuestion]);
+    }
 
     public function multiDeleteQuestion(Request $request, $question_ids)
     {
@@ -479,12 +492,18 @@ class TeacherConTroller extends Controller
             return false;
         }
     }
+    /**
+     * 1. Giáo viên môn nào thì chỉ xem được để của môn đó
+     */
     public function getTest(Request $request){
         // teacher môn nào chỉ có thể xem test của môn đó
         $id = $request->user('teachers')->subject_id;
         $data  = tests::with('subject')->where('subject_id', $id)->get();
         return response()->json(["data"=> $data]);
     }
+    /**
+     * Xem chi tiết đề thi
+     */
     public function getTestDetail(Request $request,$test_code){
         // teacher môn nào chỉ có thể xem test của môn đó
         $data  = tests::find($test_code)->with('questions')->get();
@@ -496,38 +515,44 @@ class TeacherConTroller extends Controller
         $data  = tests::with('subject')->where('subject_id', $id)->get();
         return response()->json(["data"=> $data]);
     }
+    /**
+    * 1. Chỉ update những đề chưa duyệt, và đề nào đã duyệt rồi thi không update được
+    * 2. Chỉ update những đề của môn học mà giáo viên đó dạy
+    * 3. Số lượng câu hỏi sẽ không thay đổi được tại vì khi tạo đề từ số lượng câu hỏi sẽ sinh ra chi tiết đề
+    * 4. Khi update đề thì chỉ update được password của đề thi, thời gian làm bài, ghi chú
+    */
     public function updateTest(Request $request){
-        // cap nhap de cua test
+
+
         $id = $request->user('teachers')->subject_id;
         $data  = tests::with('subject')->where('subject_id', $id)->get();
         return response()->json(["data"=> $data]);
     }
+    /**
+     * Tạo đề tự động số câu hỏi sẽ được lấy ngẫu nhiên từ ngân hàng câu hỏi, dựa theo môn học, khối học, cấp độ
+     */
     public function createTest(Request $request){
 
-        // tạo đề thi
-        /*
-        nhung thông tin cân có để tạo đề thi
-        {
-                "password":"123456",
-                "grade_id":10,
-                "subject_id":10,
-                "total_questions":20,
-                "time_to_do":30,
-                "level_id":1,
-                "note":"Không",
-                "status_id":3,
-                "test_name":"Đề vippro 0"
-                khi tao đề sẽ sinh ra thông tin đè và chi tiết đề của đề đó
-}
-        */
         // kiểm tra số lượng câu hỏi trong ngân hàng đề thi có đủ hay không
         $numQuestion = questions::where('subject_id', $request->subject_id)->where('grade_id', $request->grade_id)->where('level_id', $request->level_id)->count();
-        if($numQuestion < $request->total_questions){
-            return response()->json(["message"=> "Số lượng câu hỏi trong ngân hàng câu hỏi không đủ!"],400);
-            // tạo đề thi
-
-            // tạo chi tiết đề thi
+        if($numQuestion > $request->total_questions) return response()->json(["message"=> "Số lượng câu hỏi trong ngân hàng câu hỏi không đủ!"],400);
+        $user = $request->user('teachers');
+        DB::beginTransaction();
+        try{
+        $test_code = time();;
+        $data = $request->all();
+        $test = (array_merge($data, ['test_code' => $test_code,'subject_id' => $user->subject_id,'status_id' => 3]));
+        // tạo chi tiết đề thi
+        $testCreate = tests::create($test);
+        $questions = questions::where('subject_id', $request->subject_id)->where('grade_id', $request->grade_id)->where('level_id', $request->level_id)->inRandomOrder()->limit($request->total_questions)->get('question_id');
+        foreach ($questions as $question){
+            quest_of_test::create(['test_code' => $test_code, 'question_id' => $question->question_id]);
         }
-        return response()->json(["data"=> $numQuestion]);
+        DB::commit();
+        return response()->json(["test"=> $testCreate]);
+    }catch (\Exception $e){
+        DB::rollBack();
+        return response()->json(["message"=> "Tạo đề thi thất bại!","error"=> $e->getMessage()],400);
+    }
     }
 }
