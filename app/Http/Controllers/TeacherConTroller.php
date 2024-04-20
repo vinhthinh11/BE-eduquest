@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\classes;
 use App\Models\quest_of_test;
 use App\Models\questions;
 use App\Models\scores;
+use App\Models\student;
 use App\Models\students;
 use App\Models\teacher;
 use App\Models\tests;
@@ -112,6 +114,69 @@ class TeacherConTroller extends Controller
         } else {
             return response()->json(['message' => 'Không có tệp nào được tải lên'], 404);
         }
+    }
+    public function listClass(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'class_id' => 'integer|unique:classes,class_id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'class_id không hợp lệ',
+            ], 400);
+        }
+
+        $class_id = $request->input('class_id', '2');
+
+        $classDetail = student::select('students.student_id', 'students.avatar', 'students.username', 'students.name', 'students.birthday', 'genders.gender_detail', 'students.last_login', 'classes.class_name')
+            ->join('genders', 'genders.gender_id', '=', 'students.gender_id')
+            ->join('classes', 'students.class_id', '=', 'classes.class_id')
+            ->where('students.class_id', $class_id)
+            ->get();
+
+    if ($classDetail->isNotEmpty()) {
+        return response()->json([
+            'status' => true,
+            'message' => 'Lấy dữ liệu Lớp thành công!',
+            'data' => $classDetail
+        ], 200);
+    }
+    else
+        return response()->json(['error' => 'Giáo viên không có lớp'], 404);
+    }
+
+    public function listClassByTeacher(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'teacher_id' => 'integer|exists:teachers,teacher_id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Giáo viên không hợp lệ',
+            ], 400);
+        }
+
+        $teacher_id = $request->teacher_id;
+        $data = classes::select('classes.class_id', 'classes.class_name', 'grades.detail as grade')
+            ->join('grades', 'grades.grade_id', '=', 'classes.grade_id')
+            ->where('teacher_id', $teacher_id)
+            ->get();
+
+        if ($data->isNotEmpty()) {
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Lấy dữ liệu Lớp này thành công!',
+                    'data' => $data
+                ]);
+            }
+            return response()->json([
+                'status'    => false,
+                'message'   => 'Giáo viên không có lớp',
+            ]);
     }
     //show điểm
     public function listScore(Request $request)
@@ -540,18 +605,38 @@ class TeacherConTroller extends Controller
         $validator = Validator::make($request->all(), [
             'teacher_id' => 'integer|exists:teachers,teacher_id',
             'subject_id' => 'integer|exists:tests,subject_id',
+            'time_to_do'   => 'required|numeric|min:15|max:120',
+            'password'      => 'required|string|min:6|max:20',
+            'note'          => 'nullable',
         ],[
             'teacher_id.exists' => 'Không tìm thấy Giáo viên!',
             'subject_id.exists' => 'Không tìm thấy Môn học!',
+            'time_to_do.min' => 'Thoi gian min thuc thi tinh tu 15 phut!',
+            'time_to_do.max' => 'Thoi gian max thuc thi tinh tu 120 phut!',
+            'password.min' => 'Password tối thiểu 6 kí tự!',
         ]);
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        $id = $request->user('teachers')->subject_id;
-        $data  = tests::with('subject')->where('subject_id', $id)->get();
-        return response()->json(["data" => $data]);
+        $subjectId = $request->user('teachers')->subject_id;
+        $teacherId = $request->user('teachers')->teacher_id;
+        $data  = tests::with('subject')
+                        ->where('subject_id', $subjectId)
+                        ->where('teacher_id', $teacherId)
+                        ->where('status_id', 3)
+                        ->update([
+                            'password' => $request->input('password'),
+                            'time_limit' => $request->input('time_limit'),
+                            'note' => $request->input('note'),
+                        ]);
+
+        return response()->json([
+            'message' => 'Cập nhật đề thi thành công!',
+            "data" => $data
+        ]);
     }
+
     /**
      * Tạo đề tự động số câu hỏi sẽ được lấy ngẫu nhiên từ ngân hàng câu hỏi, dựa theo môn học, khối học, cấp độ
      */
@@ -566,6 +651,7 @@ class TeacherConTroller extends Controller
             'grade_id' => 'integer|exists:grades,grade_id',
             'test_code' => 'string|unique:tests,test_code',
             'level_id' => 'required|integer|exists:levels,level_id',
+            'time_to_do'   => 'required|numeric|min:15|max:120',
         ],[
             'teacher_id.exists' => 'Không tìm thấy Giáo viên!',
             'subject_id.exists' => 'Không tìm thấy Môn học!',
@@ -577,6 +663,8 @@ class TeacherConTroller extends Controller
             'total_questions.max' => 'Tối đa 100 câu hỏi trong đề!',
             'level_id.exists' => 'Không tìm thấy Cấp độ cho đề!',
             'level_id.required' => 'Level_id là bắt buộc!',
+            'time_to_do.min' => 'Thoi gian tối thiểu cho bài thi là mười lăm phút!',
+            'time_to_do.max' => 'Thoi gian tối thi lon nhat cho bài thi là một trăm hai mươi phút!',
         ]);
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
