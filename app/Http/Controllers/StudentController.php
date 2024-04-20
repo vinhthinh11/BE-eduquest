@@ -11,6 +11,7 @@ use App\Models\student_test_detail;
 use Carbon\Carbon;
 use Carbon\CarbonTimeZone;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Ramsey\Uuid\Uuid;
 
@@ -460,4 +461,54 @@ class StudentController extends Controller
             ], 200);
         }
     }
+   public function updateAnswer(Request $request)
+   {
+       $validator = Validator::make($request->all(), [
+           'student_id' => 'numeric',
+           'test_code' => 'required|string',
+           'id' => 'required|numeric',
+           'answer' => 'required|string',
+           'min' => 'required|numeric|min:0|max:60',
+           'sec' => 'required|numeric|min:0|max:60',
+       ], [
+           'student_id.numeric' => 'Mã sinh viên phải là một số.',
+           'test_code.required' => 'Vui lòng nhập mã bài thi.',
+           'test_code.string' => 'Mã bài thi phải là một chuỗi.',
+           'id.required' => 'Vui lòng nhập mã câu hỏi.',
+           'id.numeric' => 'Mã câu hỏi phải là một số.',
+           'answer.required' => 'Vui lòng nhập đáp án.',
+           'min.required' => 'Vui lòng nhập phút.',
+           'min.numeric' => 'Phút phải là một số.',
+           'min.min' => 'Phút phải là một số nguyên dương.',
+           'min.max' => 'Phút phải là một số nhỏ hơn hoặc bằng 60.',
+           'sec.required' => 'Vui lòng nhập giây.',
+           'sec.numeric' => 'Giây phải là một số.',
+           'sec.min' => 'Giây phải là một số nguyên dương.',
+           'sec.max' => 'Giây phải là một số nhỏ hơn hoặc bằng 60.',
+       ]);
+
+       if ($validator->fails()) {
+           return response()->json(['errors' => $validator->errors()], 422);
+       }
+
+       $data = $request->only(['student_id', 'test_code', 'id', 'answer', 'min', 'sec']);
+
+       DB::table('student_test_detail')
+           ->where('student_id', $data['student_id'])
+           ->where('test_code', $data['test_code'])
+           ->where('question_id', $data['id'])
+           ->update(['student_answer' => $data['answer']]);
+
+       $total_seconds = ($data['min'] * 60) + $data['sec'];
+
+       DB::table('students')
+           ->where('student_id', $data['student_id'])
+           ->update(['time_remaining' => $total_seconds]);
+
+       return response()->json([
+           'status' => true,
+           'message' => 'Cập nhật đáp án cho Học sinh thành công!',
+           'data' => ['student_answer' => $data['answer'], 'time_remaining' => $total_seconds]
+       ]);
+   }
 }

@@ -127,12 +127,13 @@ class AdminClassController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'grade_id'      => 'required|exists:grades,grade_id',
-            'class_name'    => 'required|string',
+            'class_name'    => 'required|string|unique:classes,class_name',
             'teacher_id'    => 'required|exists:teachers,teacher_id',
         ], [
             'grade_id.required'     => 'Khối không được để trống!',
             'grade_id.exists'       => 'Khối không tồn tại trong cơ sở dữ liệu!',
             'class_name.required'   => 'Tên Lớp không được để trống!',
+            'class_name.unique'     => 'Tên Lớp đã tồn tại!',
             'teacher_id.required'   => 'Giáo viên không được để trống!',
             'teacher_id.exists'     => 'Giáo viên không tồn tại trong cơ sở dữ liệu!',
         ]);

@@ -19,6 +19,7 @@ use App\Http\Controllers\TBMDuyetDeThiController;
 Route::post('login', [AuthController::class, 'login']);
 Route::get('me', [AuthController::class, 'me']);
 
+// ----- Route for Admin -----
 Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
     //Profile
     Route::get('/info/{username}',    [Admincontroller::class, 'getInfo'])->name('getInfo');
@@ -33,7 +34,6 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
     Route::put('/update', [AdminController::class, 'updateAdmin'])->name('updateAdmin');
     Route::post('/check-add-admin-via-file', [AdminController::class, 'check_add_admin_via_file'])->name('admin.check_add_admin_via_file');
 
-
     //ql Question
     Route::group(['prefix' => 'question'], function () {
         Route::post('/create', [Admincontroller::class, 'checkAddQuestions'])->name('checkAddQuestion');
@@ -45,16 +45,13 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::get('/get-subjects', [Admincontroller::class, 'getSubjects'])->name('getSubjects');
         Route::get('/get-level', [Admincontroller::class, 'getLevels'])->name('getLevel');
         Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
-
- });
-//  ql test
+    });
+    //  ql test
     Route::group(['prefix' => 'test'], function () {
         Route::post('/create', [Admincontroller::class, 'checkAddTest'])->name(('checkAddTest'));
         Route::get('/get', [Admincontroller::class, 'getTest'])->name(('getTest'));
         Route::get('/detail/{test_code}', [Admincontroller::class, 'getTestDetail'])->name(('getTestDetail'));
-
     });
- });
 
     //Thong Ke
     Route::post('/list-statist',         [StatistController::class, 'listStatist'])->name('listStatist');
@@ -108,6 +105,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::put('/update', [AdminHSController::class, 'updateHS'])->name('updateHS');
         Route::post('/file', [AdminHSController::class, 'check_add_hs_via_file'])->name('check_add_hs_via_file');
     });
+});
 
 // ----- Route for Student -----
 Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
@@ -122,6 +120,7 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
     Route::post('/update-timing', [StudentController::class, 'updateTiming'])->name('updateTiming');
     Route::post('/update-doing-exam', [StudentController::class, 'updateDoingExam'])->name('updateDoingExam');
+    Route::post('/update-answer', [StudentController::class, 'updateAnswer'])->name('updateAnswer');
     Route::post('/reset-doing-exam', [StudentController::class, 'resetDoingExam'])->name('resetDoingExam');
     Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
     Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
@@ -141,11 +140,11 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     // teacher qly test
     Route::group(['prefix' => '/test'], function () {
         // teacher quan ly de thi
-        Route::get('/get', [TeacherConTroller::class,'getTest'])->name('teacherGetTest');
-         Route::get('/get/{test_code}', [TeacherConTroller::class,'getTestDetail'])->name('teacherGetTestDetail');
-        Route::put('/update', [TeacherConTroller::class,'updateTest'])->name('teacherUpdateTest');
-        Route::post('/create', [TeacherConTroller::class,'createTest'])->name('teacherCreateTest');
-        Route::delete('/delete', [TeacherConTroller::class,'deleteTest'])->name('teacherDeleteTest');
+        Route::get('/get', [TeacherConTroller::class, 'getTest'])->name('teacherGetTest');
+        Route::get('/get/{test_code}', [TeacherConTroller::class, 'getTestDetail'])->name('teacherGetTestDetail');
+        Route::put('/update', [TeacherConTroller::class, 'updateTest'])->name('teacherUpdateTest');
+        Route::post('/create', [TeacherConTroller::class, 'createTest'])->name('teacherCreateTest');
+        Route::delete('/delete', [TeacherConTroller::class, 'deleteTest'])->name('teacherDeleteTest');
     });
 
     // qly câu hỏi
@@ -163,13 +162,13 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     Route::put('/update-profile',      [TeacherConTroller::class, 'updateProfile'])->name('updateProfile');
     Route::put('/update-avatar',      [TeacherConTroller::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
 
-// qly điểm
+    // qly điểm
     Route::group(['prefix' => '/score'], function () {
         Route::post('/list',        [TeacherConTroller::class, 'listScore'])->name('listScore');
         Route::post('/export',      [TeacherConTroller::class, 'exportScore'])->name('exportScore');
     });
 
-// qly lớp
+    // qly lớp
     Route::group(['prefix' => '/class'], function () {
         Route::post('/list',        [TeacherConTroller::class, 'listClass'])->name('listClass');
         Route::post('/list-class-by-teacher',      [TeacherConTroller::class, 'listClassByTeacher'])->name('listClassByTeacher');
@@ -178,6 +177,7 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     // Route::post('/create', [AdminTeacherController::class, 'checkAddQuestions'])->name('checkAddQuestion');
 });
 
+// ----- Route for Subject_Head -----
 Route::group(['prefix' => '/subject-head', 'middleware' => 'head_subject'], function () {
     //Profile
     Route::get('/info/{username}', [SubjectHeadController::class, 'getInfo'])->name('getInfo');
@@ -190,8 +190,4 @@ Route::group(['prefix' => '/subject-head', 'middleware' => 'head_subject'], func
 
     Route::post('/', [TBMDuyetDeThiConTroller::class, 'duyetDT'])->name('duyetDT');
     Route::put('/', [TBMDuyetDeThiConTroller::class, 'khongDuyetDT'])->name('khongDuyetDT');
-});
-
-Route::group(['prefix' => 'laravel-filemanager', 'middleware' => ['web', 'auth']], function () {
-    \UniSharp\LaravelFilemanager\Lfm::routes();
 });

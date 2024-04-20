@@ -183,7 +183,7 @@ class AdminHSController extends Controller
     public function createHS(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name'          => 'required|string|min:6|max:50',
+            'name'          => 'required|string|min:6|max:50|unique:students,name',
             'username'      => 'required|string|min:6|max:50|unique:students,username',
             'gender_id'     => 'required|integer',
             'password'      => 'required|string|min:6|max:20',
@@ -192,6 +192,8 @@ class AdminHSController extends Controller
             'birthday'      => 'nullable|date',
         ], [
             'name.min'              => 'Tên Học Sinh tối thiểu 6 kí tự!',
+            'name.max'              => 'Ten Học Sinh tối thieu 50 ký tự!',
+            'name.unique'           => 'Ten Học Sinh da ton tai!',
             'name.required'         => 'Tên Học Sinh không được để trống!',
             'username.required'     => 'Username không được để trống!',
             'username.unique'       => 'Username đã tồn tại!',
