@@ -565,7 +565,7 @@ class TeacherConTroller extends Controller
     {
         // teacher môn nào chỉ có thể xem test của môn đó
         $id = $request->user('teachers')->subject_id;
-        $data  = tests::with('subject')->where('subject_id', $id)->get();
+        $data  = tests::with('subject')->where('subject_id', $id)->orderBy('timest','desc')->get();
         return response()->json(["data" => $data]);
     }
     /**
@@ -648,7 +648,6 @@ class TeacherConTroller extends Controller
             'total_questions' => 'integer|min:10|max:100',
             'password'      => 'required|string|min:6|max:10',
             'grade_id' => 'integer|exists:grades,grade_id',
-            'test_code' => 'string|unique:tests,test_code',
             'level_id' => 'required|integer|exists:levels,level_id',
             'time_to_do'   => 'required|numeric|min:15|max:120',
         ],[
@@ -663,9 +662,11 @@ class TeacherConTroller extends Controller
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
+        $user = $request->user('teachers');
+        // lấy số lượng câu hỏi của giáo viên dạy môn đó trong ngân hang câu hỏi
+        $numQuestion = questions::where('subject_id', $user->subject_id)->where('grade_id', $request->grade_id)->where('level_id', $request->level_id)->count();
         // kiểm tra số lượng câu hỏi trong ngân hàng đề thi có đủ hay không
-        $numQuestion = questions::where('subject_id', $request->subject_id)->where('grade_id', $request->grade_id)->where('level_id', $request->level_id)->count();
-        if ($numQuestion > $request->total_questions) return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi không đủ!"], 400);
+        if ($numQuestion < $request->total_questions) return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi không đủ!"], 400);
         $user = $request->user('teachers');
         DB::beginTransaction();
         try {
@@ -674,7 +675,7 @@ class TeacherConTroller extends Controller
             $test = (array_merge($data, ['test_code' => $test_code, 'subject_id' => $user->subject_id, 'status_id' => 3, 'password' => bcrypt($request->password)]));
             // tạo chi tiết đề thi
             $testCreate = tests::create($test);
-            $questions = questions::where('subject_id', $request->subject_id)->where('grade_id', $request->grade_id)->where('level_id', $request->level_id)->inRandomOrder()->limit($request->total_questions)->get('question_id');
+            $questions = questions::where('subject_id', $user->subject_id)->where('grade_id', $request->grade_id)->where('level_id', $request->level_id)->inRandomOrder()->limit($request->total_questions)->get('question_id');
             foreach ($questions as $question) {
                 quest_of_test::create(['test_code' => $test_code, 'question_id' => $question->question_id]);
             }
