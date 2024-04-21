@@ -574,66 +574,67 @@ class TeacherConTroller extends Controller
     public function getTestDetail(Request $request, $test_code)
     {
         // teacher môn nào chỉ có thể xem test của môn đó
-        $data  = tests::find($test_code)->with('questions')->get();
+        $questions=[];
+         $data  = tests::find($test_code);
+        if(!$data) return response()->json(["message" => "Không tìm thấy đề thi!"], 400);
+        foreach ($data->questions as $question) {
+            $questions[] = $question;
+}
+        $data['questions'] = $questions;
+
         return response()->json(["data" => $data]);
     }
-    public function deleteTest(Request $request)
+    /**
+     * 1. Chỉ delete những đề chưa duyệt, và đề nào đã duyệt rồi thi không xóa được
+     * 2. Chỉ delete những đề của môn học mà giáo viên đó dạy
+     */
+    public function deleteTest(Request $request,$test_code)
     {
-        $validator = Validator::make($request->all(), [
-            'teacher_id' => 'integer|exists:teachers,teacher_id',
-            'subject_id' => 'integer|exists:tests,subject_id',
-        ],[
-            'teacher_id.exists' => 'Không tìm thấy Giáo viên!',
-            'subject_id.exists' => 'Không tìm thấy Môn học!',
-        ]);
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
-        }
-        // chỉ delete những đề chưa duyệt, và đề nào đã duyêtj rồi thi không xóa được
-        $id = $request->user('teachers')->subject_id;
-        $data  = tests::with('subject')->where('subject_id', $id)->get();
-        return response()->json(["data" => $data]);
+        $id = $request->user('teachers');
+        $test = tests::find( $test_code);
+
+        // kiểm tra xem đề thi có tồn tại không
+        if(!$test) return response()->json(["message" => "Không tìm thấy đề thi!"], 400);
+
+        // kiểm tra xem đề thi có phải của môn học mà giáo viên dạy không
+        if($test->subject_id != $id->subject_id) return response()->json(["message" => "Đề thi không phải của môn học mà giáo viên dạy!"], 400);
+
+        // kiểm tra xem đề thi đã duyệt chưa
+        if($test->status_id != 3) return response()->json(["message" => "Đề thi đã duyệt không thể xóa!"], 400);
+        $test->delete();
+        return response()->json(["message"=>"Xóa thành công đề thi","data" => $test]);
     }
     /**
      * 1. Chỉ update những đề chưa duyệt, và đề nào đã duyệt rồi thi không update được
      * 2. Chỉ update những đề của môn học mà giáo viên đó dạy
      * 3. Số lượng câu hỏi sẽ không thay đổi được tại vì khi tạo đề từ số lượng câu hỏi sẽ sinh ra chi tiết đề
-     * 4. Khi update đề thì chỉ update được password của đề thi, thời gian làm bài, ghi chú
+     * 4. Khi update đề thì chỉ update được password của đề thi, thời gian làm bài, ghi chú, tên đề thi
      */
-    public function updateTest(Request $request)
+    public function updateTest(Request $request,$test_code)
     {
         $validator = Validator::make($request->all(), [
-            'teacher_id' => 'integer|exists:teachers,teacher_id',
-            'subject_id' => 'integer|exists:tests,subject_id',
-            'time_to_do'   => 'required|numeric|min:15|max:120',
-            'password'      => 'required|string|min:6|max:20',
-            'note'          => 'nullable',
+            'time_to_do'   => 'sometimes|numeric|min:15|max:120',
+            'password'      => 'sometimes|string|min:6|max:20',
+            'note'          => 'sometimes|string',
         ],[
             'teacher_id.exists' => 'Không tìm thấy Giáo viên!',
             'subject_id.exists' => 'Không tìm thấy Môn học!',
-            'time_to_do.min' => 'Thoi gian min thuc thi tinh tu 15 phut!',
-            'time_to_do.max' => 'Thoi gian max thuc thi tinh tu 120 phut!',
+            'time_to_do.min' => 'Thời gian tối thiểu 15 phút!',
             'password.min' => 'Password tối thiểu 6 kí tự!',
         ]);
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
-
-        $subjectId = $request->user('teachers')->subject_id;
-        $teacherId = $request->user('teachers')->teacher_id;
-        $data  = tests::with('subject')
-                        ->where('subject_id', $subjectId)
-                        ->where('teacher_id', $teacherId)
-                        ->where('status_id', 3)
-                        ->update([
-                            'password' => $request->input('password'),
-                            'time_limit' => $request->input('time_limit'),
-                            'note' => $request->input('note'),
-                        ]);
+        $data = $request->all();
+        if($request->password)
+            $data['password']= bcrypt($request->password);
+        $test  = tests::find($test_code)
+                        ->update($data);
 
         return response()->json([
             'message' => 'Cập nhật đề thi thành công!',
-            "data" => $data
+            "data"=> $test
+
         ]);
     }
 
@@ -643,8 +644,6 @@ class TeacherConTroller extends Controller
     public function createTest(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'teacher_id' => 'integer|exists:teachers,teacher_id',
-            'subject_id' => 'integer|exists:tests,subject_id',
             'test_name'  => 'string|unique:tests,test_name',
             'total_questions' => 'integer|min:10|max:100',
             'password'      => 'required|string|min:6|max:10',
@@ -653,15 +652,10 @@ class TeacherConTroller extends Controller
             'level_id' => 'required|integer|exists:levels,level_id',
             'time_to_do'   => 'required|numeric|min:15|max:120',
         ],[
-            'teacher_id.exists' => 'Không tìm thấy Giáo viên!',
-            'subject_id.exists' => 'Không tìm thấy Môn học!',
             'test_name.unique'  => 'Tên đề không nên trùng nhau!',
             'password.min'      => 'Password tối thiểu 6 kí tự!',
-            'password.max'      => 'Password tối thiểu 10 kí tự!',
             'grade_id.exists'   => 'Không tìm thấy Lớp!',
-            'total_questions.min' => 'Tối thieu 10 câu hỏi trong đề!',
-            'total_questions.max' => 'Tối đa 100 câu hỏi trong đề!',
-            'level_id.exists' => 'Không tìm thấy Cấp độ cho đề!',
+            'total_questions.min' => 'Tối thiểu 10 câu hỏi trong đề!',
             'level_id.required' => 'Level_id là bắt buộc!',
             'time_to_do.min' => 'Thoi gian tối thiểu cho bài thi là mười lăm phút!',
             'time_to_do.max' => 'Thoi gian tối thi lon nhat cho bài thi là một trăm hai mươi phút!',

@@ -143,9 +143,9 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
         // teacher quan ly de thi
         Route::get('/get', [TeacherConTroller::class,'getTest'])->name('teacherGetTest');
          Route::get('/get/{test_code}', [TeacherConTroller::class,'getTestDetail'])->name('teacherGetTestDetail');
-        Route::put('/update', [TeacherConTroller::class,'updateTest'])->name('teacherUpdateTest');
-        Route::post('/create', [TeacherConTroller::class,'createTest'])->name('teacherCreateTest');
-        Route::delete('/delete', [TeacherConTroller::class,'deleteTest'])->name('teacherDeleteTest');
+         Route::post('/create', [TeacherConTroller::class,'createTest'])->name('teacherCreateTest');
+        Route::put('/update/{test_code}', [TeacherConTroller::class,'updateTest'])->name('teacherUpdateTest');
+        Route::delete('/delete/{test_code}', [TeacherConTroller::class,'deleteTest'])->name('teacherDeleteTest');
     });
 
     // qly câu hỏi
