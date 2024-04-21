@@ -532,11 +532,18 @@ class TeacherConTroller extends Controller
     public function getQuestion(Request $request)
     {
         $user = $request->user('teachers');
+        $questions =questions::where('subject_id', $user->subject_id)->get();
+        return response()->json(["data" => $questions]);
+    }
+     public function getTotalQuestions(Request $request)
+    {
+        $user = $request->user('teachers');
         $numQuestion = DB::table('questions')
             ->select(DB::raw('count(question_id) as total_question, level_id, subject_id'))
             ->where('subject_id', $user->subject_id)
             ->groupBy('subject_id', 'level_id')
             ->get();
+
         return response()->json(["data" => $numQuestion]);
     }
 
