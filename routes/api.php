@@ -14,6 +14,7 @@ use App\Http\Controllers\AdminHSController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\HSLuyenDeController;
 use App\Http\Controllers\TBMDuyetDeThiController;
+use App\Http\Controllers\AdminNotificationController;
 
 
 Route::post('login', [AuthController::class, 'login']);
@@ -105,6 +106,9 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::put('/update', [AdminHSController::class, 'updateHS'])->name('updateHS');
         Route::post('/file', [AdminHSController::class, 'check_add_hs_via_file'])->name('check_add_hs_via_file');
     });
+
+    //notification
+    Route::get('/list-notification', [AdminNotificationController::class, 'listNotification'])->name('listNotification');
 });
 
 // ----- Route for Student -----
@@ -129,8 +133,8 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     //học sinh luyện đề
     Route::group(['prefix' => '/practice'], function () {
         Route::get('/get', [HSLuyenDeController::class, 'list'])->name('list');
-        Route::post('/create', [HSLuyenDeController::class, 'luyenDe'])->name('luyenDe');
-        Route::put('/update', [HSLuyenDeController::class, 'nopBai'])->name('nopBai');
+        Route::post('/check-add-practice', [HSLuyenDeController::class, 'checkAddPractice'])->name('checkAddPractice');
+        Route::put('/accept-practice', [HSLuyenDeController::class, 'acceptPractice'])->name('acceptPractice');
     });
 });
 

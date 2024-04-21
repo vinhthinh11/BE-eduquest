@@ -6,11 +6,14 @@ use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\practice;
 use App\Models\questions;
-use App\Models\quest_of_pratice;
-use App\Models\student_pratice_detail;
+use App\Models\practice_scores;
+use App\Models\student;
+use App\Models\student_practice_detail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Validator;
+use Ramsey\Uuid\Uuid;
 
 class HSLuyenDeController extends Controller
 {
@@ -27,7 +30,7 @@ class HSLuyenDeController extends Controller
             'data' => $getList
         ]);
     }
-    public function luyenDe(Request $request){
+    public function checkAddPractice(Request $request){
         $result = [];
 
         $grade_id = $request->grade_id;
@@ -96,39 +99,43 @@ class HSLuyenDeController extends Controller
             'result' => $result,
         ]);
     }
-    public function nopBai(Request $request){
-    //     $student_id = $request->student_id;
-    //     $practice_id = $request->practice_id;
-    //     $score_number = $request->score_number;
-    //     $score_detail = $request->score_detail;
-    //     $completion_time = $request->completion_time;
+    public function acceptPractice(Request $request){
+        $student_id = $request->student_id;
+        $student = student::find('student_id', $student_id);
+        $practiceResults = student_practice_detail::join('questions', 'student_practice_detail.question_id', '=', 'questions.question_id')
+            ->join('practice', 'student_practice_detail.practice_code', '=', 'practice.practice_code')
+            ->where('student_practice_detail.practice_code', $student->doing_practice)
+            ->where('student_practice_detail.student_id', $student->student_id)
+            ->orderBy('student_practice_detail.ID')
+            ->get();
 
-    //     // Tính toán điểm số và chi tiết điểm
-    //     $total_correct_answers = $score_number;
-    //     $total_questions = 30;
-    //     $score_number = ($total_correct_answers / $total_questions) * 10;
+        $totalQuestions = $practiceResults->count();
+        $correct = 0;
 
-    //     // Chi tiết điểm
-    //     $score_detail = $total_correct_answers . '/' . $total_questions;
+        foreach ($practiceResults as $result) {
+            if (trim($result->student_answer) === trim($result->correct_answer)) {
+                $correct++;
+            }
+        }
 
-    //     $score_practice = new score_practice([
-    //         'student_id' => $student_id,
-    //         'practice_id' => $practice_id,
-    //         'score_number' => $score_number,
-    //         'score_detail' => $score_detail,
-    //         'completion_time' => $completion_time,
-    //     ]);
+        $c = 10 / $totalQuestions;
+        $score = $correct * $c;
+        $scoreDetail = $correct . '/' . $totalQuestions;
 
-    //     $score_practice->save();
+        practice_scores::create([
+            'student_id' => $student->id,
+            'practice_code' => $practiceResults->first()->practice_code,
+            'score_number' => round($score, 2),
+            'score_detail' => $scoreDetail,
+            'completion_time' => now(),
+        ]);
 
-    //     if ($score_practice) {
-    //         return response()->json([
-    //             'message' => 'Nộp bài thi thành công',
-    //         ], 200);
-    //     } else {
-    //         return response()->json([
-    //             'message' => 'Nộp bài thi thất bại',
-    //         ], 400);
-    //     }
+        $student->update([
+            'doing_practice' => null,
+            'practice_time_remaining' => null,
+            'practice_starting_time' => null,
+        ]);
+
+        return response()->json(['status' => true, 'message' => 'Nộp bài Thành Công!'], 200);
     }
 }
