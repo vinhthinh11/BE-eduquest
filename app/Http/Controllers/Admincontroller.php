@@ -3,20 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\admin;
+use App\Models\quest_of_test;
 use App\Models\questions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\Admin\CreateAdminRequest;
-use App\Http\Requests\Admin\Admin\CreateFileAdminRequest;
-use App\Http\Requests\Admin\Admin\DeleteAdminRequest;
-use App\Http\Requests\Admin\Admin\UpdateAdminRequest;
-use App\Http\Requests\Admin\Question\CreateFileQuestionRequest;
-use App\Http\Requests\Admin\Question\CreateQuestionRequest;
-use App\Http\Requests\Admin\Question\DeleteQuestionRequest;
-use App\Http\Requests\Admin\Question\UpdateQuestionRequest;
-use App\Http\Requests\LoginRequest;
 use App\Models\grade;
 use App\Models\level;
 use App\Models\status;
@@ -24,10 +16,11 @@ use App\Models\student;
 use App\Models\students;
 use App\Models\subjects;
 use App\Models\tests;
+use Carbon\Carbon;
+use Carbon\CarbonTimeZone;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Validator;
-
 
 class Admincontroller extends Controller
 {
@@ -45,6 +38,101 @@ class Admincontroller extends Controller
         ]);
     }
 
+    public function getInfo($username)
+    {
+        $admin = Admin::select('admins.admin_id', 'admins.username', 'admins.avatar', 'admins.email', 'admins.name', 'admins.last_login', 'admins.birthday', 'permissions.permission_detail', 'genders.gender_detail', 'genders.gender_id')
+            ->join('permissions', 'admins.permission', '=', 'permissions.permission')
+            ->join('genders', 'admins.gender_id', '=', 'genders.gender_id')
+            ->where('admins.username', '=', $username)
+            ->first();
+    if ($admin) {
+        //đẩy view ở đây nha!!
+        //return view('admin.info', ['admin' => $admin]);
+        return response()->json(['admin' => $admin], 200);
+    }
+        return response()->json(['message' => 'Admin không tồn tại!'], 404);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $data['id'] = $request->id;
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|min:3|max:255',
+            'gender_id' => 'required',
+            'birthday' => 'nullable|date',
+            'password' => 'required|min:6|max:20',
+            'email' => 'nullable|email|unique:admins,email,'.$data['id'].',admin_id',
+        ], [
+            'name.required' => 'Vui lòng nhập tên!',
+            'name.min' => 'Tên cần ít nhất 3 ký tự!',
+            'name.max' => 'Tên dài nhất 255 ký tự!',
+            'gender_id.required' => 'Vui lòng chon giới tính!',
+            'birthday.date' => 'Ngày sinh chưa đúng định dạng!',
+            'password.required' => 'Vui lòng nhập mật khẩu!',
+            'password.min' => 'Vui nhap it nhat 6 ky tu!',
+            'email.email' => 'Vui long nhap email hop le!',
+            'email.unique' => 'Email da ton tai!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+        $me = Admin::find($request->id);
+        $me->update([
+                    'name' => $request['name'],
+                    'email' => $request['email'],
+                    'gender_id' => $request['gender_id'],
+                    'birthday' => $request['birthday'],
+                    'password' => bcrypt($request['password']),
+                    'last_login' => Carbon::now(CarbonTimeZone::createFromHourOffset(7 * 60))->timezone('Asia/Ho_Chi_Minh'),
+                ]);
+        return response()->json([
+            'status' => true,
+            'message' => "Cập nhập tài khoản cá nhân thành công!"
+        ]);
+    }
+    public function updateAvatarProfile(Request $request)
+    {
+        $admin = Admin::find($request->id);
+        if (!$admin) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Admin không tồn tại!',
+            ], 404);
+        }
+
+        if ($request->hasFile('avatar')) {
+            $validator = Validator::make($request->all(), [
+                'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            ], [
+                'avatar.required' => 'Vui lòng chọn hình ảnh đại diện',
+                'avatar.image' => 'Vui lòng chọn hình ảnh đại diện',
+                'avatar.mimes' => 'Vui lòng chọn hình ảnh đúng định dạng (jpeg, png, jpg, gif, svg)',
+                'avatar.max' => 'Kích thước hình ảnh không được vượt quá 2048KB',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            $image = $request->file('avatar');
+            $path = $image->store('images');
+            $admin->avatar = $path;
+            $admin->save();
+            return response()->json(['message' => 'Tải lên thành công', 'path' => $path], 200);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'Không có tệp nào được tải lên'
+            ], 404);
+        }
+    }
     public function indexLogin()
     {
         return view('loginTest');
@@ -55,8 +143,28 @@ class Admincontroller extends Controller
     //     $this->middleware('auth:api', ['except' => ['submitLogin']]);
     // }
 
-    public function submitLogin(LoginRequest $request)
+    public function submitLogin(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            //'username' => 'required|string|exists:admins,username',
+            'email'    => 'required|email',
+            'password' => 'required|string|max:20|min:6',
+        ], [
+            // 'username.required' => 'Tên đăng nhập là bắt buộc!',
+            // 'username.exists'   => 'Tên đăng nhập không tồn tại!',
+            'email.required'    => 'Email là bắt buộc!',
+            'email.email'       => 'Email phải là định dạng hợp lệ!',
+            'password.required' => 'Mật khẩu là bắt buộc!',
+            'password.min'      => 'Mật khẩu tối thiểu 6 kí tự!',
+            'password.max'      => 'Mật khẩu tối đa 20 kí tự!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $result = [];
 
         if ($request->has('email') && $request->has('password')) {
@@ -102,8 +210,37 @@ class Admincontroller extends Controller
     }
 
 
-    public function check_add_admin_via_file(CreateFileAdminRequest $request)
+    public function check_add_admin_via_file(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|min:6|max:50',
+            'username' => 'required|string|min:6|max:50|unique:admins,username',
+            'email' => 'nullable|email|unique:admins,email',
+            'password' => 'required|string|min:6|max:20',
+            'birthday' => 'nullable|date',
+            'gender' => 'required|string|in:Nam,Nữ,Khác',
+            'permission' => 'nullable|string',
+            'file' => 'required|file|mimes:xlsx',
+        ], [
+            'name.min' => 'Tên Admin tối thiểu 6 kí tự!',
+            'name.required' => 'Tên Admin không được để trống!',
+            'username.required' => 'Username không được để trống!',
+            'username.unique' => 'Username đã tồn tại!',
+            'password.required' => 'Password không được để trống!',
+            'password.min' => 'Password tối thiểu 6 kí tự!',
+            'email.email' => 'Email không đúng định dạng!',
+            'email.unique' => 'Email đã được sử dụng!',
+            'birthday.date' => 'Ngày Sinh phải là một ngày hợp lệ!',
+            'file.required' => 'Vui lòng chọn tệp để tiếp tục.',
+            'file.mimes' => 'Chỉ chấp nhận tệp với định dạng xlsx.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $result = [];
 
         if ($request->hasFile('file')) {
@@ -172,45 +309,57 @@ class Admincontroller extends Controller
     {
         return view('admin.CRUD');
     }
-    public function createAdmin(CreateAdminRequest $request)
+    public function createAdmin(Request $request)
     {
-        $result = [];
-
-        $name = $request->input('name');
-        $username = $request->input('username');
-        $password = bcrypt($request->input('password'));
-        $email = $request->input('email');
-        $birthday = $request->input('birthday');
-        $gender = $request->input('gender');
-
-        $admin = new Admin([
-            'name' => $name,
-            'username' => $username,
-            'password' => $password,
-            'email' => $email,
-            'birthday' => $birthday,
-            'gender_id' => $gender,
-            'last_login' => now(),
-
+        $validator = Validator::make($request->all(), [
+            'name'          => 'required|string|min:3|max:50|unique:admins,name',
+            'username'      => 'required|string|min:6|max:50|unique:admins,username',
+            'gender_id'     => 'required|integer',
+            'password'      => 'required|string|min:6|max:20',
+            'email'         => 'nullable|email|unique:admins,email',
+            'permission'    => 'nullable',
+            'birthday'      => 'nullable|date',
+        ], [
+            'name.min'           => 'Tên Admin tối thiểu 3 kí tự!',
+            'name.max'            => 'Ten Admin dài nhất 50 ký tự!',
+            'name.unique'         => 'Ten Admin đã tồn tại!',
+            'name.required'         => 'Tên Admin không được để trống!',
+            'username.required'     => 'Username không được để trống!',
+            'username.unique'       => 'Username đã tồn tại!',
+            'password.required'     => 'Password không được để trống!',
+            'password.min'          => 'Password tối thiểu 6 kí tự!',
+            'email.email'           => 'Email không đúng định dạng!',
+            'email.unique'          => 'Email đã được sử dụng!',
+            'birthday.date'         => 'Ngày Sinh phải là một ngày hợp lệ!',
         ]);
 
-        // Lưu admin mới vào cơ sở dữ liệu
-        if ($admin->save()) {
-            $result = $admin->toArray();
-            $result['status_value'] = "Thêm thành công!";
-            $result['status'] = 1;
-        } else {
-            $result['status_value'] = "Lỗi! Tài khoản đã tồn tại!";
-            $result['status'] = 0;
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
         }
-        // return response()->json($result);
+       $admin = admin::create(request()->all());
         return response()->json([
-            'result' => $result,
+            'message'   => 'Thêm Admin thành công!',
+            'admin'   => $admin,
         ]);
     }
 
-    public function deleteAdmin(DeleteAdminRequest $request)
+    public function deleteAdmin(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'admin_id' => 'required|exists:admins,admin_id'
+        ], [
+            'admin_id.*' => 'Admin không tồn tại!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $admin = admin::find($request->id);
 
         if (!$admin) {
@@ -226,8 +375,31 @@ class Admincontroller extends Controller
     }
 
 
-    public function updateAdmin(UpdateAdminRequest $request)
+    public function updateAdmin(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'admin_id' => 'required|exists:admins,admin_id',
+            'name' => 'required|string|min:6|max:50',
+            'gender_id' => 'required|integer',
+            'birthday' => 'nullable|date',
+            'password' => 'nullable|string|min:6|max:20',
+        ], [
+            'admin_id.required' => 'Admin không được để trống!',
+            'admin_id.exists' => 'Admin không tồn tại!',
+            'name.min' => 'Tên Admin tối thiểu 6 kí tự!',
+            'name.required' => 'Tên Admin không được để trống!',
+            'gender_id.required' => 'Giới tính không được để trống!',
+            'birthday.date' => 'Ngày Sinh phải là một ngày hợp lệ!',
+            'password.min' => 'Mật khẩu tối thiểu 6 kí tự!',
+            'password.max' => 'Mật khẩu không được quá 20 kí tự!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $admin = Admin::find($request->admin_id);
         $data = $request->only(['name', 'username', 'gender_id', 'birthday', 'password', 'permission',]);
 
@@ -251,7 +423,7 @@ class Admincontroller extends Controller
     public function getQuestion()
     {
         $data = questions::with('teacher')->get();
-        if(!$data)return response()->json([
+        if (!$data) return response()->json([
             'message' => 'No question found!',
         ], 400);
         return response()->json([
@@ -296,8 +468,53 @@ class Admincontroller extends Controller
     }
 
 
-    public function checkAddQuestionViaFile(CreateFileQuestionRequest $request)
+    public function checkAddQuestionViaFile(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'subject_id'        => 'required|integer|exists:subjects,subject_id',
+            'question_content'  => 'required|string',
+            'level_id'          => 'required|integer|exists:levels,level_id',
+            'answer_a'          => 'required|string',
+            'answer_b'          => 'required|string',
+            'answer_c'          => 'required|string',
+            'answer_d'          => 'required|string',
+            'correct_answer'    => 'required|string|in:A,B,C,D',
+            'grade_id'          => 'required|integer|exists:grades,grade_id',
+            'unit'              => 'required|string',
+            'suggest'           => 'nullable|string',
+            'status_id'         => 'required|integer|in:1,2,3',
+            'teacher_id'        => 'nullable|integer|exists:teachers,teacher_id',
+            'file' => 'required|file|mimes:xlsx',
+        ], [
+            'subject_id.required'          => 'Mã môn học không được để trống!',
+            'subject_id.exists'            => 'Mã môn học không tồn tại!',
+            'question_content.required'    => 'Nội dung câu hỏi không được để trống!',
+            'level_id.required'            => 'Mã cấp độ không được để trống!',
+            'level_id.exists'              => 'Mã cấp độ không tồn tại!',
+            'answer_a.required'            => 'Câu trả lời A không được để trống!',
+            'answer_b.required'            => 'Câu trả lời B không được để trống!',
+            'answer_c.required'            => 'Câu trả lời C không được để trống!',
+            'answer_d.required'            => 'Câu trả lời D không được để trống!',
+            'correct_answer.required'      => 'Câu trả lời đúng không được để trống!',
+            'correct_answer.in'            => 'Câu trả lời đúng phải là A, B, C hoặc D!',
+            'grade_id.required'            => 'Mã khối học không được để trống!',
+            'grade_id.integer'             => 'Mã khối học phải là số nguyên!',
+            'grade_id.exists'              => 'Mã khối học không tồn tại!',
+            'unit.required'                => 'Đơn vị không được để trống!',
+            'suggest.string'                => 'Gợi ý phải là chuỗi!',
+            'status_id.required'           => 'Trạng thái không được để trống!',
+            'status_id.in'                 => 'Trạng thái không hợp lệ!',
+            'teacher_id.exists'            => 'Mã giáo viên không tồn tại!',
+            'file.required'                => 'Vui lòng chọn tệp để tiếp tục!',
+            'file.mimes'                   => 'File phải là xlsx!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $result = [];
 
         $subjectId = $request->subject_id;
@@ -389,65 +606,129 @@ class Admincontroller extends Controller
 
     public function checkAddQuestions(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'subject_id'        => 'required|integer|exists:subjects,subject_id',
+            'question_content'  => 'required|string',
+            'grade_id'          => 'required|integer|exists:grades,grade_id',
+            'level_id'          => 'required|integer|exists:levels,level_id',
+            'unit'              => 'required|string',
+            'answer_a'          => 'required|string',
+            'answer_b'          => 'required|string',
+            'answer_c'          => 'required|string',
+            'answer_d'          => 'required|string',
+            'correct_answer'    => 'required|in:A,B,C,D',
+            'status_id'         => 'required|integer|in:1,2,3',
+            'suggest'           => 'nullable|string',
+        ], [
+            'subject_id.required'           => 'Mã môn học không được để trống!',
+            'subject_id.exists'             => 'Mã môn học không tồn tại!',
+            'question_content.required'     => 'Nội dung câu hỏi không được để trống!',
+            'grade_id.required'             => 'Mã khối học không được để trống!',
+            'grade_id.exists'               => 'Mã khối học không tồn tại!',
+            'level_id.required'             => 'Mã cấp độ không được để trống!',
+            'level_id.exists'               => 'Mã cấp độ không tồn tại!',
+            'unit.required'                 => 'Đơn vị không được để trống!',
+            'answer_a.required'             => 'Câu trả lời A không được để trống!',
+            'answer_b.required'             => 'Câu trả lời B không được để trống!',
+            'answer_c.required'             => 'Câu trả lời C không được để trống!',
+            'answer_d.required'             => 'Câu trả lời D không được để trống!',
+            'correct_answer.required'       => 'Câu trả lời đúng không được để trống!',
+            'correct_answer.in'             => 'Câu trả lời đúng phải là A, B, C hoặc D!',
+            'status_id.required'            => 'Trạng thái không được để trống!',
+            'status_id.in'                  => 'Trạng thái không hợp lệ!',
+        ]);
 
-        $validator = Validator::make($request->all(),[
-            'question_content'=>'string|max:255',
-                   'level_id'=>'numeric',
-                   'answer_a'=>'string',
-                   'answer_b'=>'string',
-                   'answer_c'=>'string',
-                   'answer_d'=>'string',
-                   'correct_answer'=>'numeric',
-                   'grade_id'=>'numeric',
-                   'unit'=>'numeric',
-                   'suggest'=>'string',
-                   'status_id'=>'numeric',
-                   'teacher_id'=>'numeric',
-                   'subject_id'=>'numeric',
-                  ]);
-                  if($validator->fails()){
-                   return response($validator->errors()->all(),400);
-                  }
-                  $data = request()->only(['question_content','level_id','answer_a','answer_b','subject_id','answer_c','answer_d','correct_answer','grade_id','unit','suggest','status_id','teacher_id']);
-               $question =  questions::create($data);
-               return response()->json(['question' => $question]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
         }
+        $data = request()->only(['question_content', 'level_id', 'answer_a', 'answer_b', 'subject_id', 'answer_c', 'answer_d', 'correct_answer', 'grade_id', 'unit', 'suggest', 'status_id', 'teacher_id']);
+        $question =  questions::create($data);
+        return response()->json(['question' => $question]);
+    }
 
 
     public function updateQuestions(Request $request)
     {
-       $question = questions::find(request()->question_id);
-    if(empty($question)) {
-        return response()->json(["message" => "Không tìm thấy câu hỏi!"], 400);
+        $validator = Validator::make($request->all(), [
+            'question_id'       => 'required|integer|exists:questions,question_id',
+            'question_content'  => 'nullable|string',
+            'level_id'          => 'nullable|integer|exists:levels,level_id',
+            'answer_a'          => 'nullable|string',
+            'answer_b'          => 'nullable|string',
+            'answer_c'          => 'nullable|string',
+            'answer_d'          => 'nullable|string',
+            'correct_answer'    => 'nullable|in:A,B,C,D',
+            'grade_id'          => 'nullable|integer|exists:grades,grade_id',
+            'unit'              => 'nullable|string',
+            'suggest'           => 'nullable|string',
+            'status_id'         => 'nullable|integer|in:1,2,3',
+            'teacher_id'        => 'nullable|integer|exists:teachers,teacher_id',
+        ], [
+            'question_id.required'      => 'ID câu hỏi là bắt buộc!',
+            'question_id.exists'        => 'Không tìm thấy câu hỏi với ID đã chọn!',
+            'level_id.exists'           => 'Không tìm thấy level với ID đã chọn!',
+            'grade_id.exists'           => 'Không tìm thấy grade với ID đã chọn!',
+            'status_id.in'              => 'Cấp độ không được để trống!',
+            'teacher_id.integer'        => 'Teacher ID phải là số nguyên!',
+            'teacher_id.exists'         => 'Không tìm thấy giáo viên với ID đã chọn!',
+            'correct_answer.in'         => 'Đáp án đúng phải là A, B, C hoặc D!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+        $question = questions::find(request()->question_id);
+        if (empty($question)) {
+            return response()->json(["message" => "Không tìm thấy câu hỏi!"], 400);
+        }
+        // $validator = Validator::make($request->all(), [
+        //     'question_content' => 'string|max:255',
+        //     'level_id' => 'numeric',
+        //     'answer_a' => 'string',
+        //     'answer_b' => 'string',
+        //     'answer_c' => 'string',
+        //     'answer_d' => 'string',
+        //     'correct_answer' => 'numeric',
+        //     'grade_id' => 'numeric',
+        //     'unit' => 'numeric',
+        //     'suggest' => 'string',
+        //     'status_id' => 'numeric',
+        //     'teacher_id' => 'numeric',
+        //     'subject_id' => 'numeric',
+        // ]);
+        // if ($validator->fails()) {
+        //     return response($validator->errors()->all(), 400);
+        // }
+        $data = $request->only(['question_content', 'level_id', 'answer_a', 'answer_b', 'subject_id', 'answer_c', 'answer_d', 'correct_answer', 'grade_id', 'unit', 'suggest', 'status_id', 'teacher_id']);
+        $question->fill($data);
+        $question->fill($data)->save();
+        return response()->json(["question" => $question]);
     }
-       $validator = Validator::make($request->all(),[
- 'question_content'=>'string|max:255',
-        'level_id'=>'numeric',
-        'answer_a'=>'string',
-        'answer_b'=>'string',
-        'answer_c'=>'string',
-        'answer_d'=>'string',
-        'correct_answer'=>'numeric',
-        'grade_id'=>'numeric',
-        'unit'=>'numeric',
-        'suggest'=>'string',
-        'status_id'=>'numeric',
-        'teacher_id'=>'numeric',
-        'subject_id'=>'numeric',
-       ]);
-       if($validator->fails()){
-        return response($validator->errors()->all(),400);
-       }
-       $data = $request->only(['question_content','level_id','answer_a','answer_b','subject_id','answer_c','answer_d','correct_answer','grade_id','unit','suggest','status_id','teacher_id']);
-      $question->fill($data);
-      $question->fill($data)->save();
-    return response()->json(["question" => $question]);
-}
 
 
 
     public function deleteQuestion(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'question_id' => 'required|exists:questions,question_id'
+        ], [
+            'question_id.exists' => 'Câu hỏi có vẻ không tồn tại!',
+            'question_id.required' => 'ID câu hỏi là bắt buộc!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
         $question_id = $request->question_id;
         $question = questions::find($question_id);
 
@@ -456,7 +737,6 @@ class Admincontroller extends Controller
                 'status'    => false,
                 'message'   => 'Xoá câu hỏi không thành công!',
             ]);
-
         }
         $question->delete();
         return response()->json([
@@ -483,6 +763,7 @@ class Admincontroller extends Controller
         $questionDifficult = $request->question_difficult;
         $timeToDo   = $request->time_to_do;
         $note       = $request->note;
+
         $testCode   = rand(100000, 999999);
         $teacher    = new admin();
         $total      = $teacher->getCountQuestions($subjectId, $gradeId);
@@ -572,6 +853,26 @@ class Admincontroller extends Controller
         return response()->json([
             'result' => $result,
 
+        ]);
+    }
+    public function getTest()
+    {
+        $data = tests::get();
+        if ($data->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No test found!',
+            ], 400);
+        }
+        return response()->json([
+            'data'    => $data,
+        ]);
+    }
+      public function getTestDetail( $test_code)
+    {
+        $data = tests::find($test_code)->questions()->get();
+        return response()->json([
+            'data'    => $data,
         ]);
     }
 

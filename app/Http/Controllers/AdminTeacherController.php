@@ -1,24 +1,15 @@
 <?php
 
 namespace App\Http\Controllers;
-
-use App\Http\Requests\Admin\Teacher\CreateFileTeacherRequest;
-use App\Http\Requests\Admin\Teacher\CreateTeacherRequest;
-use App\Http\Requests\Admin\Teacher\DeleteTeacherRequest;
-use App\Http\Requests\Admin\Teacher\UpdateTeacherRequest;
-use App\Http\Requests\LoginRequest;
 use App\Models\classes;
 use App\Models\questions;
 use App\Models\teacher;
-use CreateTeachersTable;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Maatwebsite\Excel\Facades\Excel;
-use Symfony\Component\Console\Question\Question;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Validator;
 
 class AdminTeacherController extends Controller
 {
@@ -36,9 +27,28 @@ class AdminTeacherController extends Controller
         ]);
     }
 
-    public function submitLogin(LoginRequest $request)
+    public function submitLogin(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            //'username' => 'required|string|exists:admins,username',
+            'email'    => 'required|email',
+            'password' => 'required|string|max:20|min:6',
+        ], [
+            // 'username.required' => 'Tên đăng nhập là bắt buộc!',
+            // 'username.exists'   => 'Tên đăng nhập không tồn tại!',
+            'email.required'    => 'Email là bắt buộc!',
+            'email.email'       => 'Email phải là định dạng hợp lệ!',
+            'password.required' => 'Mật khẩu là bắt buộc!',
+            'password.min'      => 'Mật khẩu tối thiểu 6 kí tự!',
+            'password.max'      => 'Mật khẩu tối đa 20 kí tự!',
+        ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         if ($request->has('email') && $request->has('password')) {
             $email = $request->input('email');
             $password = $request->input('password');
@@ -74,8 +84,20 @@ class AdminTeacherController extends Controller
         }
     }
 
-    public function destroy(DeleteTeacherRequest $request)
+    public function destroy(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'teacher_id' => 'required|exists:teachers,teacher_id'
+        ], [
+            'teacher_id.*' => 'Giáo Viên không tồn tại!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $teacher = teacher::find($request->teacher_id);
 
         if ($teacher) {
@@ -101,10 +123,20 @@ class AdminTeacherController extends Controller
             ]);
         }
     }
-
-
-    public function update(DeleteTeacherRequest $request)
+    public function update(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'teacher_id' => 'required|exists:teachers,teacher_id'
+        ], [
+            'teacher_id.*' => 'Giáo Viên không tồn tại!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $teacher = teacher::find($request->teacher_id);
         $data = $request->all();
 
@@ -123,8 +155,32 @@ class AdminTeacherController extends Controller
         }
     }
 
-    public function edit(UpdateTeacherRequest $request)
+    public function edit(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'teacher_id' => 'required|exists:teachers,teacher_id',
+            'name' => 'required|string|min:6|max:50',
+            'gender_id' => 'required|integer',
+            'birthday' => 'nullable|date',
+            'password' => 'nullable|string|min:6|max:20',
+        ], [
+            'teacher_id.required' => 'Giáo Viên không được để trống!',
+            'teacher_id.exists' => 'Giáo Viên không tồn tại!',
+            'name.min' => 'Tên Giáo Viên tối thiểu 6 kí tự!',
+            'name.required' => 'Tên Giáo Viên không được để trống!',
+            'gender_id.required' => 'Giới tính không được để trống!',
+            'birthday.date' => 'Ngày Sinh phải là một ngày hợp lệ!',
+            'password.min' => 'Mật khẩu tối thiểu 6 kí tự!',
+            'password.max' => 'Mật khẩu không được quá 20 kí tự!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
         $teacher = teacher::find($request->teacher_id);
         $data = $request->only(['name', 'gender_id', 'birthday', 'password']);
 
@@ -136,7 +192,7 @@ class AdminTeacherController extends Controller
         }
         // Kiểm tra admin muốn cập nhật mật khẩu cho giáo viên không
         else if (isset($data['password'])) {
-            $data['password'] = Hash::make($data['password']); //  bcrypt password
+            $data['password'] = bcrypt($data['password']); //  bcrypt password
         }
 
         $teacher->fill($data)->save();
@@ -148,19 +204,78 @@ class AdminTeacherController extends Controller
         ]);
     }
 
-    public function create(CreateTeacherRequest $request)
+    public function create(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'name'          => 'required|string|min:6|max:50|unique:teachers,name',
+            'username'      => 'required|string|min:6|max:50|unique:teachers,username',
+            'gender_id'     => 'required|integer',
+            'password'      => 'required|string|min:6|max:20',
+            'email'         => 'nullable|email|unique:teachers,email',
+            'permission'    => 'nullable',
+            'birthday'      => 'nullable|date',
+        ], [
+            'name.min'           => 'Tên Giáo Viên tối thiểu 6 kí tự!',
+            'name.max'             => 'Ten Giờ Viên phải là 50 kí tự!',
+            'name.unique'          => 'Ten Giáo Viên đã tồn tại!',
+            'name.required'         => 'Tên Giáo Viên không được để trống!',
+            'username.required'     => 'Username không được để trống!',
+            'username.unique'       => 'Username đã tồn tại!',
+            'password.required'     => 'Password không được để trống!',
+            'password.min'          => 'Password tối thiểu 6 kí tự!',
+            'email.email'           => 'Email không đúng định dạng!',
+            'email.unique'          => 'Email đã được sử dụng!',
+            'birthday.date'         => 'Ngày Sinh phải là một ngày hợp lệ!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
         $data = $request->all();
-        teacher::create($data);
+        $data['password'] = bcrypt($data['password']);
+        Teacher::create($data);
 
         return response()->json([
-            'status'    => true,
-            'message'   => 'Đã tạo mới Giáo Viên thành công!',
+            'status' => true,
+            'message' => 'Đã tạo mới giáo viên thành công!',
         ]);
     }
 
-    public function createFileTeacher(CreateFileTeacherRequest $request)
+    public function createFileTeacher(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|min:6|max:50',
+            'username' => 'required|string|min:6|max:50|unique:teachers,username',
+            'email' => 'nullable|email|unique:teachers,email',
+            'password' => 'required|string|min:6|max:20',
+            'birthday' => 'nullable|date',
+            'gender' => 'required|string|in:Nam,Nữ,Khác',
+            'permission' => 'nullable|string',
+            'file' => 'required|file|mimes:xlsx',
+        ], [
+            'name.string' => 'Tên Giáo Viên phải là chuỗi!',
+            'name.required' => 'Tên Giáo Viên không được để trống!',
+            'username.required' => 'Username không được để trống!',
+            'username.unique' => 'Username đã tồn tại!',
+            'password.required' => 'Password không được để trống!',
+            'password.min' => 'Password tối thiểu 6 kí tự!',
+            'email.email' => 'Email không đúng định dạng!',
+            'email.unique' => 'Email đã được sử dụng!',
+            'birthday.date' => 'Ngày Sinh phải là một ngày hợp lệ!',
+            'file.required' => 'Vui lòng chọn tệp để tiếp tục.',
+            'file.mimes' => 'Chỉ chấp nhận tệp với định dạng xlsx.',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
         $result = [];
 
         if ($request->hasFile('file')) {

@@ -2,36 +2,54 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Admin\Student\CreateFileStudentRequest;
-use App\Http\Requests\Admin\Student\CreateStudentRequest;
-use App\Http\Requests\Admin\Student\DeleteStudentRequest;
-use App\Http\Requests\Admin\Student\UpdateStudentRequest;
-use App\Http\Requests\LoginRequest;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\students;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Validator;
+
 
 class AdminHSController extends Controller
 {
-     // quản lý hojc sinh
-     public $successStatus = 200;
-     public function index()
-     {
-         $data = students::get();
-         if(empty($data)){
-             return response()->json([
-                 'data' => $data
-             ]);}
-         return response()->json([
-             'data' => $data,
-         ]);
-     }
-
-    public function submitLogin(LoginRequest $request)
+    // quản lý hojc sinh
+    public $successStatus = 200;
+    public function index()
     {
+        $data = students::get();
+        if (empty($data)) {
+            return response()->json([
+                'data' => $data
+            ]);
+        }
+        return response()->json([
+            'data' => $data,
+        ]);
+    }
+
+    public function submitLogin(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            //'username' => 'required|string|exists:admins,username',
+            'email'    => 'required|email',
+            'password' => 'required|string|max:20|min:6',
+        ], [
+            // 'username.required' => 'Tên đăng nhập là bắt buộc!',
+            // 'username.exists'   => 'Tên đăng nhập không tồn tại!',
+            'email.required'    => 'Email là bắt buộc!',
+            'email.email'       => 'Email phải là định dạng hợp lệ!',
+            'password.required' => 'Mật khẩu là bắt buộc!',
+            'password.min'      => 'Mật khẩu tối thiểu 6 kí tự!',
+            'password.max'      => 'Mật khẩu tối đa 20 kí tự!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $result = [];
 
         if ($request->has('email') && $request->has('password')) {
@@ -69,8 +87,36 @@ class AdminHSController extends Controller
         }
     }
 
-    public function check_add_hs_via_file(CreateFileStudentRequest $request)
+    public function check_add_hs_via_file(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'name'          => 'required|string|min:6|max:50',
+            'username'      => 'required|string|min:6|max:50|unique:students,username',
+            'gender_id'     => 'required|integer',
+            'password'      => 'required|string|min:6|max:20',
+            'email'         => 'nullable|email|unique:students,email',
+            'permission'    => 'nullable',
+            'birthday'      => 'nullable|date',
+            'file'          => 'required|file|mimes:xlsx,xls',
+        ], [
+            'name.min'              => 'Tên Học sinh tối thiểu 6 kí tự!',
+            'name.required'         => 'Tên Học sinh không được để trống!',
+            'username.required'     => 'Username không được để trống!',
+            'username.unique'       => 'Username đã tồn tại!',
+            'password.required'     => 'Password không được để trống!',
+            'password.min'          => 'Password tối thiểu 6 kí tự!',
+            'email.email'           => 'Email không đúng định dạng!',
+            'email.unique'          => 'Email đã được sử dụng!',
+            'birthday.date'         => 'Ngày Sinh phải là một ngày hợp lệ!',
+            'file.*'                => 'File phải là một file định dạng xlsx hoặc xls!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $result = [];
 
         if ($request->hasFile('file')) {
@@ -129,13 +175,42 @@ class AdminHSController extends Controller
             $result['status'] = 0;
         }
 
-         return response()->json($result);
-         // return response()->json([
-         //     'result' => $result,
-         // ]);
-     }
-     public function createHS(Request $request)
-     {
+        return response()->json($result);
+        // return response()->json([
+        //     'result' => $result,
+        // ]);
+    }
+    public function createHS(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'name'          => 'required|string|min:6|max:50|unique:students,name',
+            'username'      => 'required|string|min:6|max:50|unique:students,username',
+            'gender_id'     => 'required|integer',
+            'password'      => 'required|string|min:6|max:20',
+            'email'         => 'nullable|email|unique:students,email',
+            'permission'    => 'nullable',
+            'birthday'      => 'nullable|date',
+        ], [
+            'name.min'              => 'Tên Học Sinh tối thiểu 6 kí tự!',
+            'name.max'              => 'Ten Học Sinh tối thieu 50 ký tự!',
+            'name.unique'           => 'Ten Học Sinh da ton tai!',
+            'name.required'         => 'Tên Học Sinh không được để trống!',
+            'username.required'     => 'Username không được để trống!',
+            'username.unique'       => 'Username đã tồn tại!',
+            'password.required'     => 'Password không được để trống!',
+            'password.min'          => 'Password tối thiểu 6 kí tự!',
+            'email.email'           => 'Email không đúng định dạng!',
+            'email.unique'          => 'Email đã được sử dụng!',
+            'birthday.date'         => 'Ngày Sinh phải là một ngày hợp lệ!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
         $data = request()->only([
             'name',
             'username',
@@ -144,17 +219,30 @@ class AdminHSController extends Controller
             'birthday',
             'last_login',
             'class_id',
-            'gender_id']);
-            $data['password'] = bcrypt($data['password']);
-            $student = new students($data);
-            $student->save();
-         return response()->json([
+            'gender_id'
+        ]);
+        $data['password'] = bcrypt($data['password']);
+        $student = new students($data);
+        $student->save();
+        return response()->json([
             'student' => $data,
         ]);
-     }
+    }
 
-    public function deleteHS(DeleteStudentRequest $request)
+    public function deleteHS(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'student_id' => 'required|exists:students,student_id'
+        ], [
+            'student_id.*' => 'Học Sinh không tồn tại!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $hs = students::find($request->student_id);
         if ($hs) {
             $hs->delete();
@@ -172,8 +260,31 @@ class AdminHSController extends Controller
 
 
 
-    public function updateHS(UpdateStudentRequest $request)
+    public function updateHS(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'student_id' => 'required|exists:students,student_id',
+            'name' => 'required|string|min:6|max:50',
+            'gender_id' => 'required|integer',
+            'birthday' => 'nullable|date',
+            'password' => 'nullable|string|min:6|max:20',
+        ], [
+            'student_id.required' => 'Học Sinh không được để trống!',
+            'student_id.exists' => 'Học Sinh không tồn tại!',
+            'name.min' => 'Tên Học Sinh tối thiểu 6 kí tự!',
+            'name.required' => 'Tên Học Sinh không được để trống!',
+            'gender_id.required' => 'Giới tính không được để trống!',
+            'birthday.date' => 'Ngày Sinh phải là một ngày hợp lệ!',
+            'password.min' => 'Mật khẩu tối thiểu 6 kí tự!',
+            'password.max' => 'Mật khẩu không được quá 20 kí tự!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $hs = students::find($request->student_id);
         if ($hs) {
             $data = $request->all();

@@ -22,7 +22,6 @@ class students extends Authenticatable implements JWTSubject
         'birthday',
         'class_id',
         'last_login',
-
     ];
     public $timestamps = false;
     protected $primaryKey = 'student_id';
@@ -30,8 +29,8 @@ class students extends Authenticatable implements JWTSubject
 
     function getHS()
     {
-        $getAllHS = DB::select('select * from students');
-        return $getAllHS;
+        // $getAllHS = DB::select('select * from students');
+        // return $getAllHS;
     }
      public function getJWTIdentifier()
     {

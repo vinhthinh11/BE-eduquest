@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
@@ -22,13 +24,44 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function login()
+    public function login(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            //'username' => 'required|string|exists:admins,username',
+            'email'    => 'required|email',
+            'password' => 'required|max:20',
+        ], [
+            // 'username.required' => 'Tên đăng nhập là bắt buộc!',
+            // 'username.exists'   => 'Tên đăng nhập không tồn tại!',
+            'email.required'    => 'Email là bắt buộc!',
+            'email.email'       => 'Email phải là định dạng hợp lệ!',
+            'password.required' => 'Mật khẩu là bắt buộc!',
+            'password.max'      => 'Mật khẩu tối đa 20 kí tự!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $credentials = request(['email', 'password']);
+        // admin
         $token = auth('admins')->attempt($credentials);
         if($token){
             return response()->json(["access_token"=>$token]);
         }
+        // subject_head
+        //  $token = auth('head_subjects')->attempt($credentials);
+        // if($token){
+        //     return response()->json(["access_token"=>$token]);
+        // }
+        // teachers
+        $token = auth('teachers')->attempt($credentials);
+        if($token){
+            return response()->json(["access_token"=>$token]);
+        }
+        // students
         $token = auth('students')->attempt($credentials);
         if($token){
             return response()->json(["access_token"=>$token]);

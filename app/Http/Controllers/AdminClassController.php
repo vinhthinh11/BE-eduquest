@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Admin\Classes\DeleteClassRequest;
-use App\Http\Requests\Admin\Classes\Update_CreateClassRequest;
 use App\Models\classes;
 use App\Models\student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class AdminClassController extends Controller
 {
@@ -21,8 +20,21 @@ class AdminClassController extends Controller
     }
 
 
-    public function destroy(DeleteClassRequest $request)
+    public function destroy(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'class_id' => 'required|exists:classes,class_id'
+        ], [
+            'class_id.*' => 'Lớp không tồn tại!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
         $class = classes::find($request->class_id);
 
         if (!$class) {
@@ -53,7 +65,7 @@ class AdminClassController extends Controller
         ]);
     }
 
-    public function update(DeleteClassRequest $request)
+    public function update(Request $request)
     {
         $class = classes::find($request->class_id);
         $data = $request->all();
@@ -73,8 +85,26 @@ class AdminClassController extends Controller
         }
     }
 
-    public function edit(Update_CreateClassRequest $request)
+    public function edit(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'grade_id'      => 'required|exists:grades,grade_id',
+            'class_name'    => 'required|string',
+            'teacher_id'    => 'required|exists:teachers,teacher_id',
+        ], [
+            'grade_id.required'     => 'Khối không được để trống!',
+            'grade_id.exists'       => 'Khối không tồn tại trong cơ sở dữ liệu!',
+            'class_name.required'   => 'Tên Lớp không được để trống!',
+            'teacher_id.required'   => 'Giáo viên không được để trống!',
+            'teacher_id.exists'     => 'Giáo viên không tồn tại trong cơ sở dữ liệu!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $class = classes::find($request->class_id);
 
         if (!$class) {
@@ -88,19 +118,38 @@ class AdminClassController extends Controller
         $class->save();
 
         return response()->json([
-            'status' => true,
-            'message' => 'Sửa thông tin lớp thành công!',
+            'message'   => 'Sửa thông tin lớp thành công!',
+            "class" => $class
         ]);
     }
 
-    public function create(Update_CreateClassRequest $request)
+    public function create(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'grade_id'      => 'required|exists:grades,grade_id',
+            'class_name'    => 'required|string|unique:classes,class_name',
+            'teacher_id'    => 'required|exists:teachers,teacher_id',
+        ], [
+            'grade_id.required'     => 'Khối không được để trống!',
+            'grade_id.exists'       => 'Khối không tồn tại trong cơ sở dữ liệu!',
+            'class_name.required'   => 'Tên Lớp không được để trống!',
+            'class_name.unique'     => 'Tên Lớp đã tồn tại!',
+            'teacher_id.required'   => 'Giáo viên không được để trống!',
+            'teacher_id.exists'     => 'Giáo viên không tồn tại trong cơ sở dữ liệu!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $data = $request->all();
-        classes::create($data);
+        $class = classes::create($data);
 
         return response()->json([
-            'status'    => true,
             'message'   => 'Đã tạo mới Lớp thành công!',
+            "class" => $class
         ]);
     }
 
