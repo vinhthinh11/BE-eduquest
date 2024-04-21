@@ -86,11 +86,11 @@ class AdminMonHocController extends Controller
     public function createMon(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'subject_detail'      => 'required|string|max:20',
+            'subject_detail'      => 'required|string|max:20|unique:subjects,subject_detail',
         ], [
             'subject_detail.required'     => 'Môn học không được để trống!',
             'subject_detail.max'       => 'Tên Môn học tối đa 20 kí tự!',
-            'subject_detail.string'       => 'Tên Môn học phải là dạng chuỗi!',
+            'subject_detail.unique'       => 'Môn học đặt trên dữ liệu!',
         ]);
 
         if ($validator->fails()) {

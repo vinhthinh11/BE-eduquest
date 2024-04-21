@@ -529,9 +529,6 @@ class TeacherConTroller extends Controller
             'message' => 'Cập nhật câu hỏi thành công!',
         ], 200);
     }
-    /**
-     * Get the number of questions by level
-     */
     public function getQuestion(Request $request)
     {
         $user = $request->user('teachers');

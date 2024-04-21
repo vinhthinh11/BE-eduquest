@@ -178,7 +178,7 @@ class AdminTBMonController extends Controller
     public function createTBM(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name'          => 'required|string|min:6|max:50',
+            'name'          => 'required|string|min:6|max:50|unique:subject_head,name',
             'username'      => 'required|string|min:6|max:50|unique:subject_head,username',
             'gender_id'     => 'required|integer',
             'password'      => 'required|string|min:6|max:20',
@@ -188,6 +188,9 @@ class AdminTBMonController extends Controller
             'subject_id'      => 'required|integer',
         ], [
             'name.min'              => 'Tên Trưởng bộ môn tối thiểu 6 kí tự!',
+            'name.max'              => 'Tên Trưởng bộ môn phải là 50 kí tự!',
+            'name.unique'           => 'Tên Trưởng bộ môn đã tồn tại!',
+            'username.min'          => 'Username tối thiểu 6 kí tự!',
             'name.required'         => 'Tên Trưởng bộ môn không được để trống!',
             'username.required'     => 'Username không được để trống!',
             'username.unique'       => 'Username đã tồn tại!',

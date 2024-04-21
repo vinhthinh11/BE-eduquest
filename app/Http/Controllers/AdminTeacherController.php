@@ -207,7 +207,7 @@ class AdminTeacherController extends Controller
     public function create(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name'          => 'required|string|min:6|max:50',
+            'name'          => 'required|string|min:6|max:50|unique:teachers,name',
             'username'      => 'required|string|min:6|max:50|unique:teachers,username',
             'gender_id'     => 'required|integer',
             'password'      => 'required|string|min:6|max:20',
@@ -216,6 +216,8 @@ class AdminTeacherController extends Controller
             'birthday'      => 'nullable|date',
         ], [
             'name.min'           => 'Tên Giáo Viên tối thiểu 6 kí tự!',
+            'name.max'             => 'Ten Giờ Viên phải là 50 kí tự!',
+            'name.unique'          => 'Ten Giáo Viên đã tồn tại!',
             'name.required'         => 'Tên Giáo Viên không được để trống!',
             'username.required'     => 'Username không được để trống!',
             'username.unique'       => 'Username đã tồn tại!',
