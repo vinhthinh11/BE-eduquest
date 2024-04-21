@@ -7,13 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
 
-class student_notifications extends Model
+class teacher_notifications extends Model
 {
-    protected $table = "student_notifications";
+    protected $table = "teacher_notifications";
 
     protected $fillable = [
         'ID',
         'notification_id',
-        'class_id'
+        'teacher_id'
     ];
 }
