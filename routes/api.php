@@ -117,13 +117,13 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     // Route::get('/get', [AdminHSController::class, 'index'])->name('index');
 
 
-    Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
+    Route::post('/addTest', [StudentController::class, 'addTest'])->name('addTest');
     Route::post('/update-timing', [StudentController::class, 'updateTiming'])->name('updateTiming');
     Route::post('/update-doing-exam', [StudentController::class, 'updateDoingExam'])->name('updateDoingExam');
     Route::post('/update-answer', [StudentController::class, 'updateAnswer'])->name('updateAnswer');
     Route::post('/reset-doing-exam', [StudentController::class, 'resetDoingExam'])->name('resetDoingExam');
     Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
-    Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
+    Route::post('/accpet-exam', [StudentController::class, 'acceptTest'])->name('acceptTest');
     Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
 
     //học sinh luyện đề

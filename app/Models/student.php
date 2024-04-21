@@ -102,12 +102,12 @@ class student extends  Authenticatable implements JWTSubject
     public function updateStudentExam($ID, $testCode, $time)
     {
         $status = DB::table('students')
-        ->where('student_id', $ID)
-        ->update([
-            'doing_exam' => $testCode,
-            'time_remaining' => $time,
-            'starting_time' => now()
-        ]);
+            ->where('student_id', $ID)
+            ->update([
+                'doing_exam' => $testCode,
+                'time_remaining' => $time,
+                'starting_time' => now()
+            ]);
 
         return $status;
     }
@@ -115,5 +115,39 @@ class student extends  Authenticatable implements JWTSubject
     public function isStudent()
     {
         return $this->role === 'students';
+    }
+
+    public function getResultQuest($testCode, $studentId)
+    {
+        return
+            DB::table('student_test_detail')
+            ->join('questions', 'student_test_detail.question_id', '=', 'questions.question_id')
+            ->join('tests', 'student_test_detail.test_code', '=', 'tests.test_code')
+            ->where('student_test_detail.test_code', $testCode)
+            ->where('student_id', $studentId)
+            ->orderBy('student_test_detail.ID')
+            ->get();
+    }
+
+    public function insertScore($studentId, $testCode, $score, $scoreDetail) {
+        DB::table('scores')->insert([
+            'student_id' => $studentId,
+            'test_code' => $testCode,
+            'score_number' => $score,
+            'score_detail' => $scoreDetail,
+            'completion_time' => now(),
+        ]);
+
+    }
+
+    public function resetDoingExam($ID) {
+        DB::table('students')
+            ->where('student_id', $ID)
+            ->update([
+                'doing_exam' => null,
+                'time_remaining' => null,
+                'starting_time' => null
+            ]);
+
     }
 }
