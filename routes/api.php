@@ -16,8 +16,8 @@ use App\Http\Controllers\HSLuyenDeController;
 use App\Http\Controllers\TBMDuyetDeThiController;
 
 
-    Route::post('login', [AuthController::class, 'login']);
-    Route::post('me', [AuthController::class, 'me']);
+Route::post('login', [AuthController::class, 'login']);
+Route::post('me', [AuthController::class, 'me']);
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
@@ -32,7 +32,7 @@ use App\Http\Controllers\TBMDuyetDeThiController;
 // Route::post('/submit-login', [AdminController::class, 'submitLogin']);
 // 'middleware' => 'checkLoginAdmin'
 
-Route::group(['prefix' => '/admin','middleware' => 'admin'], function ($router) {
+Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function ($router) {
 
     //ql Admin
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
@@ -56,7 +56,7 @@ Route::group(['prefix' => '/admin','middleware' => 'admin'], function ($router) 
         Route::post('/update-questions', [Admincontroller::class, 'updateQuestions'])->name(('updateQuestions'));
 
         Route::post('check-add-test', [Admincontroller::class, 'checkAddTest'])->name(('checkAddTest'));
-     });
+    });
 
     ///
     //Profile
@@ -134,16 +134,16 @@ Route::group(['prefix' => '/admin','middleware' => 'admin'], function ($router) 
 });
 
 
-Route::group(['prefix' => '/student', 'middleware' => 'CheckStudent'], function () {
+Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     Route::get('/get', [AdminHSController::class, 'index'])->name('index');
     Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
 
     Route::post('/update-timing', [StudentController::class, 'updateTiming'])->name('updateTiming');
     Route::post('/update-doing-exam', [StudentController::class, 'updateDoingExam'])->name('updateDoingExam');
     Route::post('/reset-doing-exam', [StudentController::class, 'resetDoingExam'])->name('resetDoingExam');
-        Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
-        Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
-        Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
+    Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
+    Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
+    Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
 
     //học sinh luyện đề
     Route::group(['prefix' => '/luyende'], function () {
@@ -151,10 +151,9 @@ Route::group(['prefix' => '/student', 'middleware' => 'CheckStudent'], function 
         Route::post('/', [HSLuyenDeController::class, 'luyenDe'])->name('luyenDe');
         Route::put('/', [HSLuyenDeController::class, 'nopBai'])->name('nopBai');
     });
-
 });
 
-Route::group(['prefix' => '/teacher', 'middleware' => 'CheckTeacher'], function () {
+Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     Route::get('/get',     [AdminTeacherController::class, 'getTeacher'])->name('getTeacher');
     Route::post('/check-add-question-via-file', [AdminTeacherController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
     Route::post('/create', [AdminTeacherController::class, 'checkAddQuestions'])->name('checkAddQuestion');
