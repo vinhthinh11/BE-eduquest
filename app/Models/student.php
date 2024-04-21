@@ -57,7 +57,17 @@ class student extends  Authenticatable implements JWTSubject
         return $test;
     }
 
+    public function statistics($student_id)
+    {
+        $result = subjects::select('subjects.subject_detail as subject_detail', 'subjects.subject_id as subject_id')
+            ->selectRaw('SUM(IF(practice_scores.practice_code IS NOT NULL AND practice.student_id = ?, 1, 0)) AS tested_time', [$student_id])
+            ->leftJoin('practice', 'subjects.subject_id', '=', 'practice.subject_id')
+            ->leftJoin('practice_scores', 'practice.practice_code', '=', 'practice_scores.practice_code')
+            ->groupBy('subject_detail', 'subject_id')
+            ->get();
 
+        return $result;
+    }
 
     public function getQuestOfTest($testCode)
     {
