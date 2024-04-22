@@ -339,7 +339,8 @@ class Admincontroller extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-       $admin = admin::create(request()->all());
+        $password = bcrypt($request->password);
+       $admin = admin::create(array_merge(request()->all(),$password));
         return response()->json([
             'message'   => 'Thêm Admin thành công!',
             'admin'   => $admin,
@@ -378,11 +379,11 @@ class Admincontroller extends Controller
     public function updateAdmin(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'admin_id' => 'required|exists:admins,admin_id',
-            'name' => 'required|string|min:6|max:50',
-            'gender_id' => 'required|integer',
-            'birthday' => 'nullable|date',
-            'password' => 'nullable|string|min:6|max:20',
+            'admin_id' => 'sometimes|exists:admins,admin_id',
+            'name' => 'sometimes|string|min:6|max:50',
+            'gender_id' => 'sometimes|integer',
+            'birthday' => 'sometimes|date',
+            'password' => 'sometimes|string|min:6|max:20',
         ], [
             'admin_id.required' => 'Admin không được để trống!',
             'admin_id.exists' => 'Admin không tồn tại!',

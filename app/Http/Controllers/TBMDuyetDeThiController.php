@@ -8,6 +8,12 @@ use Illuminate\Support\Facades\Validator;
 
 class TBMDuyetDeThiController extends Controller
 {
+    public function getTests(Request $request)
+    {
+        $user = $request->user('subject_heads');
+        $tests = tests::where('subject_id', $user->subject_id)->get();
+        return response()->json($tests);
+    }
     public function duyetDT(Request $request)
     {
         $validator = Validator::make($request->all(), [

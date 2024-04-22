@@ -204,6 +204,8 @@ Route::group(['prefix' => '/subject-head', 'middleware' => 'head_subject'], func
     Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
 
     //duyệt đề thi
-    Route::post('/', [TBMDuyetDeThiConTroller::class, 'duyetDT'])->name('duyetDT');
-    Route::put('/', [TBMDuyetDeThiConTroller::class, 'khongDuyetDT'])->name('khongDuyetDT');
+    Route::group(['prefix' => '/test'], function () {
+        Route::get('/get', [TBMDuyetDeThiConTroller::class, 'getTests'])->name('duyetDT');
+        Route::put('/update', [TBMDuyetDeThiConTroller::class, 'khongDuyetDT'])->name('khongDuyetDT');
+    });
 });
