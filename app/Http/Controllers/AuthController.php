@@ -52,10 +52,10 @@ class AuthController extends Controller
             return response()->json(["access_token"=>$token]);
         }
         // subject_head
-        //  $token = auth('head_subjects')->attempt($credentials);
-        // if($token){
-        //     return response()->json(["access_token"=>$token]);
-        // }
+         $token = auth('subject_heads')->attempt($credentials);
+        if($token){
+            return response()->json(["access_token"=>$token]);
+        }
         // teachers
         $token = auth('teachers')->attempt($credentials);
         if($token){
