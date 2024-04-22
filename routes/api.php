@@ -172,6 +172,8 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     Route::get('/info/{username}', [TeacherConTroller::class, 'getInfo'])->name('getInfo');
     Route::put('/update-profile',      [TeacherConTroller::class, 'updateProfile'])->name('updateProfile');
     Route::put('/update-avatar',      [TeacherConTroller::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
+    //Route::put('/update-avatar',      [TeacherConTroller::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
+
 
     // qly điểm
     Route::group(['prefix' => '/score'], function () {
@@ -184,6 +186,7 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
         Route::get('/get',        [TeacherConTroller::class, 'getClass'])->name('getClass');
         Route::get('/get-class-by-teacher',      [TeacherConTroller::class, 'getClassByTeacher'])->name('getClassByTeacher');
     });
+
     // Chat with teacher
     Route::group(['prefix' => '/notification'], function () {
         Route::get('/to-student', [TeacherConTroller::class, 'getNotificationToStudent'])->name('getNotificationToStudent');

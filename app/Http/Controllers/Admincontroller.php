@@ -19,6 +19,7 @@ use App\Models\tests;
 use Carbon\Carbon;
 use Carbon\CarbonTimeZone;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -96,42 +97,38 @@ class Admincontroller extends Controller
     }
     public function updateAvatarProfile(Request $request)
     {
-        $admin = Admin::find($request->id);
-        if (!$admin) {
+        $user = $request->user('admins');
+
+        $validator = Validator::make($request->all(), [
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ], [
+            'avatar.required' => 'Vui lòng chọn hình ảnh đại diện',
+            'avatar.image' => 'Vui lòng chọn hình ảnh đại diện',
+            'avatar.mimes' => 'Vui lòng chọn hình ảnh đúng định dạng (jpeg, png, jpg, gif, svg)',
+            'avatar.max' => 'Kích thước hình ảnh không được vượt quá 2048KB',
+        ]);
+
+        if ($validator->fails()) {
             return response()->json([
                 'status' => false,
-                'message' => 'Admin không tồn tại!',
-            ], 404);
+                'errors' => $validator->errors(),
+            ], 422);
         }
 
         if ($request->hasFile('avatar')) {
-            $validator = Validator::make($request->all(), [
-                'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            ], [
-                'avatar.required' => 'Vui lòng chọn hình ảnh đại diện',
-                'avatar.image' => 'Vui lòng chọn hình ảnh đại diện',
-                'avatar.mimes' => 'Vui lòng chọn hình ảnh đúng định dạng (jpeg, png, jpg, gif, svg)',
-                'avatar.max' => 'Kích thước hình ảnh không được vượt quá 2048KB',
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'errors' => $validator->errors(),
-                ], 422);
-            }
-
             $image = $request->file('avatar');
-            $path = $image->store('images');
-            $admin->avatar = $path;
-            $admin->save();
-            return response()->json(['message' => 'Tải lên thành công', 'path' => $path], 200);
-        } else {
-            return response()->json([
-                'status' => false,
-                'message' => 'Không có tệp nào được tải lên'
-            ], 404);
+            $path = $image->store('images/admin');
+
+        if ($user->avatar) {
+            Storage::delete($user->avatar);
         }
+
+            $user->avatar = $path;
+            $user->save();
+
+            return response()->json(['message' => 'Tải lên thành công', 'path' => $path], 200);
+        }
+            return response()->json(['message' => 'Không có tệp nào được tải lên'], 404);
     }
     public function indexLogin()
     {

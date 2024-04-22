@@ -18,6 +18,7 @@ use Carbon\CarbonTimeZone;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -83,41 +84,38 @@ class TeacherConTroller extends Controller
 
     public function updateAvatarProfile(Request $request)
     {
-        $teacher = teacher::find($request->id);
+        $user = $request->user('teachers');
 
-        if (!$teacher) {
+        $validator = Validator::make($request->all(), [
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ], [
+            'avatar.required' => 'Vui lòng chọn hình ảnh đại diện',
+            'avatar.image' => 'Vui lòng chọn hình ảnh đại diện',
+            'avatar.mimes' => 'Vui lòng chọn hình ảnh đúng định dạng (jpeg, png, jpg, gif, svg)',
+            'avatar.max' => 'Kích thước hình ảnh không được vượt quá 2048KB',
+        ]);
+
+        if ($validator->fails()) {
             return response()->json([
                 'status' => false,
-                'message' => 'Giáo viên không tồn tại!',
-            ], 404);
+                'errors' => $validator->errors(),
+            ], 422);
         }
 
         if ($request->hasFile('avatar')) {
-            $validator = Validator::make($request->all(), [
-                'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            ], [
-                'avatar.required' => 'Vui lòng chọn hình ảnh đại diện',
-                'avatar.image' => 'Vui lòng chọn hình ảnh đại diện',
-                'avatar.mimes' => 'Vui lòng chọn hình ảnh đúng định dạng (jpeg, png, jpg, gif, svg)',
-                'avatar.max' => 'Kích thước hình ảnh không được vượt quá 2048KB',
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'errors' => $validator->errors(),
-                ], 422);
-            }
-
             $image = $request->file('avatar');
-            $path = $image->store('images');
-            $teacher->avatar = $path;
-            $teacher->save();
+            $path = $image->store('images/teacher'); //lưu ảnh ở file store
+
+        if ($user->avatar) {
+            Storage::delete($user->avatar);
+        }
+
+            $user->avatar = $path;
+            $user->save();
 
             return response()->json(['message' => 'Tải lên thành công', 'path' => $path], 200);
-        } else {
-            return response()->json(['message' => 'Không có tệp nào được tải lên'], 404);
         }
+            return response()->json(['message' => 'Không có tệp nào được tải lên'], 404);
     }
     public function getClass(Request $request)
     {
@@ -697,6 +695,7 @@ class TeacherConTroller extends Controller
         }
     }
 
+
     public function getNotificationToStudent(Request $request)
     {
         $teacher_id = $request->user('teachers');
@@ -709,9 +708,10 @@ class TeacherConTroller extends Controller
                         ->from('classes')
                         ->where('teacher_id', $teacher_id);
                 });
-        })              ->get();
+        })->get();
+
         return response()->json([
-            "message" => "Show thông báo tới học sinh thành công!",
+            "message" => "Show thông báo cho giáo viên thành công!",
             "data" => $notifications
         ], 200);
     }
