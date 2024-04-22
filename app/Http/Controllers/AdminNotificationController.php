@@ -18,7 +18,7 @@ class AdminNotificationController extends Controller
         $getListGV = notifications::whereExists(function ($query) {
             $query->select(DB::raw(1))
                 ->from('teacher_notifications')
-                ->whereColumn('teacher_notifications.question_id', 'notifications.question_id');
+                ->whereColumn('teacher_notifications.notification_id', 'notifications.notification_id');
         })->get();
         if ($getListGV->isEmpty()) {
             return response()->json([
@@ -36,7 +36,7 @@ class AdminNotificationController extends Controller
         $getListHS = notifications::whereExists(function ($query) {
             $query->select(DB::raw(1))
                 ->from('student_notifications')
-                ->whereColumn('student_notifications.question_id', 'notifications.question_id');
+                ->whereColumn('student_notifications.notification_id', 'notifications.notification_id');
         })->get();
         if ($getListHS->isEmpty()) {
             return response()->json([

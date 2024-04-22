@@ -144,6 +144,9 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
         Route::post('/accept-practice', [HSLuyenDeController::class, 'acceptPractice'])->name('acceptPractice');
         Route::post('/show-practice', [HSLuyenDeController::class, 'showPractice'])->name('showPractice');
     });
+
+    //xem danh sách thông báo
+    Route::get('/get-notification', [StudentController::class, 'getNotification'])->name('getNotification');
 });
 
 // ----- Route for Teacher -----
