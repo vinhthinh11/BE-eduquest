@@ -210,24 +210,8 @@ class Admincontroller extends Controller
     public function check_add_admin_via_file(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|min:6|max:50',
-            'username' => 'required|string|min:6|max:50|unique:admins,username',
-            'email' => 'nullable|email|unique:admins,email',
-            'password' => 'required|string|min:6|max:20',
-            'birthday' => 'nullable|date',
-            'gender' => 'required|string|in:Nam,Nữ,Khác',
-            'permission' => 'nullable|string',
             'file' => 'required|file|mimes:xlsx',
         ], [
-            'name.min' => 'Tên Admin tối thiểu 6 kí tự!',
-            'name.required' => 'Tên Admin không được để trống!',
-            'username.required' => 'Username không được để trống!',
-            'username.unique' => 'Username đã tồn tại!',
-            'password.required' => 'Password không được để trống!',
-            'password.min' => 'Password tối thiểu 6 kí tự!',
-            'email.email' => 'Email không đúng định dạng!',
-            'email.unique' => 'Email đã được sử dụng!',
-            'birthday.date' => 'Ngày Sinh phải là một ngày hợp lệ!',
             'file.required' => 'Vui lòng chọn tệp để tiếp tục.',
             'file.mimes' => 'Chỉ chấp nhận tệp với định dạng xlsx.',
         ]);
@@ -235,10 +219,9 @@ class Admincontroller extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
+                'errors' => $validator->errors()->toArray(),
+            ], 422, [], JSON_UNESCAPED_UNICODE);
         }
-        $result = [];
 
         if ($request->hasFile('file')) {
             $filePath = $request->file('file')->path();
@@ -248,7 +231,7 @@ class Admincontroller extends Controller
             $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
 
             $count = 0;
-            $errList = [];
+            $errDetails = [];
 
             foreach ($sheetData as $key => $row) {
                 if ($key < 4) {
@@ -259,48 +242,93 @@ class Admincontroller extends Controller
                     continue;
                 }
 
-                $name = $row['B'];
-                $username = $row['C'];
-                $email = $row['D'];
+                $validationRules = [
+                    'name' => 'required|string|min:6|max:50',
+                    'username' => 'required|string|min:6|max:50|unique:admins,username',
+                    'email' => 'nullable|email|unique:admins,email',
+                    'password' => 'required|string|min:6|max:20',
+                    'birthday' => 'nullable|date',
+                    'gender' => 'required|string|in:Nam,Nữ,Khác',
+                ];
+
+                $validationMessages = [
+                    'name.required' => 'Tên không được để trống',
+                    'name.string' => 'Tên phải là chuỗi',
+                    'name.min' => 'Tên phải chứa ít nhất 6 ký tự',
+                    'name.max' => 'Tên chỉ được chứa tối đa 50 ký tự',
+                    'username.required' => 'Username không được để trống',
+                    'username.string' => 'Username phải là chuỗi',
+                    'username.min' => 'Username phải chứa ít nhất 6 ký tự',
+                    'username.max' => 'Username chỉ được chứa tối đa 50 ký tự',
+                    'username.unique' => 'Username đã tồn tại',
+                    'email.email' => 'Email không đúng định dạng',
+                    'email.unique' => 'Email đã được sử dụng',
+                    'password.required' => 'Password không được để trống',
+                    'password.string' => 'Password phải là chuỗi',
+                    'password.min' => 'Password phải chứa ít nhất 6 ký tự',
+                    'password.max' => 'Password chỉ được chứa tối đa 20 ký tự',
+                    'birthday.date' => 'Ngày sinh không hợp lệ',
+                    'gender.required' => 'Giới tính không được để trống',
+                    'gender.string' => 'Giới tính phải là chuỗi',
+                    'gender.in' => 'Giới tính không hợp lệ',
+                ];
+
+                $dataToValidate = [
+                    'name' => $row['B'],
+                    'username' => $row['C'],
+                    'email' => $row['D'],
+                    'password' => $row['E'],
+                    'birthday' => $row['F'],
+                    'gender' => $row['G'],
+                ];
+
+                $customValidator = Validator::make($dataToValidate, $validationRules, $validationMessages);
+
+                if ($customValidator->fails()) {
+                    $errDetails[$row['A']] = implode(', ', $customValidator->errors()->all());
+                    continue;
+                }
+
                 $password = bcrypt($row['E']);
-                $birthday = $row['F'];
                 $gender = ($row['G'] == 'Nam') ? 2 : (($row['G'] == 'Nữ') ? 3 : 1);
                 $admin = new Admin([
-                    'name' => $name,
-                    'username' => $username,
-                    'email' => $email,
+                    'name' => $row['B'],
+                    'username' => $row['C'],
+                    'email' => $row['D'],
                     'password' => $password,
-                    'birthday' => $birthday,
+                    'birthday' => $row['F'],
                     'gender_id' => $gender,
-                    'last_login' => now(),
+                    'last_login' => Carbon::now(CarbonTimeZone::createFromHourOffset(7 * 60))->timezone('Asia/Ho_Chi_Minh'),
                 ]);
 
                 if ($admin->saveQuietly()) {
                     $count++;
                 } else {
-                    $errList[] = $row['A'];
+                    $errDetails[$row['A']] = "Lỗi khi thêm tài khoản";
                 }
             }
 
             unlink($filePath);
 
-            if (empty($errList)) {
-                $result['status_value'] = "Thêm thành công " . $count . " tài khoản!";
-                $result['status'] = 1;
+            if (empty($errDetails)) {
+                $result['status_value'] = "Thêm thành công " . $count . " tài khoản";
+                $result['status'] = true;
             } else {
-                $result['status_value'] = "Lỗi! Không thể thêm tài khoản có STT: " . implode(', ', $errList) . ', vui lòng xem lại.';
-                $result['status'] = 0;
+                $result['status_value'] = "Lỗi! Thông tin lỗi cụ thể cho từng tài khoản:\n" . json_encode($errDetails, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+                $result['status'] = 404;
             }
         } else {
-            $result['status_value'] = "Không tìm thấy tệp được tải lên!";
-            $result['status'] = 0;
+            $result['status_value'] = "Không tìm thấy tệp được tải lên";
+            $result['status'] = false;
         }
 
-        return response()->json($result);
-        // return response()->json([
-        //     'result' => $result,
-        // ]);
+        return response()->json($result, 200, [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     }
+
+
+
+
+
 
     public function indexAdmin()
     {
@@ -318,8 +346,8 @@ class Admincontroller extends Controller
             'birthday'      => 'nullable|date',
         ], [
             'name.min'           => 'Tên Admin tối thiểu 3 kí tự!',
-            'name.max'            => 'Ten Admin dài nhất 50 ký tự!',
-            'name.unique'         => 'Ten Admin đã tồn tại!',
+            'name.max'            => 'Tên Admin dài nhất 50 ký tự!',
+            'name.unique'         => 'Tên Admin đã tồn tại!',
             'name.required'         => 'Tên Admin không được để trống!',
             'username.required'     => 'Username không được để trống!',
             'username.unique'       => 'Username đã tồn tại!',
@@ -336,8 +364,10 @@ class Admincontroller extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-        $password = bcrypt($request->password);
-       $admin = admin::create(array_merge(request()->all(),$password));
+        $data = $request->all();
+        $data['password'] = bcrypt($data['password']);
+        $data['last_login'] = Carbon::now('Asia/Ho_Chi_Minh');
+        $admin = admin::create($data);
         return response()->json([
             'message'   => 'Thêm Admin thành công!',
             'admin'   => $admin,
@@ -347,9 +377,19 @@ class Admincontroller extends Controller
     public function deleteAdmin(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'admin_id' => 'required|exists:admins,admin_id'
-        ], [
-            'admin_id.*' => 'Admin không tồn tại!',
+            'admin_id' => [
+                'required',
+                'exists:admins,admin_id',
+                function ($attribute, $value, $fail) use ($request) {
+                    $loggedInAdminId = $request->user("admins")->admin_id;
+                    if ($value == $loggedInAdminId) {
+                        $fail('Bạn không có quyền xóa tài khoản của mình!');
+                    }
+                },
+            ],
+        ],[
+            'admin_id.exists' => 'ADMIN không tồn tại trên hệ thống!',
+            'admin_id.required' => 'Yêu cầu nhập đúng ID của ADMIN!',
         ]);
 
         if ($validator->fails()) {
@@ -358,21 +398,14 @@ class Admincontroller extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-        $admin = admin::find($request->id);
 
-        if (!$admin) {
-            return response()->json([
-                'message'   => 'Admin không tồn tại!'
-            ], 400);
-        }
-        $admin->delete();
+        $admin = admin::find($request->admin_id)->delete();
+
         return response()->json([
-            'message'   => 'Xóa Admin thành công!',
-            "admin" => $admin
+            'message' => 'Xóa Admin thành công!',
+            'admin' => $admin
         ]);
     }
-
-
     public function updateAdmin(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -398,7 +431,7 @@ class Admincontroller extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-        $admin = Admin::find($request->admin_id);
+        $admin = $request->user("admins");
         $data = $request->only(['name', 'username', 'gender_id', 'birthday', 'password', 'permission',]);
 
         if (!$admin) {

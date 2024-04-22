@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\classes;
 use App\Models\questions;
 use App\Models\teacher;
+use Carbon\Carbon;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -181,7 +182,7 @@ class AdminTeacherController extends Controller
             ], 422);
         }
 
-        $teacher = teacher::find($request->teacher_id);
+        $teacher = $request->user("teachers");
         $data = $request->only(['name', 'gender_id', 'birthday', 'password']);
 
         if (!$teacher) {
@@ -238,6 +239,7 @@ class AdminTeacherController extends Controller
 
         $data = $request->all();
         $data['password'] = bcrypt($data['password']);
+        $data['last_login'] = Carbon::now('Asia/Ho_Chi_Minh');
         $teacher = Teacher::create($data);
 
         return response()->json([
