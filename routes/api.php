@@ -63,19 +63,17 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () { //
     Route::group(['prefix' => 'teacher'], function () {
         Route::get('/get',     [AdminTeacherController::class, 'getTeacher'])->name('getTeacher');
         Route::delete('/delete', [AdminTeacherController::class, 'destroy'])->name('destroyTeacher');
-        // Route::put('/update',  [AdminTeacherController::class, 'update'])->name('updateTeacher');
         Route::put('/update',   [AdminTeacherController::class, 'edit'])->name('editTeacher');
         Route::post('/create', [AdminTeacherController::class, 'create'])->name('createTeacher');
         Route::post('/search', [AdminTeacherController::class, 'search'])->name('searchTeacher');
-        Route::post('/delete-check-box', [AdminTeacherController::class, 'deleteCh2eckbox'])->name('deleteCheckbox');
-        Route::post('/file', [AdminTeacherController::class, 'createFileTeacher'])->name('check_add_teacher_via_file');
+        Route::post('/delete-check-box', [AdminTeacherController::class, 'deleteCheckbox'])->name('deleteCheckbox');
+        Route::post('/file', [AdminTeacherController::class, 'createFileTeacher'])->name('createFileTeacher');
     });
 
     //ql Class
     Route::group(['prefix' => 'class'], function () {
         Route::get('/get',     [AdminClassController::class, 'getClasses'])->name('getClasses');
         Route::delete('/delete', [AdminClassController::class, 'destroy'])->name('destroyClass');
-        // Route::put('/update', [AdminClassController::class, 'update'])->name('updateClass');
         Route::put('/update',   [AdminClassController::class, 'edit'])->name('editClass');
         Route::post('/create', [AdminClassController::class, 'create'])->name('createClass');
         Route::post('/search', [AdminClassController::class, 'search'])->name('searchClass');

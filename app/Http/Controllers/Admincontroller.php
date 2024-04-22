@@ -135,11 +135,6 @@ class Admincontroller extends Controller
         return view('loginTest');
     }
 
-    // public function __construct()
-    // {
-    //     $this->middleware('auth:api', ['except' => ['submitLogin']]);
-    // }
-
     public function submitLogin(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -198,7 +193,6 @@ class Admincontroller extends Controller
             }
         }
     }
-
 
     public function logout(Request $request)
     {
@@ -311,11 +305,11 @@ class Admincontroller extends Controller
             unlink($filePath);
 
             if (empty($errDetails)) {
-                $result['status_value'] = "Thêm thành công " . $count . " tài khoản";
+                $result['status_value'] = "Thêm thành công " . $count . " tài khoản ADMIN";
                 $result['status'] = true;
             } else {
-                $result['status_value'] = "Lỗi! Thông tin lỗi cụ thể cho từng tài khoản:\n" . json_encode($errDetails, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-                $result['status'] = 404;
+                $result['status_value'] = "Lỗi! Thông tin lỗi cụ thể cho từng tài khoản: " . json_encode($errDetails, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+                $result['status'] = 442;
             }
         } else {
             $result['status_value'] = "Không tìm thấy tệp được tải lên";
@@ -324,12 +318,6 @@ class Admincontroller extends Controller
 
         return response()->json($result, 200, [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     }
-
-
-
-
-
-
     public function indexAdmin()
     {
         return view('admin.CRUD');
@@ -345,9 +333,9 @@ class Admincontroller extends Controller
             'permission'    => 'nullable',
             'birthday'      => 'nullable|date',
         ], [
-            'name.min'           => 'Tên Admin tối thiểu 3 kí tự!',
-            'name.max'            => 'Tên Admin dài nhất 50 ký tự!',
-            'name.unique'         => 'Tên Admin đã tồn tại!',
+            'name.min'              => 'Tên Admin tối thiểu 3 kí tự!',
+            'name.max'              => 'Tên Admin dài nhất 50 ký tự!',
+            'name.unique'           => 'Tên Admin đã tồn tại!',
             'name.required'         => 'Tên Admin không được để trống!',
             'username.required'     => 'Username không được để trống!',
             'username.unique'       => 'Username đã tồn tại!',
@@ -409,7 +397,7 @@ class Admincontroller extends Controller
     public function updateAdmin(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'admin_id' => 'sometimes|exists:admins,admin_id',
+            'admin_id' => 'sometimes|required|exists:admins,admin_id',
             'name' => 'sometimes|string|min:6|max:50',
             'gender_id' => 'sometimes|integer',
             'birthday' => 'sometimes|date',
@@ -432,7 +420,7 @@ class Admincontroller extends Controller
             ], 422);
         }
         $admin = $request->user("admins");
-        $data = $request->only(['name', 'username', 'gender_id', 'birthday', 'password', 'permission',]);
+        $data = $request->only(['name', 'username', 'gender_id', 'birthday', 'password', 'permission']);
 
         if (!$admin) {
             return response()->json([
