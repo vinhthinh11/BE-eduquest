@@ -15,7 +15,7 @@ class AdminTeacherController extends Controller
 {
     public function getTeacher()
     {
-        $data = teacher::get();
+        $data = teacher::orderBy('teacher_id', 'desc')->get();
         if ($data->isEmpty()) {
             return response()->json([
                 'status' => false,
@@ -212,8 +212,8 @@ class AdminTeacherController extends Controller
             'gender_id'     => 'required|integer',
             'password'      => 'required|string|min:6|max:20',
             'email'         => 'nullable|email|unique:teachers,email',
-            'permission'    => 'nullable',
             'birthday'      => 'nullable|date',
+            'subject_id'    => 'required'
         ], [
             'name.min'           => 'Tên Giáo Viên tối thiểu 6 kí tự!',
             'name.max'             => 'Ten Giờ Viên phải là 50 kí tự!',
@@ -226,6 +226,7 @@ class AdminTeacherController extends Controller
             'email.email'           => 'Email không đúng định dạng!',
             'email.unique'          => 'Email đã được sử dụng!',
             'birthday.date'         => 'Ngày Sinh phải là một ngày hợp lệ!',
+            'subject_id.required'       => 'Mon hoc khong duoc de trong',
         ]);
 
         if ($validator->fails()) {
@@ -237,10 +238,10 @@ class AdminTeacherController extends Controller
 
         $data = $request->all();
         $data['password'] = bcrypt($data['password']);
-        Teacher::create($data);
+        $teacher = Teacher::create($data);
 
         return response()->json([
-            'status' => true,
+           "teacher"=>$teacher,
             'message' => 'Đã tạo mới giáo viên thành công!',
         ]);
     }
