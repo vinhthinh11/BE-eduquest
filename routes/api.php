@@ -200,7 +200,8 @@ Route::group(['prefix' => '/subject-head', 'middleware' => 'head_subject'], func
 
     //duyệt đề thi
     Route::group(['prefix' => '/test'], function () {
-        Route::get('/get', [TBMDuyetDeThiConTroller::class, 'getTests'])->name('duyetDT');
-        Route::put('/update', [TBMDuyetDeThiConTroller::class, 'khongDuyetDT'])->name('khongDuyetDT');
+        Route::get('/get', [TBMDuyetDeThiConTroller::class, 'getTests'])->name('getTest');
+        Route::get('/get/{test_code}', [TBMDuyetDeThiConTroller::class, 'getTestDetail'])->name('duyetDT');
+        Route::put('/update/{test_code}', [TBMDuyetDeThiConTroller::class, 'updateTest'])->name('updateTest');
     });
 });

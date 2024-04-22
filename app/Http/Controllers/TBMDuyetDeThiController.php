@@ -14,6 +14,42 @@ class TBMDuyetDeThiController extends Controller
         $tests = tests::where('subject_id', $user->subject_id)->get();
         return response()->json($tests);
     }
+    public function getTestDetail(Request $request, $test_code)
+    {
+$questions = [];
+        $data  = tests::find($test_code);
+        if (!$data) return response()->json(["message" => "Không tìm thấy đề thi!"], 400);
+        foreach ($data->questions as $question) {
+            $questions[] = $question;
+        }
+        $data['questions'] = $questions;
+
+        return response()->json(["data" => $data]);
+    }
+    /**
+     * Duyệt đề, hay là thay đổi trạng thái của đề
+     * @param Request $request phải có status_id = 4 hoặc 5
+     */
+    public function updateTest(Request $request, $test_code)
+    {
+        $validator = Validator::make($request->all(), [
+            'status_id' => 'required|integer|in:1,2,3,4,5',
+        ], [
+            'status_id.required' => 'Trường trạng thái là bắt buộc.',
+            'status_id.integer' => 'Trường trạng thái phải là một số nguyên.',
+            "status_id.in" => "Trạng thái phải thuộc các giá trị: 1, 2, 3, 4, 5.",
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+        $test = tests::find($test_code);
+        if(!$test) return response()->json(['message' => 'Không tìm thấy đề thi'], 404);
+        $test->status_id = $request->status_id;
+        $test->save();
+        return response()->json($test);
+    }
     public function duyetDT(Request $request)
     {
         $validator = Validator::make($request->all(), [
