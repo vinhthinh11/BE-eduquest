@@ -21,7 +21,7 @@ Route::post('login', [AuthController::class, 'login']);
 Route::get('me', [AuthController::class, 'me']);
 
 // ----- Route for Admin -----
-Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
+Route::group(['prefix' => '/admin', ], function () {
     //Profile
     Route::get('/info/{username}',    [Admincontroller::class, 'getInfo'])->name('getInfo');
     Route::put('/update-profile',     [Admincontroller::class, 'updateProfile'])->name('updateProfile');
