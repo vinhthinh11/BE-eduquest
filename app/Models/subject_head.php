@@ -9,6 +9,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Passport\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
 
 class subject_head extends  Authenticatable implements JWTSubject
 {
@@ -29,7 +31,6 @@ class subject_head extends  Authenticatable implements JWTSubject
     ];
     public $timestamps = false;
     protected $primaryKey = 'subject_head_id';
-
 
     function getTBM()
     {

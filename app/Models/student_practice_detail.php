@@ -52,7 +52,7 @@ class student_practice_detail extends Model
     public function getQuestOfPractice($practice_code)
     {
         $result =
-            quest_of_practice::where('practice_code', $practice_code)
+        quest_of_practice::where('practice_code', $practice_code)
             ->join('questions', 'questions.question_id', '=', 'quest_of_practice.question_id')
             ->inRandomOrder()
             ->get();
@@ -88,5 +88,9 @@ class student_practice_detail extends Model
         ]);
 
         return $status;
+    }
+    public function question()
+    {
+        return $this->belongsTo(questions::class, 'question_id', 'question_id');
     }
 }

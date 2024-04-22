@@ -145,6 +145,7 @@ class AdminClassController extends Controller
             ], 422);
         }
         $data = $request->all();
+        
         $class = classes::create($data);
 
         return response()->json([
