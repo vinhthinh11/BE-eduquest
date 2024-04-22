@@ -101,7 +101,7 @@ class student extends  Authenticatable implements JWTSubject
 
     public function updateStudentExam($ID, $testCode, $time)
     {
-        $status = DB::table('students')
+        return DB::table('students')
             ->where('student_id', $ID)
             ->update([
                 'doing_exam' => $testCode,
@@ -109,7 +109,6 @@ class student extends  Authenticatable implements JWTSubject
                 'starting_time' => now()
             ]);
 
-        return $status;
     }
 
     public function isStudent()

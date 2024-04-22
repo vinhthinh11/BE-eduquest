@@ -309,7 +309,7 @@ class StudentController extends Controller
                         $result['status_value'] = "Không có đáp án";
                         $result['status'] = 0;
                     }
-                    $student->updateStudentExam($testCode, $time, $id);
+                    $student->updateStudentExam($id, $testCode, $time);
                 }
                 $result['status_value'] = "Thành công. Chuẩn bị chuyển trang!";
                 $result['status'] = 1;
