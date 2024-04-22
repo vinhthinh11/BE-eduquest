@@ -217,14 +217,6 @@ class AdminTBMonController extends Controller
         $subject_id = $request->subject_id;
 
         // Kiểm tra xem tên người dùng đã tồn tại chưa
-        $existingUser = subject_head::where('username', $username)->exists();
-
-        if ($existingUser) {
-            return response()->json([
-                'status_value' => "Lỗi! Tài khoản đã tồn tại!",
-                'status' => 0
-            ]);
-        }
 
         $tbm = new subject_head([
             'name' => $name,

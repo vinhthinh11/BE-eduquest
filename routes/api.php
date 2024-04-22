@@ -14,6 +14,7 @@ use App\Http\Controllers\AdminHSController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\HSLuyenDeController;
 use App\Http\Controllers\TBMDuyetDeThiController;
+use App\Http\Controllers\AdminNotificationController;
 
 
 Route::post('login', [AuthController::class, 'login']);
@@ -53,10 +54,12 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::get('/detail/{test_code}', [Admincontroller::class, 'getTestDetail'])->name(('getTestDetail'));
     });
 
-    //Thong Ke
-    Route::post('/list-statist',         [StatistController::class, 'listStatist'])->name('listStatist');
-    Route::post('/list-statist-scores', [StatistController::class, 'listStatistScores'])->name('listStatistScores');
-
+    //Statist
+    Route::group(['prefix' => 'statist'], function () {
+        Route::post('/list',         [StatistController::class, 'statist'])->name('statist');
+        Route::post('/list-scores', [StatistController::class, 'statistScores'])->name('statistScores');
+        Route::post('/list-test', [StatistController::class, 'listStatistTest'])->name('listStatistTest');
+    });
     //ql Teacher
     Route::group(['prefix' => 'teacher'], function () {
         Route::get('/get',     [AdminTeacherController::class, 'getTeacher'])->name('getTeacher');
@@ -105,6 +108,9 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::put('/update', [AdminHSController::class, 'updateHS'])->name('updateHS');
         Route::post('/file', [AdminHSController::class, 'check_add_hs_via_file'])->name('check_add_hs_via_file');
     });
+
+    //notification
+    Route::get('/list-notification', [AdminNotificationController::class, 'listNotification'])->name('listNotification');
 });
 
 // ----- Route for Student -----
@@ -116,6 +122,11 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
 
     // Route::get('/get', [AdminHSController::class, 'index'])->name('index');
 
+    //Statist
+    Route::group(['prefix' => 'statist'], function () {
+        Route::get('/get',         [StatistController::class, 'statistStudent'])->name('statistStudent');
+        Route::get('/get-scores', [StatistController::class, 'statistScoreStudent'])->name('statistScoreStudent');
+    });
 
     Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
     Route::post('/update-timing', [StudentController::class, 'updateTiming'])->name('updateTiming');
@@ -129,8 +140,8 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     //học sinh luyện đề
     Route::group(['prefix' => '/practice'], function () {
         Route::get('/get', [HSLuyenDeController::class, 'list'])->name('list');
-        Route::post('/create', [HSLuyenDeController::class, 'luyenDe'])->name('luyenDe');
-        Route::put('/update', [HSLuyenDeController::class, 'nopBai'])->name('nopBai');
+        Route::post('/check-add-practice', [HSLuyenDeController::class, 'checkAddPractice'])->name('checkAddPractice');
+        Route::put('/accept-practice', [HSLuyenDeController::class, 'acceptPractice'])->name('acceptPractice');
     });
 });
 
@@ -152,8 +163,8 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
         Route::post('/create', [TeacherConTroller::class, 'addQuestion'])->name('addQuestion');
         Route::get('/get', [TeacherConTroller::class, 'getQuestion'])->name('addQuestion');
         Route::get('/getTotal', [TeacherConTroller::class, 'getTotalQuestions'])->name('addQuestion');
-        Route::delete('/delete/{question_id}', [TeacherConTroller::class, 'destroyQuestion'])->name('destroyQuestion');
-        Route::put('/update/{question_id}', [TeacherConTroller::class, 'updateQuestion'])->name('updateQuestion');
+        Route::post('/delete', [TeacherConTroller::class, 'destroyQuestion'])->name('destroyQuestion');
+        Route::put('/update', [TeacherConTroller::class, 'updateQuestion'])->name('updateQuestion');
         Route::post('/multi-delete-question', [TeacherConTroller::class, 'multiDeleteQuestion'])->name('multiDeleteQuestion');
         Route::post('/file', [TeacherConTroller::class, 'addFileQuestion'])->name('addFileQuestion');
     });
@@ -165,14 +176,14 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
 
     // qly điểm
     Route::group(['prefix' => '/score'], function () {
-        Route::post('/list',        [TeacherConTroller::class, 'listScore'])->name('listScore');
+        Route::get('/get',        [TeacherConTroller::class, 'getScore'])->name('getScore');
         Route::post('/export',      [TeacherConTroller::class, 'exportScore'])->name('exportScore');
     });
 
     // qly lớp
     Route::group(['prefix' => '/class'], function () {
-        Route::post('/list',        [TeacherConTroller::class, 'listClass'])->name('listClass');
-        Route::post('/list-class-by-teacher',      [TeacherConTroller::class, 'listClassByTeacher'])->name('listClassByTeacher');
+        Route::get('/get',        [TeacherConTroller::class, 'getClass'])->name('getClass');
+        Route::get('/get-class-by-teacher',      [TeacherConTroller::class, 'getClassByTeacher'])->name('getClassByTeacher');
     });
     // Route::post('/check-add-question-via-file', [AdminTeacherController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
     // Route::post('/create', [AdminTeacherController::class, 'checkAddQuestions'])->name('checkAddQuestion');
@@ -188,7 +199,8 @@ Route::group(['prefix' => '/subject-head', 'middleware' => 'head_subject'], func
     Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
 
     //duyệt đề thi
-
-    Route::post('/', [TBMDuyetDeThiConTroller::class, 'duyetDT'])->name('duyetDT');
-    Route::put('/', [TBMDuyetDeThiConTroller::class, 'khongDuyetDT'])->name('khongDuyetDT');
+    Route::group(['prefix' => '/test'], function () {
+        Route::get('/get', [TBMDuyetDeThiConTroller::class, 'getTests'])->name('duyetDT');
+        Route::put('/update', [TBMDuyetDeThiConTroller::class, 'khongDuyetDT'])->name('khongDuyetDT');
+    });
 });

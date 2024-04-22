@@ -11,6 +11,7 @@ class questions extends  Model
 {
     protected $table = 'questions';
     protected $fillable = [
+        'question_id',
         'grade_id',
         'unit' ,
         'level_id' ,
@@ -20,7 +21,6 @@ class questions extends  Model
         'answer_c',
         'answer_d',
         'correct_answer',
-        'question_id',
         'subject_id' ,
         'teacher_id' ,
         'status_id' ,
@@ -30,6 +30,10 @@ class questions extends  Model
     public function teacher()
     {
         return $this->belongsTo(Teacher::class, 'teacher_id');
+    }
+    public function studentPracticeDetails()
+    {
+        return $this->hasMany(student_practice_detail::class, 'question_id', 'question_id');
     }
     public function questOfTest()
     {

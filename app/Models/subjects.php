@@ -24,4 +24,5 @@ class subjects extends Model
         $getAllMon = DB::select('select * from subjects');
         return $getAllMon;
     }
+
 }
