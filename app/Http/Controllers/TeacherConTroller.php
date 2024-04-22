@@ -366,8 +366,7 @@ class TeacherConTroller extends Controller
         }
         $inputFileType = 'Xlsx';
         $result = array();
-        $shuffle = array();
-        $subject_id = $request->input('subject_id');
+        $subject_id = $request->subject_id;
 
         $reader = IOFactory::createReader($inputFileType);
         $spreadsheet = $reader->load($request->file('file')->getRealPath());
@@ -375,64 +374,61 @@ class TeacherConTroller extends Controller
 
         $count = 0;
         $err_list = '';
-        for ($i = 4; $i < count($sheetData); $i++) {
-            if (empty($sheetData[$i]['A'])) {
+        foreach ($sheetData as $index => $row) {
+            if ($index < 4 || empty($row['A'])) {
                 continue;
             }
-            $stt = $sheetData[$i]['A'];
-            $question_content = $sheetData[$i]['B'];
-            $level_id = $sheetData[$i]['C'];
-            $answer_a = $sheetData[$i]['D'];
-            $answer_b = $sheetData[$i]['E'];
-            $answer_c = $sheetData[$i]['F'];
-            $answer_d = $sheetData[$i]['G'];
-            $correct_answer = $sheetData[$i]['H'];
-            $grade_id = $sheetData[$i]['I'];
-            $unit = $sheetData[$i]['J'];
-            $suggest = $sheetData[$i]['K'];
-            $teacher_id = null;
+
+            $stt = $row['A'];
+            $question_content = $row['B'];
+            $level_id = $row['C'];
+            $answer_a = $row['D'];
+            $answer_b = $row['E'];
+            $answer_c = $row['F'];
+            $answer_d = $row['G'];
+            $correct_answer = $row['H'];
+            $grade_id = $row['I'];
+            $unit = $row['J'];
+            $suggest = $row['K'];
+
             if (empty($question_content) || empty($grade_id) || empty($level_id) || empty($unit) || empty($answer_a) || empty($answer_b) || empty($answer_c) || empty($answer_d) || empty($correct_answer)) {
+                $err_list[] = $stt;
                 continue;
             }
 
             switch ($correct_answer) {
                 case "A":
-                    $answer = $answer_a;
+                    $correct_answer_text = $answer_a;
                     break;
                 case "B":
-                    $answer = $answer_b;
+                    $correct_answer_text = $answer_b;
                     break;
                 case "C":
-                    $answer = $answer_c;
+                    $correct_answer_text = $answer_c;
                     break;
                 default:
-                    $answer = $answer_d;
+                    $correct_answer_text = $answer_d;
             }
 
-            try {
-                DB::beginTransaction();
+            DB::beginTransaction();
 
-                $question = questions::create([
-                    'subject_id' => $subject_id,
-                    'question_content' => $question_content,
-                    'level_id' => $level_id,
-                    'grade_id' => $grade_id,
-                    'unit' => $unit,
-                    'answer_a' => $answer_a,
-                    'answer_b' => $answer_b,
-                    'answer_c' => $answer_c,
-                    'answer_d' => $answer_d,
-                    'correct_answer' => $answer,
-                    'suggest' => $suggest,
-                    'teacher_id' => $teacher_id,
-                ]);
-                DB::commit();
+            $question = questions::create([
+                'subject_id' => $subject_id,
+                'test_name' => $question_content,
+                'level_id' => $level_id,
+                'grade_id' => $grade_id,
+                'unit' => $unit,
+                'answer_a' => $answer_a,
+                'answer_b' => $answer_b,
+                'answer_c' => $answer_c,
+                'answer_d' => $answer_d,
+                'correct_answer' => $correct_answer_text,
+                'suggest' => $suggest,
+                'teacher_id' => null,
+            ]);
 
-                $count++;
-            } catch (\Exception $e) {
-                DB::rollBack();
-                $err_list .= $stt . ', ';
-            }
+            DB::commit();
+            $count++;
         }
         if ($err_list == '') {
             $result['status_value'] = "Thêm thành công " . $count . ' câu hỏi!';
@@ -693,6 +689,88 @@ class TeacherConTroller extends Controller
             DB::rollBack();
             return response()->json(["message" => "Tạo đề thi thất bại!", "error" => $e->getMessage()], 400);
         }
+    }
+
+    public function addFileTest(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'test_code' => 'required|integer|exists:tests,test_code',
+            'file'      => 'required|file|mimes:pdf',
+        ], [
+            'test_code.exists' => 'Không tìm thấy đề!',
+            'file.mimes' => 'File phải là pdf!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $inputFileType = 'Xlsx';
+
+        try {
+            $reader = IOFactory::createReader($inputFileType);
+            $spreadsheet = $reader->load($request->file('file')->getRealPath());
+            $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
+
+            $count = 0;
+            $err_list = [];
+
+            foreach ($sheetData as $index => $row) {
+                if ($index < 4 || empty($row['A'])) {
+                    continue;
+                }
+
+                $stt = $row['A'];
+                $test_name = $row['B'];
+                $level_id = $row['C'];
+                $grade_id = $row['D'];
+                $total_questions = $row['E'];
+                $time_to_do = $row['F'];
+                $note = $row['G'];
+                $status_id = $row['H'];
+                $timest = $row['J'];
+
+                if (empty($test_name) || empty($grade_id) || empty($level_id) || empty($timest) || empty($grade_id) || empty($total_questions) || empty($time_to_do) || empty($note) || empty($status_id)) {
+                    $err_list[] = $stt;
+                    continue;
+                }
+
+                DB::beginTransaction();
+
+                $test = tests::create([
+                    'subject_id' => $$request->subject_id,
+                    'test_name' => $test_name,
+                    'level_id' => $level_id,
+                    'grade_id' => $grade_id,
+                    'timest' => $timest,
+                    'total_questions' => $total_questions,
+                    'time_to_do' => $time_to_do,
+                    'note' => $note,
+                    'status_id' => $status_id,
+                    'teacher_id' => null,
+                ]);
+
+                DB::commit();
+                $count++;
+            }
+
+            if (empty($err_list)) {
+                $result['status_value'] = "Thêm thành công " . $count . ' bài thi!';
+                $result['status'] = 1;
+            } else {
+                $result['status_value'] = "Lỗi! Không thể thêm bài thi có STT: " . implode(', ', $err_list) . ', vui lòng xem lại.';
+                $result['status'] = 0;
+            }
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+
+        return response()->json($result);
     }
 
 
