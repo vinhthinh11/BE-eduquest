@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\classes;
+use App\Models\notifications;
+use App\Models\quest_of_practice;
 use App\Models\quest_of_test;
 use App\Models\questions;
 use App\Models\scores;
 use App\Models\student;
+use App\Models\student_notifications;
 use App\Models\students;
 use App\Models\teacher;
 use App\Models\tests;
@@ -14,6 +17,8 @@ use Carbon\Carbon;
 use Carbon\CarbonTimeZone;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -79,48 +84,45 @@ class TeacherConTroller extends Controller
 
     public function updateAvatarProfile(Request $request)
     {
-        $teacher = teacher::find($request->id);
+        $user = $request->user('teachers');
 
-        if (!$teacher) {
+        $validator = Validator::make($request->all(), [
+            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ], [
+            'avatar.required' => 'Vui lòng chọn hình ảnh đại diện',
+            'avatar.image' => 'Vui lòng chọn hình ảnh đại diện',
+            'avatar.mimes' => 'Vui lòng chọn hình ảnh đúng định dạng (jpeg, png, jpg, gif, svg)',
+            'avatar.max' => 'Kích thước hình ảnh không được vượt quá 2048KB',
+        ]);
+
+        if ($validator->fails()) {
             return response()->json([
                 'status' => false,
-                'message' => 'Giáo viên không tồn tại!',
-            ], 404);
+                'errors' => $validator->errors(),
+            ], 422);
         }
 
         if ($request->hasFile('avatar')) {
-            $validator = Validator::make($request->all(), [
-                'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            ], [
-                'avatar.required' => 'Vui lòng chọn hình ảnh đại diện',
-                'avatar.image' => 'Vui lòng chọn hình ảnh đại diện',
-                'avatar.mimes' => 'Vui lòng chọn hình ảnh đúng định dạng (jpeg, png, jpg, gif, svg)',
-                'avatar.max' => 'Kích thước hình ảnh không được vượt quá 2048KB',
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'status' => false,
-                    'errors' => $validator->errors(),
-                ], 422);
-            }
-
             $image = $request->file('avatar');
-            $path = $image->store('images');
-            $teacher->avatar = $path;
-            $teacher->save();
+            $path = $image->store('images/teacher'); //lưu ảnh ở file store
+
+        if ($user->avatar) {
+            Storage::delete($user->avatar);
+        }
+
+            $user->avatar = $path;
+            $user->save();
 
             return response()->json(['message' => 'Tải lên thành công', 'path' => $path], 200);
-        } else {
-            return response()->json(['message' => 'Không có tệp nào được tải lên'], 404);
         }
+            return response()->json(['message' => 'Không có tệp nào được tải lên'], 404);
     }
-    public function listClass(Request $request)
+    public function getClass(Request $request)
     {
+        $user = $request->user('teachers');
         $validator = Validator::make($request->all(), [
             'class_id' => 'integer|unique:classes,class_id',
         ]);
-
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
@@ -128,27 +130,28 @@ class TeacherConTroller extends Controller
             ], 400);
         }
 
-        $class_id = $request->input('class_id', '2');
-
-        $classDetail = student::select('students.student_id', 'students.avatar', 'students.username', 'students.name', 'students.birthday', 'genders.gender_detail', 'students.last_login', 'classes.class_name')
-            ->join('genders', 'genders.gender_id', '=', 'students.gender_id')
+        $students = student::join('genders', 'genders.gender_id', '=', 'students.gender_id')
             ->join('classes', 'students.class_id', '=', 'classes.class_id')
-            ->where('students.class_id', $class_id)
+            ->join("teachers", "teachers.teacher_id", "=", "classes.teacher_id")
+            ->where("teachers.teacher_id", $user->teacher_id)
             ->get();
 
-    if ($classDetail->isNotEmpty()) {
+        if ($students->isEmpty()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Không tìm thấy Lớp',
+            ], 404);
+        }
         return response()->json([
             'status' => true,
             'message' => 'Lấy dữ liệu Lớp thành công!',
-            'data' => $classDetail
+            'data' => $students
         ], 200);
     }
-    else
-        return response()->json(['error' => 'Giáo viên không có lớp'], 404);
-    }
 
-    public function listClassByTeacher(Request $request)
+    public function getClassByTeacher(Request $request)
     {
+        $user = $request->user('teachers');
         $validator = Validator::make($request->all(), [
             'teacher_id' => 'integer|exists:teachers,teacher_id',
         ]);
@@ -160,26 +163,18 @@ class TeacherConTroller extends Controller
             ], 400);
         }
 
-        $teacher_id = $request->teacher_id;
-        $data = classes::select('classes.class_id', 'classes.class_name', 'grades.detail as grade')
-            ->join('grades', 'grades.grade_id', '=', 'classes.grade_id')
-            ->where('teacher_id', $teacher_id)
+        $classes = classes::join('grades', 'grades.grade_id', '=', 'classes.grade_id')
+            ->select('classes.class_id', 'classes.class_name', 'grades.detail as grade')
+            ->where('teacher_id', $user->teacher_id)
             ->get();
-
-        if ($data->isNotEmpty()) {
-                return response()->json([
-                    'status' => true,
-                    'message' => 'Lấy dữ liệu Lớp này thành công!',
-                    'data' => $data
-                ]);
-            }
-            return response()->json([
-                'status'    => false,
-                'message'   => 'Giáo viên không có lớp',
-            ]);
+        return response()->json([
+            'status'    => true,
+            'message'   => 'Lấy dữ liệu lớp thành công!',
+            'data'      => $classes
+        ], 200);
     }
     //show điểm
-    public function listScore(Request $request)
+    public function getScore(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'student_id' => 'required|exists:students,id',
@@ -275,7 +270,6 @@ class TeacherConTroller extends Controller
             'correct_answer' => 'required|string',
             'question_id' => 'nullable|integer',
             'subject_id' => 'required|integer',
-            'teacher_id' => 'required|integer',
             'status_id' => 'required|integer',
             'suggest' => 'nullable|string',
         ], [
@@ -289,7 +283,6 @@ class TeacherConTroller extends Controller
             'answer_d.required' => 'Vui lòng nhập đáp án D.',
             'correct_answer.required' => 'Vui lòng chọn đáp án đúng.',
             'subject_id.required' => 'Vui lòng chọn môn học.',
-            'teacher_id.required' => 'Vui lòng chọn giáo viên.',
             'status_id.required' => 'Vui lòng chọn trạng thái.',
             'suggest.string' => 'Gợi ý phải là chuỗi.',
         ]);
@@ -373,8 +366,7 @@ class TeacherConTroller extends Controller
         }
         $inputFileType = 'Xlsx';
         $result = array();
-        $shuffle = array();
-        $subject_id = $request->input('subject_id');
+        $subject_id = $request->subject_id;
 
         $reader = IOFactory::createReader($inputFileType);
         $spreadsheet = $reader->load($request->file('file')->getRealPath());
@@ -382,64 +374,61 @@ class TeacherConTroller extends Controller
 
         $count = 0;
         $err_list = '';
-        for ($i = 4; $i < count($sheetData); $i++) {
-            if (empty($sheetData[$i]['A'])) {
+        foreach ($sheetData as $index => $row) {
+            if ($index < 4 || empty($row['A'])) {
                 continue;
             }
-            $stt = $sheetData[$i]['A'];
-            $question_content = $sheetData[$i]['B'];
-            $level_id = $sheetData[$i]['C'];
-            $answer_a = $sheetData[$i]['D'];
-            $answer_b = $sheetData[$i]['E'];
-            $answer_c = $sheetData[$i]['F'];
-            $answer_d = $sheetData[$i]['G'];
-            $correct_answer = $sheetData[$i]['H'];
-            $grade_id = $sheetData[$i]['I'];
-            $unit = $sheetData[$i]['J'];
-            $suggest = $sheetData[$i]['K'];
-            $teacher_id = null;
+
+            $stt = $row['A'];
+            $question_content = $row['B'];
+            $level_id = $row['C'];
+            $answer_a = $row['D'];
+            $answer_b = $row['E'];
+            $answer_c = $row['F'];
+            $answer_d = $row['G'];
+            $correct_answer = $row['H'];
+            $grade_id = $row['I'];
+            $unit = $row['J'];
+            $suggest = $row['K'];
+
             if (empty($question_content) || empty($grade_id) || empty($level_id) || empty($unit) || empty($answer_a) || empty($answer_b) || empty($answer_c) || empty($answer_d) || empty($correct_answer)) {
+                $err_list[] = $stt;
                 continue;
             }
 
             switch ($correct_answer) {
                 case "A":
-                    $answer = $answer_a;
+                    $correct_answer_text = $answer_a;
                     break;
                 case "B":
-                    $answer = $answer_b;
+                    $correct_answer_text = $answer_b;
                     break;
                 case "C":
-                    $answer = $answer_c;
+                    $correct_answer_text = $answer_c;
                     break;
                 default:
-                    $answer = $answer_d;
+                    $correct_answer_text = $answer_d;
             }
 
-            try {
-                DB::beginTransaction();
+            DB::beginTransaction();
 
-                $question = questions::create([
-                    'subject_id' => $subject_id,
-                    'question_content' => $question_content,
-                    'level_id' => $level_id,
-                    'grade_id' => $grade_id,
-                    'unit' => $unit,
-                    'answer_a' => $answer_a,
-                    'answer_b' => $answer_b,
-                    'answer_c' => $answer_c,
-                    'answer_d' => $answer_d,
-                    'correct_answer' => $answer,
-                    'suggest' => $suggest,
-                    'teacher_id' => $teacher_id,
-                ]);
-                DB::commit();
+            $question = questions::create([
+                'subject_id' => $subject_id,
+                'test_name' => $question_content,
+                'level_id' => $level_id,
+                'grade_id' => $grade_id,
+                'unit' => $unit,
+                'answer_a' => $answer_a,
+                'answer_b' => $answer_b,
+                'answer_c' => $answer_c,
+                'answer_d' => $answer_d,
+                'correct_answer' => $correct_answer_text,
+                'suggest' => $suggest,
+                'teacher_id' => null,
+            ]);
 
-                $count++;
-            } catch (\Exception $e) {
-                DB::rollBack();
-                $err_list .= $stt . ', ';
-            }
+            DB::commit();
+            $count++;
         }
         if ($err_list == '') {
             $result['status_value'] = "Thêm thành công " . $count . ' câu hỏi!';
@@ -451,46 +440,55 @@ class TeacherConTroller extends Controller
         return response()->json($result);
     }
 
-    public function destroyQuestion(Request $request, $question_id)
+    public function destroyQuestion(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'question_id' => 'required|exists:questions,question_id'
+            'question_id' => 'required|integer|exists:questions,question_id',
         ], [
-            'question_id.exists' => 'Câu hỏi có vẻ không tồn tại!',
-            'question_id.required' => 'ID câu hỏi là bắt buộc!',
+            'question_id.required' => 'Câu hỏi chưa đúng ID!',
+            'question_id.exists' => 'Câu hỏi không tồn tại!',
         ]);
-
         if ($validator->fails()) {
             return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
+                'status'  => false,
+                'message' => $validator->errors(),
             ], 422);
         }
-        $desTroy = questions::where('question_id', $question_id)->delete();
-        if ($desTroy) {
-            return response()->json([
-                'status' => true,
-                'message' => "Xóa câu hỏi thành công!",
-            ], 200);
-        }
+        $question = questions::find($request->question_id);
 
-        return response()->json([
-            'status' => false,
-            'message' => "Câu hỏi không tồn tại!",
-        ], 404);
+        if (!$question) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Câu hỏi không tồn tại!'
+            ]);
+        }
+        try {
+            $question->delete();
+
+            return response()->json([
+                'status'  => true,
+                'message' => 'Xóa câu hỏi thành công!'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Câu hỏi đang tồn tại ở ngân hàng câu hỏi!',
+                'data'    => $e
+            ]);
+        }
     }
 
-    public function updateQuestion(Request $request, $question_id)
+    public function updateQuestion(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'question_id'       => 'required|integer|exists:questions,question_id',
             'question_content'  => 'nullable|string',
-            'level_id'          => 'nullable|integer|exists:levels,level_id',
+            'level_id'          => 'required|nullable|integer|exists:levels,level_id',
             'answer_a'          => 'nullable|string',
             'answer_b'          => 'nullable|string',
             'answer_c'          => 'nullable|string',
             'answer_d'          => 'nullable|string',
-            'correct_answer'    => 'nullable|in:A,B,C,D',
+            'correct_answer'    => 'nullable',
             'grade_id'          => 'nullable|integer|exists:grades,grade_id',
             'unit'              => 'nullable|string',
             'suggest'           => 'nullable|string',
@@ -500,20 +498,19 @@ class TeacherConTroller extends Controller
             'question_id.required'      => 'ID câu hỏi là bắt buộc!',
             'question_id.exists'        => 'Không tìm thấy câu hỏi với ID đã chọn!',
             'level_id.exists'           => 'Không tìm thấy level với ID đã chọn!',
+            'level_id.required'         => 'Level bắt buộc!',
             'grade_id.exists'           => 'Không tìm thấy grade với ID đã chọn!',
             'status_id.in'              => 'Cấp độ không được để trống!',
             'teacher_id.integer'        => 'Teacher ID phải là số nguyên!',
             'teacher_id.exists'         => 'Không tìm thấy giáo viên với ID đã chọn!',
-            'correct_answer.in'         => 'Đáp án đúng phải là A, B, C hoặc D!',
         ]);
-
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
                 'errors' => $validator->errors(),
             ], 422);
         }
-        $question = questions::find($question_id);
+        $question = questions::find($request->question_id);
 
         if (!$question) {
             return response()->json([
@@ -532,10 +529,10 @@ class TeacherConTroller extends Controller
     public function getQuestion(Request $request)
     {
         $user = $request->user('teachers');
-        $questions =questions::where('subject_id', $user->subject_id)->get();
+        $questions = questions::where('subject_id', $user->subject_id)->get();
         return response()->json(["data" => $questions]);
     }
-     public function getTotalQuestions(Request $request)
+    public function getTotalQuestions(Request $request)
     {
         $user = $request->user('teachers');
         $numQuestion = DB::table('questions')
@@ -569,7 +566,7 @@ class TeacherConTroller extends Controller
     {
         // teacher môn nào chỉ có thể xem test của môn đó
         $id = $request->user('teachers')->subject_id;
-        $data  = tests::with('subject')->where('subject_id', $id)->orderBy('timest','desc')->get();
+        $data  = tests::with('subject')->where('subject_id', $id)->orderBy('timest', 'desc')->get();
         return response()->json(["data" => $data]);
     }
     /**
@@ -578,12 +575,12 @@ class TeacherConTroller extends Controller
     public function getTestDetail(Request $request, $test_code)
     {
         // teacher môn nào chỉ có thể xem test của môn đó
-        $questions=[];
-         $data  = tests::find($test_code);
-        if(!$data) return response()->json(["message" => "Không tìm thấy đề thi!"], 400);
+        $questions = [];
+        $data  = tests::find($test_code);
+        if (!$data) return response()->json(["message" => "Không tìm thấy đề thi!"], 400);
         foreach ($data->questions as $question) {
             $questions[] = $question;
-}
+        }
         $data['questions'] = $questions;
 
         return response()->json(["data" => $data]);
@@ -592,21 +589,21 @@ class TeacherConTroller extends Controller
      * 1. Chỉ delete những đề chưa duyệt, và đề nào đã duyệt rồi thi không xóa được
      * 2. Chỉ delete những đề của môn học mà giáo viên đó dạy
      */
-    public function deleteTest(Request $request,$test_code)
+    public function deleteTest(Request $request, $test_code)
     {
         $id = $request->user('teachers');
-        $test = tests::find( $test_code);
+        $test = tests::find($test_code);
 
         // kiểm tra xem đề thi có tồn tại không
-        if(!$test) return response()->json(["message" => "Không tìm thấy đề thi!"], 400);
+        if (!$test) return response()->json(["message" => "Không tìm thấy đề thi!"], 400);
 
         // kiểm tra xem đề thi có phải của môn học mà giáo viên dạy không
-        if($test->subject_id != $id->subject_id) return response()->json(["message" => "Đề thi không phải của môn học mà giáo viên dạy!"], 400);
+        if ($test->subject_id != $id->subject_id) return response()->json(["message" => "Đề thi không phải của môn học mà giáo viên dạy!"], 400);
 
         // kiểm tra xem đề thi đã duyệt chưa
-        if($test->status_id != 3) return response()->json(["message" => "Đề thi đã duyệt không thể xóa!"], 400);
+        if ($test->status_id != 3) return response()->json(["message" => "Đề thi đã duyệt không thể xóa!"], 400);
         $test->delete();
-        return response()->json(["message"=>"Xóa thành công đề thi","data" => $test]);
+        return response()->json(["message" => "Xóa thành công đề thi", "data" => $test]);
     }
     /**
      * 1. Chỉ update những đề chưa duyệt, và đề nào đã duyệt rồi thi không update được
@@ -614,13 +611,13 @@ class TeacherConTroller extends Controller
      * 3. Số lượng câu hỏi sẽ không thay đổi được tại vì khi tạo đề từ số lượng câu hỏi sẽ sinh ra chi tiết đề
      * 4. Khi update đề thì chỉ update được password của đề thi, thời gian làm bài, ghi chú, tên đề thi
      */
-    public function updateTest(Request $request,$test_code)
+    public function updateTest(Request $request, $test_code)
     {
         $validator = Validator::make($request->all(), [
             'time_to_do'   => 'sometimes|numeric|min:15|max:120',
             'password'      => 'sometimes|string|min:6|max:20',
             'note'          => 'sometimes|string',
-        ],[
+        ], [
             'teacher_id.exists' => 'Không tìm thấy Giáo viên!',
             'subject_id.exists' => 'Không tìm thấy Môn học!',
             'time_to_do.min' => 'Thời gian tối thiểu 15 phút!',
@@ -630,14 +627,14 @@ class TeacherConTroller extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         }
         $data = $request->all();
-        if($request->password)
-            $data['password']= bcrypt($request->password);
+        if ($request->password)
+            $data['password'] = bcrypt($request->password);
         $test  = tests::find($test_code)
-                        ->update($data);
+            ->update($data);
 
         return response()->json([
             'message' => 'Cập nhật đề thi thành công!',
-            "data"=> $test
+            "data" => $test
 
         ]);
     }
@@ -654,7 +651,7 @@ class TeacherConTroller extends Controller
             'grade_id' => 'integer|exists:grades,grade_id',
             'level_id' => 'required|integer|exists:levels,level_id',
             'time_to_do'   => 'required|numeric|min:15|max:120',
-        ],[
+        ], [
             'test_name.unique'  => 'Tên đề không nên trùng nhau!',
             'password.min'      => 'Password tối thiểu 6 kí tự!',
             'grade_id.exists'   => 'Không tìm thấy Lớp!',
@@ -692,5 +689,171 @@ class TeacherConTroller extends Controller
             DB::rollBack();
             return response()->json(["message" => "Tạo đề thi thất bại!", "error" => $e->getMessage()], 400);
         }
+    }
+
+    public function addFileTest(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'test_code' => 'required|integer|exists:tests,test_code',
+            'file'      => 'required|file|mimes:pdf',
+        ], [
+            'test_code.exists' => 'Không tìm thấy đề!',
+            'file.mimes' => 'File phải là pdf!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $inputFileType = 'Xlsx';
+
+        try {
+            $reader = IOFactory::createReader($inputFileType);
+            $spreadsheet = $reader->load($request->file('file')->getRealPath());
+            $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
+
+            $count = 0;
+            $err_list = [];
+
+            foreach ($sheetData as $index => $row) {
+                if ($index < 4 || empty($row['A'])) {
+                    continue;
+                }
+
+                $stt = $row['A'];
+                $test_name = $row['B'];
+                $level_id = $row['C'];
+                $grade_id = $row['D'];
+                $total_questions = $row['E'];
+                $time_to_do = $row['F'];
+                $note = $row['G'];
+                $status_id = $row['H'];
+                $timest = $row['J'];
+
+                if (empty($test_name) || empty($grade_id) || empty($level_id) || empty($timest) || empty($grade_id) || empty($total_questions) || empty($time_to_do) || empty($note) || empty($status_id)) {
+                    $err_list[] = $stt;
+                    continue;
+                }
+
+                DB::beginTransaction();
+
+                $test = tests::create([
+                    'subject_id' => $$request->subject_id,
+                    'test_name' => $test_name,
+                    'level_id' => $level_id,
+                    'grade_id' => $grade_id,
+                    'timest' => $timest,
+                    'total_questions' => $total_questions,
+                    'time_to_do' => $time_to_do,
+                    'note' => $note,
+                    'status_id' => $status_id,
+                    'teacher_id' => null,
+                ]);
+
+                DB::commit();
+                $count++;
+            }
+
+            if (empty($err_list)) {
+                $result['status_value'] = "Thêm thành công " . $count . ' bài thi!';
+                $result['status'] = 1;
+            } else {
+                $result['status_value'] = "Lỗi! Không thể thêm bài thi có STT: " . implode(', ', $err_list) . ', vui lòng xem lại.';
+                $result['status'] = 0;
+            }
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+
+        return response()->json($result);
+    }
+
+
+    public function getNotificationToStudent(Request $request)
+    {
+        $teacher_id = $request->user('teachers');
+
+        $notifications = notifications::whereIn('notification_id', function ($query) use ($teacher_id) {
+            $query->select('notification_id')
+                ->from('student_notifications')
+                ->whereIn('class_id', function ($query) use ($teacher_id) {
+                    $query->select('class_id')
+                        ->from('classes')
+                        ->where('teacher_id', $teacher_id);
+                });
+        })->get();
+
+        return response()->json([
+            "message" => "Show thông báo cho giáo viên thành công!",
+            "data" => $notifications
+        ], 200);
+    }
+    public function getNotificationByAdmin(Request $request)
+    {
+        $teacher_id = $request->user('teachers');
+
+        $notifications = notifications::whereIn('notification_id', function ($query) use ($teacher_id) {
+            $query->select('notification_id')
+                ->from('teacher_notifications')
+                ->where('teacher_id', $teacher_id);
+        })->get();
+
+        return response()->json([
+            "message" => "Show thông báo từ ADMIN thành công!",
+            "data" => $notifications
+        ], 200);
+    }
+
+    public function sendNotification(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'notification_title' => 'required|string|max:255',
+            'notification_content' => 'required|string',
+            'class_id' => 'required|array',
+            'class_id.*' => 'required|integer',
+        ], [
+            'notification_title.string' => 'Notification_title phải là chuỗi!',
+            'notification_content.string' => 'Notification_content phải là chuỗi!',
+            'notification_title.max' => 'Notification_title phải là 255 kí tự!',
+            'class_id.required' => 'Chưa lớp người nhận!',
+            'class_id.array' => 'Class_id phải là mảng!',
+            'class_id.*.required' => 'Mỗi class_id trong mảng là bắt buộc!',
+            'class_id.*.integer' => 'Mỗi class_id trong mảng phải là số nguyên!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        $user = $request->user('teachers');
+        if (!$user) {
+            return response()->json(['error' => 'Chưa nhận ra người dùng!'], 401);
+        }
+        $notificationData = [
+            'name' => $user->name,
+            'username' => $user->username,
+            'notification_title' => $request->input('notification_title'),
+            'notification_content' => $request->input('notification_content'),
+            'time_sent' => Carbon::now('Asia/Ho_Chi_Minh'),
+        ];
+        $notification = Notifications::create($notificationData);
+
+        foreach ($request->class_id as $class_id) {
+            Student_Notifications::create([
+                'notification_id' => $notification->id,
+                'class_id' => $class_id,
+            ]);
+        }
+        Log::info('Notification sent', ['notification_id' => $notification->id]);
+
+        return response()->json([
+            'message' => 'Gửi thông báo thành công!',
+            'data' => $notification,
+        ], 201);
     }
 }

@@ -13,6 +13,10 @@ return [
             'driver' => 'jwt',
             'provider' => 'admins',
         ],
+        'subject_heads' => [
+            'driver' => 'jwt',
+            'provider' => 'subject_heads'
+        ],
         'teachers' => [
             'driver' => 'jwt',
             'provider' => 'teachers'
@@ -29,13 +33,13 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\admin::class,
         ],
+         'subject_heads' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\subject_head::class,
+        ],
         'teachers' => [
             'driver' => 'eloquent',
             'model' => App\Models\teacher::class,
-        ],
-        'subject_heads' => [
-            'driver' => 'eloquent',
-            'model' => App\Models\subject_head::class,
         ],
         'students' => [
             'driver' => 'eloquent',
