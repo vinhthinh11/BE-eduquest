@@ -121,4 +121,17 @@ class AdminMonHocController extends Controller
             'result' => $result,
         ]);
     }
+    public function search(Request $request)
+    {
+        $keySearch = $request->key_search;
+
+        $data = subjects::where('subject_id', 'like', '%' . $keySearch . '%')
+                    ->orWhere('subject_detail', 'like', '%' . $keySearch . '%')
+                    ->get();
+
+        return response()->json([
+            'data' => $data
+        ]);
+    }
+
 }
