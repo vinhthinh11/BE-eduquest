@@ -8,6 +8,9 @@ use App\Models\scores;
 use App\Models\student;
 use App\Models\student_practice_detail;
 use App\Models\student_test_detail;
+use App\Models\notifications;
+use App\Models\student_notifications;
+use App\Models\teacher_notifications;
 use Carbon\Carbon;
 use Carbon\CarbonTimeZone;
 use Illuminate\Http\Request;
@@ -508,5 +511,31 @@ class StudentController extends Controller
            'message' => 'Cập nhật đáp án cho Học sinh thành công!',
            'data' => ['student_answer' => $data['answer'], 'time_remaining' => $total_seconds]
        ]);
+   }
+
+   //danh sách thông báo 
+   public function getNotification(Request $request){
+        $student_id = $request->student_id;
+        $student = Student::find($student_id);
+        if (!$student) {
+            return response()->json([
+                'message' => 'Học sinh không tồn tại',
+            ], 400);
+        }
+        $getList = notifications::whereExists(function ($query) use ($student_id) {
+            $query->select(DB::raw(1))
+                ->from('student_notifications')
+                ->whereColumn('student_notifications.notification_id', 'notifications.notification_id')
+                ->where('student_notifications.student_id', $student_id);
+        })->get();
+        if ($getList->isEmpty()) {
+            return response()->json([
+                'message' => 'Không tìm thấy dữ liệu',
+            ], 400);
+        }
+        return response()->json([
+            'message' => 'Thành công',
+            'data' => $getList
+        ]);
    }
 }
