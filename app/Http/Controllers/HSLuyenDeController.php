@@ -19,7 +19,8 @@ use Ramsey\Uuid\Uuid;
 
 class HSLuyenDeController extends Controller
 {
-    public function list(Request $request){
+    public function list(Request $request)
+    {
         $student_id = $request->student_id;
         $getList = practice::where('student_id', $student_id)->get();
         if ($getList->isEmpty()) {
@@ -32,7 +33,8 @@ class HSLuyenDeController extends Controller
             'data' => $getList
         ]);
     }
-    public function checkPractice(Request $request){
+    public function checkPractice(Request $request)
+    {
         $result = [];
 
         $grade_id = $request->grade_id;
@@ -44,9 +46,9 @@ class HSLuyenDeController extends Controller
         $student_id = $student->student_id;
 
         $total = questions::where('grade_id', $grade_id)
-                        ->where('subject_id', $subject_id)
-                        ->where('level_id', $level_id)
-                        ->count();
+            ->where('subject_id', $subject_id)
+            ->where('level_id', $level_id)
+            ->count();
 
         if (empty($grade_id) || empty($subject_id) || empty($level_id)) {
             $result['status_value'] = "Không được bỏ trống các trường nhập!";
@@ -81,7 +83,6 @@ class HSLuyenDeController extends Controller
                     $result['status_value'] = "Thêm thất bại!";
                     $result['status'] = 0;
                 }
-              
             } else {
                 $result['status_value'] = "Số lượng câu hỏi trong ngân hàng không đủ! Vui lòng chọn lại!";
                 $result['status'] = 0;
@@ -99,25 +100,15 @@ class HSLuyenDeController extends Controller
         $result   = [];
         $student  = new student();
         $practice_code = $request->practice_code;
-        $check = Auth::guard('apiStudents')->user();
+        $check  = $request->user('students');
         $id = $check->student_id;
-        $listQuest =  $student->getQuestOfTest($practice_code);
+        $listQuest =  $student->getQuestOfPratice($practice_code);
         if ($listQuest !== null) {
             foreach ($listQuest as $quest) {
-                $array = array();
-                $array[0] = $quest->answer_a;
-                $array[1] = $quest->answer_b;
-                $array[2] = $quest->answer_c;
-                $array[3] = $quest->answer_d;
                 $ID = rand(1, time()) + rand(100000, 999999);
-                $time = $student->getTest($practice_code)->time_to_do . ':00';
-                if (is_array($array) && count($array) >= 4) {
-                    $student->addStudentQuest($id, $ID, $practice_code, $quest->question_id, $array[0], $array[1], $array[2], $array[3]);
-                } else {
-                    $result['status_value'] = "Không có đáp án";
-                    $result['status'] = 0;
-                }
-                $student->updateStudentExam($practice_code, $time, $id);
+                $time = $student->getPractice($practice_code)->time_to_do . ':00';
+                $student->addStudentPracticeQuest($id, $ID, $practice_code, $quest->question_id,$quest->answer_a, $quest->answer_b, $quest->answer_c, $quest->answer_d);
+                $student->updateStudentPractice($id,$practice_code, $time);
             }
             $result['status_value'] = "Thành công. Chuẩn bị chuyển trang!";
             $result['status'] = 1;
@@ -125,61 +116,34 @@ class HSLuyenDeController extends Controller
             $result['status_value'] = "Không có câu hỏi cho bài kiểm tra này";
             $result['status'] = 0;
         }
-        
+
         return response()->json([
             'result' => $result,
         ]);
     }
-    public function acceptPractice(Request $request){
-        $validator = Validator::make($request->all(), [
-            'student_id' => 'required|exists:students,student_id'
-        ], [
-            'student_id.*' => 'Học Sinh không tồn tại!',
-        ]);
+    public function acceptPractice(Request $request)
+    {
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-        $student = Student::find($request->input('student_id'));
+        $model = new student();
+        $student  = $request->user('students');
+
         if (!$student) {
             return response()->json(['status' => false, 'message' => 'Học Sinh không tồn tại!'], 404);
         }
-        $practiceResults = student_practice_detail::join('questions', 'student_practice_detail.question_id', '=', 'questions.question_id')
-            ->join('practice', 'student_practice_detail.practice_code', '=', 'practice.practice_code')
-            ->where('student_practice_detail.practice_code', $student->doing_practice)
-            ->where('student_practice_detail.student_id', $student->student_id)
-            ->orderBy('student_practice_detail.ID')
-            ->get();
 
-        $totalQuestions = $practiceResults->count();
+        $practice = $model->getResultPracticeQuest($student->doing_practice, $student->student_id);
+        $practiceCode = $practice->first()->practice_code;
+        $totalQuestions = $practice->first()->total_questions;
         $correct = 0;
-
-        foreach ($practiceResults as $result) {
-            if (trim($result->student_answer) === trim($result->correct_answer)) {
+        $point = 10 / $totalQuestions;
+        foreach ($practice as $t) {
+            if (trim($t->student_answer) == trim($t->correct_answer))
                 $correct++;
-            }
         }
-
-        $c = 10 / $totalQuestions;
-        $score = $correct * $c;
+        $score = $correct * $point;
         $scoreDetail = $correct . '/' . $totalQuestions;
-
-        practice_scores::create([
-            'student_id' => $student->id,
-            'practice_code' => $practiceResults->first()->practice_code,
-            'score_number' => round($score, 2),
-            'score_detail' => $scoreDetail,
-            'completion_time' => now(),
-        ]);
-
-        $student->update([
-            'doing_practice' => null,
-            'practice_time_remaining' => null,
-            'practice_starting_time' => null,
-        ]);
+        $model->insertPracticeScore($student->student_id, $practiceCode, round($score, 2), $scoreDetail);
+        $model->resetDoingPractice($student->student_id);
 
         return response()->json(['status' => true, 'message' => 'Nộp bài Thành Công!'], 200);
     }

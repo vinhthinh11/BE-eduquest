@@ -136,7 +136,7 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     Route::post('/reset-doing-exam', [StudentController::class, 'resetDoingExam'])->name('resetDoingExam');
     Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
     Route::post('/accpet-exam', [StudentController::class, 'acceptTest'])->name('acceptTest');
-    Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
+    // Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
 
     //học sinh luyện đề
     Route::group(['prefix' => '/practice'], function () {

@@ -531,7 +531,7 @@ class StudentController extends Controller
        ]);
    }
 
-   //danh sách thông báo 
+   //danh sách thông báo
    public function getNotification(Request $request){
         $student_id = $request->student_id;
         $student = Student::find($student_id);
