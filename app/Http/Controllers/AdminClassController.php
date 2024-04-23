@@ -126,7 +126,7 @@ class AdminClassController extends Controller
     public function create(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'grade_id'      => 'required|exists:grades,grade_id',
+            'grade_id'      => 'required',
             'class_name'    => 'required|string|unique:classes,class_name',
             'teacher_id'    => 'required|exists:teachers,teacher_id',
         ], [
@@ -145,7 +145,7 @@ class AdminClassController extends Controller
             ], 422);
         }
         $data = $request->all();
-        
+
         $class = classes::create($data);
 
         return response()->json([
@@ -156,14 +156,14 @@ class AdminClassController extends Controller
 
     public function search(Request $request)
     {
-        $list = classes::join('teachers' , 'teachers.teacher_id' , 'classes.teacher_id')
+        $data = classes::join('teachers' , 'teachers.teacher_id' , 'classes.teacher_id')
                         ->select('classes.*', 'teachers.name')
                         ->where('class_name', 'like', '%' . $request->key_search . '%')
                         ->orWhere('teachers.name', 'like', '%' . $request->key_search . '%')
                         ->get();
 
         return response()->json([
-            'list'  => $list
+            'data'  => $data
         ]);
     }
 

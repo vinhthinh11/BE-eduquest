@@ -44,6 +44,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () { //
         Route::get('/get-status', [Admincontroller::class, 'getStatus'])->name('getStatus');
         Route::get('/get-subjects', [Admincontroller::class, 'getSubjects'])->name('getSubjects');
         Route::get('/get-level', [Admincontroller::class, 'getLevels'])->name('getLevel');
+        Route::post('/search', [Admincontroller::class, 'search'])->name('search');
         Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
     });
     //  ql test
@@ -95,6 +96,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () { //
         Route::post('/create', [AdminMonHocController::class, 'createMon'])->name('createMon');
         Route::delete('/delete', [AdminMonHocController::class, 'deleteMon'])->name('deleteMon');
         Route::put('/update', [AdminMonHocController::class, 'updateMon'])->name('updateMon');
+        Route::post('/search', [AdminMonHocController::class, 'search'])->name('search');
     });
 
     //ql học sinh
@@ -153,6 +155,7 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
         Route::put('/update/{test_code}', [TeacherConTroller::class,'updateTest'])->name('teacherUpdateTest');
         Route::delete('/delete/{test_code}', [TeacherConTroller::class,'deleteTest'])->name('teacherDeleteTest');
         Route::post('/file', [TeacherConTroller::class,'addFileTest'])->name('teacheraddFileTest');
+        Route::post('/search', [TeacherConTroller::class,'searchOfTest'])->name('teachersearchOfTest');
     });
 
     // qly câu hỏi
@@ -160,17 +163,17 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
         Route::post('/create', [TeacherConTroller::class, 'addQuestion'])->name('addQuestion');
         Route::get('/get', [TeacherConTroller::class, 'getQuestion'])->name('addQuestion');
         Route::get('/getTotal', [TeacherConTroller::class, 'getTotalQuestions'])->name('addQuestion');
-        Route::post('/delete', [TeacherConTroller::class, 'destroyQuestion'])->name('destroyQuestion');
+        Route::delete('/delete', [TeacherConTroller::class, 'destroyQuestion'])->name('destroyQuestion');
         Route::put('/update', [TeacherConTroller::class, 'updateQuestion'])->name('updateQuestion');
         Route::post('/multi-delete-question', [TeacherConTroller::class, 'multiDeleteQuestion'])->name('multiDeleteQuestion');
         Route::post('/file', [TeacherConTroller::class, 'addFileQuestion'])->name('addFileQuestion');
+        Route::post('/search', [TeacherConTroller::class, 'searchOfTeacher'])->name('searchOfTeacher');
     });
 
     //Profile
     Route::get('/info/{username}', [TeacherConTroller::class, 'getInfo'])->name('getInfo');
     Route::put('/update-profile',      [TeacherConTroller::class, 'updateProfile'])->name('updateProfile');
     Route::put('/update-avatar',      [TeacherConTroller::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
-    //Route::put('/update-avatar',      [TeacherConTroller::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
 
 
     // qly điểm
