@@ -28,5 +28,5 @@ class notifications extends Model
     {
         return [];
     }
-    
+    public $timestamps = false;
 }

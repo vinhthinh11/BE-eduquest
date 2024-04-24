@@ -21,7 +21,7 @@ Route::post('login', [AuthController::class, 'login']);
 Route::get('me', [AuthController::class, 'me']);
 
 // ----- Route for Admin -----
-Route::group(['prefix' => '/admin', ], function () {
+Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () { //
     //Profile
     Route::get('/info/{username}',    [Admincontroller::class, 'getInfo'])->name('getInfo');
     Route::put('/update-profile',     [Admincontroller::class, 'updateProfile'])->name('updateProfile');
@@ -29,11 +29,10 @@ Route::group(['prefix' => '/admin', ], function () {
 
     //ql Admin
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
-    // Route::get('/index', [AdminController::class, 'indexAdmin']);
     Route::post('/create', [AdminController::class, 'createAdmin'])->name('createAdmin');
     Route::delete('/delete', [AdminController::class, 'deleteAdmin'])->name('deleteAdmin');
     Route::put('/update', [AdminController::class, 'updateAdmin'])->name('updateAdmin');
-    Route::post('/check-add-admin-via-file', [AdminController::class, 'check_add_admin_via_file'])->name('admin.check_add_admin_via_file');
+    Route::post('/file', [AdminController::class, 'check_add_admin_via_file'])->name('admin.check_add_admin_via_file');
 
     //ql Question
     Route::group(['prefix' => 'question'], function () {
@@ -147,15 +146,15 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
 
 // ----- Route for Teacher -----
 Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
-
     // teacher qly test
     Route::group(['prefix' => '/test'], function () {
         // teacher quan ly de thi
         Route::get('/get', [TeacherConTroller::class,'getTest'])->name('teacherGetTest');
-         Route::get('/get/{test_code}', [TeacherConTroller::class,'getTestDetail'])->name('teacherGetTestDetail');
-         Route::post('/create', [TeacherConTroller::class,'createTest'])->name('teacherCreateTest');
+        Route::get('/get/{test_code}', [TeacherConTroller::class,'getTestDetail'])->name('teacherGetTestDetail');
+        Route::post('/create', [TeacherConTroller::class,'createTest'])->name('teacherCreateTest');
         Route::put('/update/{test_code}', [TeacherConTroller::class,'updateTest'])->name('teacherUpdateTest');
         Route::delete('/delete/{test_code}', [TeacherConTroller::class,'deleteTest'])->name('teacherDeleteTest');
+        Route::post('/file', [TeacherConTroller::class,'addFileTest'])->name('teacheraddFileTest');
     });
 
     // qly câu hỏi
@@ -173,6 +172,8 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     Route::get('/info/{username}', [TeacherConTroller::class, 'getInfo'])->name('getInfo');
     Route::put('/update-profile',      [TeacherConTroller::class, 'updateProfile'])->name('updateProfile');
     Route::put('/update-avatar',      [TeacherConTroller::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
+    //Route::put('/update-avatar',      [TeacherConTroller::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
+
 
     // qly điểm
     Route::group(['prefix' => '/score'], function () {
@@ -184,6 +185,13 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     Route::group(['prefix' => '/class'], function () {
         Route::get('/get',        [TeacherConTroller::class, 'getClass'])->name('getClass');
         Route::get('/get-class-by-teacher',      [TeacherConTroller::class, 'getClassByTeacher'])->name('getClassByTeacher');
+    });
+
+    // Chat with teacher
+    Route::group(['prefix' => '/notification'], function () {
+        Route::get('/to-student', [TeacherConTroller::class, 'getNotificationToStudent'])->name('getNotificationToStudent');
+        Route::get('/by-admin', [TeacherConTroller::class, 'getNotificationByAdmin'])->name('getNotificationByAdmin');
+        Route::post('/send', [TeacherConTroller::class, 'sendNotification'])->name('sendNotification');
     });
     // Route::post('/check-add-question-via-file', [AdminTeacherController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
     // Route::post('/create', [AdminTeacherController::class, 'checkAddQuestions'])->name('checkAddQuestion');
