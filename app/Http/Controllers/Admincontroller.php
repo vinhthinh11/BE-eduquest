@@ -25,6 +25,22 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class Admincontroller extends Controller
 {
+    public function search(Request $request)
+    {
+    $keySearch = $request->key_search;
+
+    $data = questions::where('question_content', 'like', '%' . $keySearch . '%')
+                    ->orWhere('answer_a', 'like', '%' . $keySearch . '%')
+                    ->orWhere('answer_b', 'like', '%' . $keySearch . '%')
+                    ->orWhere('answer_c', 'like', '%' . $keySearch . '%')
+                    ->orWhere('answer_d', 'like', '%' . $keySearch . '%')
+                    ->orWhere('suggest', 'like', '%' . $keySearch . '%')
+                    ->get();
+
+        return response()->json([
+            'data'  => $data
+        ]);
+    }
     public function getAdmin()
     {
         $data = admin::get();
@@ -135,11 +151,6 @@ class Admincontroller extends Controller
         return view('loginTest');
     }
 
-    // public function __construct()
-    // {
-    //     $this->middleware('auth:api', ['except' => ['submitLogin']]);
-    // }
-
     public function submitLogin(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -198,7 +209,6 @@ class Admincontroller extends Controller
             }
         }
     }
-
 
     public function logout(Request $request)
     {
@@ -311,11 +321,11 @@ class Admincontroller extends Controller
             unlink($filePath);
 
             if (empty($errDetails)) {
-                $result['status_value'] = "Thêm thành công " . $count . " tài khoản";
+                $result['status_value'] = "Thêm thành công " . $count . " tài khoản ADMIN";
                 $result['status'] = true;
             } else {
-                $result['status_value'] = "Lỗi! Thông tin lỗi cụ thể cho từng tài khoản:\n" . json_encode($errDetails, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-                $result['status'] = 404;
+                $result['status_value'] = "Lỗi! Thông tin lỗi cụ thể cho từng tài khoản: " . json_encode($errDetails, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+                $result['status'] = 442;
             }
         } else {
             $result['status_value'] = "Không tìm thấy tệp được tải lên";
@@ -324,12 +334,6 @@ class Admincontroller extends Controller
 
         return response()->json($result, 200, [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     }
-
-
-
-
-
-
     public function indexAdmin()
     {
         return view('admin.CRUD');
@@ -345,9 +349,9 @@ class Admincontroller extends Controller
             'permission'    => 'nullable',
             'birthday'      => 'nullable|date',
         ], [
-            'name.min'           => 'Tên Admin tối thiểu 3 kí tự!',
-            'name.max'            => 'Tên Admin dài nhất 50 ký tự!',
-            'name.unique'         => 'Tên Admin đã tồn tại!',
+            'name.min'              => 'Tên Admin tối thiểu 3 kí tự!',
+            'name.max'              => 'Tên Admin dài nhất 50 ký tự!',
+            'name.unique'           => 'Tên Admin đã tồn tại!',
             'name.required'         => 'Tên Admin không được để trống!',
             'username.required'     => 'Username không được để trống!',
             'username.unique'       => 'Username đã tồn tại!',
@@ -409,7 +413,7 @@ class Admincontroller extends Controller
     public function updateAdmin(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'admin_id' => 'sometimes|exists:admins,admin_id',
+            'admin_id' => 'sometimes|required|exists:admins,admin_id',
             'name' => 'sometimes|string|min:6|max:50',
             'gender_id' => 'sometimes|integer',
             'birthday' => 'sometimes|date',
@@ -432,7 +436,7 @@ class Admincontroller extends Controller
             ], 422);
         }
         $admin = $request->user("admins");
-        $data = $request->only(['name', 'username', 'gender_id', 'birthday', 'password', 'permission',]);
+        $data = $request->only(['name', 'username', 'gender_id', 'birthday', 'password', 'permission']);
 
         if (!$admin) {
             return response()->json([
@@ -502,40 +506,8 @@ class Admincontroller extends Controller
     public function checkAddQuestionViaFile(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'subject_id'        => 'required|integer|exists:subjects,subject_id',
-            'question_content'  => 'required|string',
-            'level_id'          => 'required|integer|exists:levels,level_id',
-            'answer_a'          => 'required|string',
-            'answer_b'          => 'required|string',
-            'answer_c'          => 'required|string',
-            'answer_d'          => 'required|string',
-            'correct_answer'    => 'required|string|in:A,B,C,D',
-            'grade_id'          => 'required|integer|exists:grades,grade_id',
-            'unit'              => 'required|string',
-            'suggest'           => 'nullable|string',
-            'status_id'         => 'required|integer|in:1,2,3',
-            'teacher_id'        => 'nullable|integer|exists:teachers,teacher_id',
             'file' => 'required|file|mimes:xlsx',
         ], [
-            'subject_id.required'          => 'Mã môn học không được để trống!',
-            'subject_id.exists'            => 'Mã môn học không tồn tại!',
-            'question_content.required'    => 'Nội dung câu hỏi không được để trống!',
-            'level_id.required'            => 'Mã cấp độ không được để trống!',
-            'level_id.exists'              => 'Mã cấp độ không tồn tại!',
-            'answer_a.required'            => 'Câu trả lời A không được để trống!',
-            'answer_b.required'            => 'Câu trả lời B không được để trống!',
-            'answer_c.required'            => 'Câu trả lời C không được để trống!',
-            'answer_d.required'            => 'Câu trả lời D không được để trống!',
-            'correct_answer.required'      => 'Câu trả lời đúng không được để trống!',
-            'correct_answer.in'            => 'Câu trả lời đúng phải là A, B, C hoặc D!',
-            'grade_id.required'            => 'Mã khối học không được để trống!',
-            'grade_id.integer'             => 'Mã khối học phải là số nguyên!',
-            'grade_id.exists'              => 'Mã khối học không tồn tại!',
-            'unit.required'                => 'Đơn vị không được để trống!',
-            'suggest.string'                => 'Gợi ý phải là chuỗi!',
-            'status_id.required'           => 'Trạng thái không được để trống!',
-            'status_id.in'                 => 'Trạng thái không hợp lệ!',
-            'teacher_id.exists'            => 'Mã giáo viên không tồn tại!',
             'file.required'                => 'Vui lòng chọn tệp để tiếp tục!',
             'file.mimes'                   => 'File phải là xlsx!',
         ]);
@@ -780,9 +752,6 @@ class Admincontroller extends Controller
 
     public function checkAddTest(Request $request)
     {
-
-        $result = [];
-
         $testName   = $request->test_name;
         $password   = bcrypt($request->password);
         $gradeId    = $request->grade_id;
@@ -906,7 +875,6 @@ class Admincontroller extends Controller
             'data'    => $data,
         ]);
     }
-
 
     public function addTest(Request $request)
     {
