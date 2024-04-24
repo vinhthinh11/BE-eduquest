@@ -1,9 +1,9 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminClassController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SubjectHeadController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admincontroller;
 use App\Http\Controllers\AdminTBMonController;
 use App\Http\Controllers\AdminMonHocController;
@@ -121,8 +121,6 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     Route::put('/update-profile',      [StudentController::class, 'updateProfile'])->name('updateProfile');
     Route::put('/update-avatar',      [StudentController::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
 
-    // Route::get('/get', [AdminHSController::class, 'index'])->name('index');
-
     //Statist
     Route::group(['prefix' => 'statist'], function () {
         Route::get('/get',         [StatistController::class, 'statistStudent'])->name('statistStudent');
@@ -191,7 +189,7 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
 
     // qly lớp
     Route::group(['prefix' => '/class'], function () {
-        Route::get('/get',        [TeacherConTroller::class, 'getClass'])->name('getClass');
+        Route::get('/get/{class_id}',        [TeacherConTroller::class, 'getClassDetail'])->name('getClassDetail');
         Route::get('/get-class-by-teacher',      [TeacherConTroller::class, 'getClassByTeacher'])->name('getClassByTeacher');
     });
 
@@ -201,11 +199,6 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
         Route::get('/by-admin', [TeacherConTroller::class, 'getNotificationByAdmin'])->name('getNotificationByAdmin');
         Route::post('/send', [TeacherConTroller::class, 'sendNotification'])->name('sendNotification');
     });
-
-
-
-    // Route::post('/check-add-question-via-file', [AdminTeacherController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
-    // Route::post('/create', [AdminTeacherController::class, 'checkAddQuestions'])->name('checkAddQuestion');
 });
 
 // ----- Route for Subject_Head -----
