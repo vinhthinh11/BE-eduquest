@@ -13,7 +13,6 @@ class subjects extends Model
     protected $fillable = [
         'subject_id',
         'subject_detail'
-
     ];
     public $timestamps = false;
     protected $primaryKey = 'subject_id';

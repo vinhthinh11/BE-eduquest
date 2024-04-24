@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\student;
+use App\Models\student_test_detail;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Models\students;
+use Carbon\Carbon;
+use Carbon\CarbonTimeZone;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -13,11 +17,10 @@ use Illuminate\Support\Facades\Validator;
 
 class AdminHSController extends Controller
 {
-    // quản lý hojc sinh
     public $successStatus = 200;
     public function index()
     {
-        $data = students::get();
+        $data = student::get();
         if (empty($data)) {
             return response()->json([
                 'data' => $data
@@ -87,37 +90,21 @@ class AdminHSController extends Controller
         }
     }
 
-    public function check_add_hs_via_file(Request $request)
+    public function check_add_admin_via_file(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name'          => 'required|string|min:6|max:50',
-            'username'      => 'required|string|min:6|max:50|unique:students,username',
-            'gender_id'     => 'required|integer',
-            'password'      => 'required|string|min:6|max:20',
-            'email'         => 'nullable|email|unique:students,email',
-            'permission'    => 'nullable',
-            'birthday'      => 'nullable|date',
-            'file'          => 'required|file|mimes:xlsx,xls',
+            'file' => 'required|file|mimes:xlsx',
         ], [
-            'name.min'              => 'Tên Học sinh tối thiểu 6 kí tự!',
-            'name.required'         => 'Tên Học sinh không được để trống!',
-            'username.required'     => 'Username không được để trống!',
-            'username.unique'       => 'Username đã tồn tại!',
-            'password.required'     => 'Password không được để trống!',
-            'password.min'          => 'Password tối thiểu 6 kí tự!',
-            'email.email'           => 'Email không đúng định dạng!',
-            'email.unique'          => 'Email đã được sử dụng!',
-            'birthday.date'         => 'Ngày Sinh phải là một ngày hợp lệ!',
-            'file.*'                => 'File phải là một file định dạng xlsx hoặc xls!',
+            'file.required' => 'Vui lòng chọn tệp để tiếp tục.',
+            'file.mimes' => 'Chỉ chấp nhận tệp với định dạng xlsx.',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
+                'errors' => $validator->errors()->toArray(),
+            ], 422, [], JSON_UNESCAPED_UNICODE);
         }
-        $result = [];
 
         if ($request->hasFile('file')) {
             $filePath = $request->file('file')->path();
@@ -127,7 +114,7 @@ class AdminHSController extends Controller
             $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
 
             $count = 0;
-            $errList = [];
+            $errDetails = [];
 
             foreach ($sheetData as $key => $row) {
                 if ($key < 4) {
@@ -138,47 +125,87 @@ class AdminHSController extends Controller
                     continue;
                 }
 
-                $name = $row['B'];
-                $username = $row['C'];
-                $email = $row['D'];
+                $validationRules = [
+                    'name' => 'required|string|min:6|max:50',
+                    'username' => 'required|string|min:6|max:50|unique:students,username',
+                    'email' => 'nullable|email|unique:students,email',
+                    'password' => 'required|string|min:6|max:20',
+                    'birthday' => 'nullable|date',
+                    'gender' => 'required|string|in:Nam,Nữ,Khác',
+                ];
+
+                $validationMessages = [
+                    'name.required' => 'Tên không được để trống',
+                    'name.string' => 'Tên phải là chuỗi',
+                    'name.min' => 'Tên phải chứa ít nhất 6 ký tự',
+                    'name.max' => 'Tên chỉ được chứa tối đa 50 ký tự',
+                    'username.required' => 'Username không được để trống',
+                    'username.string' => 'Username phải là chuỗi',
+                    'username.min' => 'Username phải chứa ít nhất 6 ký tự',
+                    'username.max' => 'Username chỉ được chứa tối đa 50 ký tự',
+                    'username.unique' => 'Username đã tồn tại',
+                    'email.email' => 'Email không đúng định dạng',
+                    'email.unique' => 'Email đã được sử dụng',
+                    'password.required' => 'Password không được để trống',
+                    'password.string' => 'Password phải là chuỗi',
+                    'password.min' => 'Password phải chứa ít nhất 6 ký tự',
+                    'password.max' => 'Password chỉ được chứa tối đa 20 ký tự',
+                    'birthday.date' => 'Ngày sinh không hợp lệ',
+                    'gender.required' => 'Giới tính không được để trống',
+                    'gender.string' => 'Giới tính phải là chuỗi',
+                    'gender.in' => 'Giới tính không hợp lệ',
+                ];
+
+                $dataToValidate = [
+                    'name' => $row['B'],
+                    'username' => $row['C'],
+                    'email' => $row['D'],
+                    'password' => $row['E'],
+                    'birthday' => $row['F'],
+                    'gender' => $row['G'],
+                ];
+
+                $customValidator = Validator::make($dataToValidate, $validationRules, $validationMessages);
+
+                if ($customValidator->fails()) {
+                    $errDetails[$row['A']] = implode(', ', $customValidator->errors()->all());
+                    continue;
+                }
+
                 $password = bcrypt($row['E']);
-                $birthday = $row['F'];
                 $gender = ($row['G'] == 'Nam') ? 2 : (($row['G'] == 'Nữ') ? 3 : 1);
-                $hs = new students([
-                    'name' => $name,
-                    'username' => $username,
-                    'email' => $email,
+                $student = new student([
+                    'name' => $row['B'],
+                    'username' => $row['C'],
+                    'email' => $row['D'],
                     'password' => $password,
-                    'birthday' => $birthday,
+                    'birthday' => $row['F'],
                     'gender_id' => $gender,
-                    'last_login' => now(),
+                    'last_login' => Carbon::now(CarbonTimeZone::createFromHourOffset(7 * 60))->timezone('Asia/Ho_Chi_Minh'),
                 ]);
 
-                if ($hs->saveQuietly()) {
+                if ($student->saveQuietly()) {
                     $count++;
                 } else {
-                    $errList[] = $row['A'];
+                    $errDetails[$row['A']] = "Lỗi khi thêm tài khoản";
                 }
             }
-            //Xóa tệp
+
             unlink($filePath);
 
-            if (empty($errList)) {
-                $result['status_value'] = "Thêm thành công " . $count . " tài khoản!";
-                $result['status'] = 1;
+            if (empty($errDetails)) {
+                $result['status_value'] = "Thêm thành công " . $count . " tài khoản Học Sinh!";
+                $result['status'] = true;
             } else {
-                $result['status_value'] = "Lỗi! Không thể thêm tài khoản có STT: " . implode(', ', $errList) . ', vui lòng xem lại.';
-                $result['status'] = 0;
+                $result['status_value'] = "Lỗi! Thông tin lỗi cụ thể cho từng tài khoản: " . json_encode($errDetails, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+                $result['status'] = 404;
             }
         } else {
-            $result['status_value'] = "Không tìm thấy tệp được tải lên!";
-            $result['status'] = 0;
+            $result['status_value'] = "Không tìm thấy tệp được tải lên";
+            $result['status'] = false;
         }
 
-        return response()->json($result);
-        // return response()->json([
-        //     'result' => $result,
-        // ]);
+        return response()->json($result, 200, [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     }
     public function createHS(Request $request)
     {
@@ -192,8 +219,8 @@ class AdminHSController extends Controller
             'birthday'      => 'nullable|date',
         ], [
             'name.min'              => 'Tên Học Sinh tối thiểu 6 kí tự!',
-            'name.max'              => 'Ten Học Sinh tối thieu 50 ký tự!',
-            'name.unique'           => 'Ten Học Sinh da ton tai!',
+            'name.max'              => 'Tên Học Sinh tối thieu 50 ký tự!',
+            'name.unique'           => 'Tên Học Sinh da ton tai!',
             'name.required'         => 'Tên Học Sinh không được để trống!',
             'username.required'     => 'Username không được để trống!',
             'username.unique'       => 'Username đã tồn tại!',
@@ -210,22 +237,13 @@ class AdminHSController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-
-        $data = request()->only([
-            'name',
-            'username',
-            'email',
-            'password',
-            'birthday',
-            'last_login',
-            'class_id',
-            'gender_id'
-        ]);
+        $data = $request->all();
         $data['password'] = bcrypt($data['password']);
+        $data['last_login'] = Carbon::now('Asia/Ho_Chi_Minh');
         $student = new students($data);
-        $student->save();
         return response()->json([
-            'student' => $data,
+            'message'   => 'Thêm Học Sinh thành công!',
+            'student' => $student,
         ]);
     }
 
@@ -243,22 +261,25 @@ class AdminHSController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
+
         $hs = students::find($request->student_id);
         if ($hs) {
+            $test = student_test_detail::where('student_id', $request->student_id)->first();
+
+            if ($test) {
+                return response()->json([
+                    'message'   => 'Học sinh đang có bài thi, cần xóa dữ liệu thi trước!',
+                    'student' => $test,
+                ]);
+            }
             $hs->delete();
+
             return response()->json([
-                'status'    => true,
                 'message'   => 'Xoá học sinh thành công!',
+                'student' => $hs,
             ]);
-        } else {
-            return response()->json([
-                'status'    => false,
-                'message'   => 'Không tìm thấy học sinh!',
-            ], 404);
         }
     }
-
-
 
     public function updateHS(Request $request)
     {

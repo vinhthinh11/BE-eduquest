@@ -1,9 +1,9 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminClassController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SubjectHeadController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admincontroller;
 use App\Http\Controllers\AdminTBMonController;
 use App\Http\Controllers\AdminMonHocController;
@@ -47,6 +47,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::get('/get-status', [Admincontroller::class, 'getStatus'])->name('getStatus');
         Route::get('/get-subjects', [Admincontroller::class, 'getSubjects'])->name('getSubjects');
         Route::get('/get-level', [Admincontroller::class, 'getLevels'])->name('getLevel');
+        Route::post('/search', [Admincontroller::class, 'search'])->name('search');
         Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
     });
     //  ql test
@@ -66,19 +67,17 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
     Route::group(['prefix' => 'teacher'], function () {
         Route::get('/get',     [AdminTeacherController::class, 'getTeacher'])->name('getTeacher');
         Route::delete('/delete', [AdminTeacherController::class, 'destroy'])->name('destroyTeacher');
-        // Route::put('/update',  [AdminTeacherController::class, 'update'])->name('updateTeacher');
         Route::put('/update',   [AdminTeacherController::class, 'edit'])->name('editTeacher');
         Route::post('/create', [AdminTeacherController::class, 'create'])->name('createTeacher');
         Route::post('/search', [AdminTeacherController::class, 'search'])->name('searchTeacher');
-        Route::post('/delete-check-box', [AdminTeacherController::class, 'deleteCh2eckbox'])->name('deleteCheckbox');
-        Route::post('/file', [AdminTeacherController::class, 'createFileTeacher'])->name('check_add_teacher_via_file');
+        Route::post('/delete-check-box', [AdminTeacherController::class, 'deleteCheckbox'])->name('deleteCheckbox');
+        Route::post('/file', [AdminTeacherController::class, 'createFileTeacher'])->name('createFileTeacher');
     });
 
     //ql Class
     Route::group(['prefix' => 'class'], function () {
         Route::get('/get',     [AdminClassController::class, 'getClasses'])->name('getClasses');
         Route::delete('/delete', [AdminClassController::class, 'destroy'])->name('destroyClass');
-        // Route::put('/update', [AdminClassController::class, 'update'])->name('updateClass');
         Route::put('/update',   [AdminClassController::class, 'edit'])->name('editClass');
         Route::post('/create', [AdminClassController::class, 'create'])->name('createClass');
         Route::post('/search', [AdminClassController::class, 'search'])->name('searchClass');
@@ -100,6 +99,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::post('/create', [AdminMonHocController::class, 'createMon'])->name('createMon');
         Route::delete('/delete', [AdminMonHocController::class, 'deleteMon'])->name('deleteMon');
         Route::put('/update', [AdminMonHocController::class, 'updateMon'])->name('updateMon');
+        Route::post('/search', [AdminMonHocController::class, 'search'])->name('search');
     });
 
     //ql học sinh
@@ -112,7 +112,9 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
     });
 
     //notification
-    Route::get('/list-notification', [AdminNotificationController::class, 'listNotification'])->name('listNotification');
+    Route::get('/list-notification-teacher', [AdminNotificationController::class, 'listNotificationGV'])->name('listNotificationGV');
+    Route::get('/list-notification-student', [AdminNotificationController::class, 'listNotificationHS'])->name('listNotificationHS');
+    Route::post('/send-notification', [AdminNotificationController::class, 'sendNotification'])->name('sendNotification');
 });
 
 // ----- Route for Student -----
@@ -146,9 +148,14 @@ Route::group(['prefix' => '/test'], function () {
     //học sinh luyện đề
     Route::group(['prefix' => '/practice'], function () {
         Route::get('/get', [HSLuyenDeController::class, 'list'])->name('list');
-        Route::post('/check-add-practice', [HSLuyenDeController::class, 'checkAddPractice'])->name('checkAddPractice');
-        Route::put('/accept-practice', [HSLuyenDeController::class, 'acceptPractice'])->name('acceptPractice');
+        Route::post('/check-practice', [HSLuyenDeController::class, 'checkPractice'])->name('checkPractice');
+        Route::post('/add-practice', [HSLuyenDeController::class, 'addPractice'])->name('addPractice');
+        Route::post('/accept-practice', [HSLuyenDeController::class, 'acceptPractice'])->name('acceptPractice');
+        Route::post('/show-practice', [HSLuyenDeController::class, 'showPractice'])->name('showPractice');
     });
+
+    //xem danh sách thông báo
+    Route::get('/get-notification', [StudentController::class, 'getNotification'])->name('getNotification');
 });
 
 // ----- Route for Teacher -----
@@ -162,6 +169,7 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
         Route::put('/update/{test_code}', [TeacherConTroller::class,'updateTest'])->name('teacherUpdateTest');
         Route::delete('/delete/{test_code}', [TeacherConTroller::class,'deleteTest'])->name('teacherDeleteTest');
         Route::post('/file', [TeacherConTroller::class,'addFileTest'])->name('teacheraddFileTest');
+        Route::post('/search', [TeacherConTroller::class,'searchOfTest'])->name('teachersearchOfTest');
     });
 
     // qly câu hỏi
@@ -169,17 +177,17 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
         Route::post('/create', [TeacherConTroller::class, 'addQuestion'])->name('addQuestion');
         Route::get('/get', [TeacherConTroller::class, 'getQuestion'])->name('addQuestion');
         Route::get('/getTotal', [TeacherConTroller::class, 'getTotalQuestions'])->name('addQuestion');
-        Route::post('/delete', [TeacherConTroller::class, 'destroyQuestion'])->name('destroyQuestion');
+        Route::delete('/delete', [TeacherConTroller::class, 'destroyQuestion'])->name('destroyQuestion');
         Route::put('/update', [TeacherConTroller::class, 'updateQuestion'])->name('updateQuestion');
         Route::post('/multi-delete-question', [TeacherConTroller::class, 'multiDeleteQuestion'])->name('multiDeleteQuestion');
         Route::post('/file', [TeacherConTroller::class, 'addFileQuestion'])->name('addFileQuestion');
+        Route::post('/search', [TeacherConTroller::class, 'searchOfTeacher'])->name('searchOfTeacher');
     });
 
     //Profile
     Route::get('/info/{username}', [TeacherConTroller::class, 'getInfo'])->name('getInfo');
     Route::put('/update-profile',      [TeacherConTroller::class, 'updateProfile'])->name('updateProfile');
     Route::put('/update-avatar',      [TeacherConTroller::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
-    //Route::put('/update-avatar',      [TeacherConTroller::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
 
 
     // qly điểm
@@ -204,8 +212,6 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
         Route::get('/by-admin', [TeacherConTroller::class, 'getNotificationByAdmin'])->name('getNotificationByAdmin');
         Route::post('/send', [TeacherConTroller::class, 'sendNotification'])->name('sendNotification');
     });
-    // Route::post('/check-add-question-via-file', [AdminTeacherController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
-    // Route::post('/create', [AdminTeacherController::class, 'checkAddQuestions'])->name('checkAddQuestion');
 });
 
 // ----- Route for Subject_Head -----

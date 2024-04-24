@@ -26,7 +26,38 @@ use Illuminate\Support\Facades\Validator;
 
 class TeacherConTroller extends Controller
 {
+    public function searchOfTest(Request $request)
+    {
+    $keySearch = $request->key_search;
 
+    $data = tests::where('test_code', 'like', '%' . $keySearch . '%')
+                ->orWhere('test_name', 'like', '%' . $keySearch . '%')
+                ->orWhere('subject_id', 'like', '%' . $keySearch . '%')
+                ->orWhere('grade_id', 'like', '%' . $keySearch . '%')
+                ->orWhere('level_id', 'like', '%' . $keySearch . '%')
+                ->orWhere('note', 'like', '%' . $keySearch . '%')
+                ->get();
+
+        return response()->json([
+            'data'  => $data
+        ]);
+    }
+    public function searchOfTeacher(Request $request)
+    {
+    $keySearch = $request->key_search;
+
+    $data = questions::where('question_content', 'like', '%' . $keySearch . '%')
+                    ->orWhere('answer_a', 'like', '%' . $keySearch . '%')
+                    ->orWhere('answer_b', 'like', '%' . $keySearch . '%')
+                    ->orWhere('answer_c', 'like', '%' . $keySearch . '%')
+                    ->orWhere('answer_d', 'like', '%' . $keySearch . '%')
+                    ->orWhere('suggest', 'like', '%' . $keySearch . '%')
+                    ->get();
+
+        return response()->json([
+            'data'  => $data
+        ]);
+    }
     public function getInfo($username)
     {
         $teacher = teacher::select('teachers.teacher_id', 'teachers.username', 'teachers.avatar', 'teachers.email', 'teachers.name', 'teachers.last_login', 'teachers.birthday', 'permissions.permission_detail', 'genders.gender_detail', 'genders.gender_id')
@@ -36,10 +67,9 @@ class TeacherConTroller extends Controller
             ->first();
         if ($teacher) {
             //đẩy view ở đây nha!!
-            //return view('teacher.info', ['teacher' => $teacher]);
             return response()->json(['teacher' => $teacher], 200);
         }
-        return response()->json(['message' => 'Giáo viên không tồn tại!'], 404);
+        return response()->json(['message' => 'Giáo viên không tồn tại!'], 400);
     }
     public function updateProfile(Request $request)
     {
@@ -116,7 +146,7 @@ class TeacherConTroller extends Controller
 
             return response()->json(['message' => 'Tải lên thành công', 'path' => $path], 200);
         }
-            return response()->json(['message' => 'Không có tệp nào được tải lên'], 404);
+            return response()->json(['message' => 'Không có tệp nào được tải lên'], 400);
     }
     public function getStudent(Request $request)
     {
@@ -149,7 +179,7 @@ class TeacherConTroller extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Giáo viên không hợp lệ',
-            ], 400);
+            ], 422);
         }
 
         $classes = classes::join('grades', 'grades.grade_id', '=', 'classes.grade_id')
@@ -221,7 +251,6 @@ class TeacherConTroller extends Controller
         $sheet->setCellValue('D3', 'Lớp');
         $sheet->setCellValue('E3', 'Điểm');
 
-        //add data
         foreach ($scores as $key => $score) {
             $row = $key + 4;
             $sheet->setCellValue('A' . $row, $key + 1);
@@ -309,42 +338,10 @@ class TeacherConTroller extends Controller
     public function addFileQuestion(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'subject_id'        => 'required|integer|exists:subjects,subject_id',
-            'question_content'  => 'required|string',
-            'level_id'          => 'required|integer|exists:levels,level_id',
-            'answer_a'          => 'required|string',
-            'answer_b'          => 'required|string',
-            'answer_c'          => 'required|string',
-            'answer_d'          => 'required|string',
-            'correct_answer'    => 'required|string|in:A,B,C,D',
-            'grade_id'          => 'required|integer|exists:grades,grade_id',
-            'unit'              => 'required|string',
-            'suggest'           => 'nullable|string',
-            'status_id'         => 'required|integer|in:1,2,3',
-            'teacher_id'        => 'nullable|integer|exists:teachers,teacher_id',
             'file' => 'required|file|mimes:xlsx',
         ], [
-            'subject_id.required'          => 'Mã môn học không được để trống!',
-            'subject_id.exists'            => 'Mã môn học không tồn tại!',
-            'question_content.required'    => 'Nội dung câu hỏi không được để trống!',
-            'level_id.required'            => 'Mã cấp độ không được để trống!',
-            'level_id.exists'              => 'Mã cấp độ không tồn tại!',
-            'answer_a.required'            => 'Câu trả lời A không được để trống!',
-            'answer_b.required'            => 'Câu trả lời B không được để trống!',
-            'answer_c.required'            => 'Câu trả lời C không được để trống!',
-            'answer_d.required'            => 'Câu trả lời D không được để trống!',
-            'correct_answer.required'      => 'Câu trả lời đúng không được để trống!',
-            'correct_answer.in'            => 'Câu trả lời đúng phải là A, B, C hoặc D!',
-            'grade_id.required'            => 'Mã khối học không được để trống!',
-            'grade_id.integer'             => 'Mã khối học phải là số nguyên!',
-            'grade_id.exists'              => 'Mã khối học không tồn tại!',
-            'unit.required'                => 'Đơn vị không được để trống!',
-            'suggest.string'                => 'Gợi ý phải là chuỗi!',
-            'status_id.required'           => 'Trạng thái không được để trống!',
-            'status_id.in'                 => 'Trạng thái không hợp lệ!',
-            'teacher_id.exists'            => 'Mã giáo viên không tồn tại!',
-            'file.required'                => 'Vui lòng chọn tệp để tiếp tục!',
-            'file.mimes'                   => 'File phải là xlsx!',
+            'file.required' => 'Vui lòng chọn tệp để tiếp tục!',
+            'file.mimes' => 'File phải là xlsx!',
         ]);
 
         if ($validator->fails()) {
@@ -353,79 +350,112 @@ class TeacherConTroller extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
+
+        $result = [];
+        $subjectId = $request->subject_id;
         $inputFileType = 'Xlsx';
-        $result = array();
-        $subject_id = $request->subject_id;
-
-        $reader = IOFactory::createReader($inputFileType);
-        $spreadsheet = $reader->load($request->file('file')->getRealPath());
-        $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
-
         $count = 0;
-        $err_list = '';
-        foreach ($sheetData as $index => $row) {
-            if ($index < 4 || empty($row['A'])) {
-                continue;
+        $errList = [];
+
+        if ($request->hasFile('file')) {
+            $filePath = $request->file('file')->path();
+
+            $reader = IOFactory::createReader($inputFileType);
+            $spreadsheet = $reader->load($filePath);
+            $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
+
+            foreach ($sheetData as $key => $row) {
+                if ($key < 4 || empty($row['A'])) {
+                    continue;
+                }
+
+                $stt = $row['A'];
+                $questionContent = $row['B'];
+                $levelId = $row['C'];
+                $answerA = $row['D'];
+                $answerB = $row['E'];
+                $answerC = $row['F'];
+                $answerD = $row['G'];
+                $correctAnswer = $row['H'];
+                $gradeId = $row['I'];
+                $unit = $row['J'];
+                $suggest = $row['K'];
+                $teacherId = null;
+
+                switch ($correctAnswer) {
+                    case "A":
+                        $answer = $answerA;
+                        break;
+                    case "B":
+                        $answer = $answerB;
+                        break;
+                    case "C":
+                        $answer = $answerC;
+                        break;
+                    default:
+                        $answer = $answerD;
+                }
+
+                $dataToValidate = [
+                    'subject_id' => $subjectId,
+                    'question_content' => $questionContent,
+                    'level_id' => $levelId,
+                    'answer_a' => $answerA,
+                    'answer_b' => $answerB,
+                    'answer_c' => $answerC,
+                    'answer_d' => $answerD,
+                    'correct_answer' => $answer,
+                    'grade_id' => $gradeId,
+                    'unit' => $unit,
+                    'suggest' => $suggest,
+                    'status_id' => 3,
+                    'teacher_id' => $teacherId,
+                ];
+
+                $customValidator = Validator::make($dataToValidate, [
+                    'subject_id' => 'required|integer',
+                    'question_content' => 'required|string',
+                    'level_id' => 'required|integer|exists:levels,level_id',
+                    'answer_a' => 'required|string',
+                    'answer_b' => 'required|string',
+                    'answer_c' => 'required|string',
+                    'answer_d' => 'required|string',
+                    'correct_answer' => 'required|string|in:A,B,C,D',
+                    'grade_id' => 'required|integer|exists:grades,grade_id',
+                    'unit' => 'required|string',
+                    'suggest' => 'nullable|string',
+                    'status_id' => 'required|integer',
+                    'teacher_id' => 'nullable|integer',
+                ]);
+
+                if ($customValidator->fails()) {
+                    $errList[] = $stt;
+                    continue;
+                }
+
+                $question = new questions($dataToValidate);
+
+                if ($question->saveQuietly()) {
+                    $count++;
+                } else {
+                    $errList[] = $stt;
+                }
             }
 
-            $stt = $row['A'];
-            $question_content = $row['B'];
-            $level_id = $row['C'];
-            $answer_a = $row['D'];
-            $answer_b = $row['E'];
-            $answer_c = $row['F'];
-            $answer_d = $row['G'];
-            $correct_answer = $row['H'];
-            $grade_id = $row['I'];
-            $unit = $row['J'];
-            $suggest = $row['K'];
+            unlink($filePath);
 
-            if (empty($question_content) || empty($grade_id) || empty($level_id) || empty($unit) || empty($answer_a) || empty($answer_b) || empty($answer_c) || empty($answer_d) || empty($correct_answer)) {
-                $err_list[] = $stt;
-                continue;
+            if (empty($errList)) {
+                $result['status_value'] = "Thêm thành công " . $count . " câu hỏi!";
+                $result['status'] = 1;
+            } else {
+                $result['status_value'] = "Lỗi! Không thể thêm câu hỏi có STT: " . implode(', ', $errList) . ', vui lòng xem lại.';
+                $result['status'] = 0;
             }
-
-            switch ($correct_answer) {
-                case "A":
-                    $correct_answer_text = $answer_a;
-                    break;
-                case "B":
-                    $correct_answer_text = $answer_b;
-                    break;
-                case "C":
-                    $correct_answer_text = $answer_c;
-                    break;
-                default:
-                    $correct_answer_text = $answer_d;
-            }
-
-            DB::beginTransaction();
-
-            $question = questions::create([
-                'subject_id' => $subject_id,
-                'test_name' => $question_content,
-                'level_id' => $level_id,
-                'grade_id' => $grade_id,
-                'unit' => $unit,
-                'answer_a' => $answer_a,
-                'answer_b' => $answer_b,
-                'answer_c' => $answer_c,
-                'answer_d' => $answer_d,
-                'correct_answer' => $correct_answer_text,
-                'suggest' => $suggest,
-                'teacher_id' => null,
-            ]);
-
-            DB::commit();
-            $count++;
-        }
-        if ($err_list == '') {
-            $result['status_value'] = "Thêm thành công " . $count . ' câu hỏi!';
-            $result['status'] = 1;
         } else {
-            $result['status_value'] = "Lỗi! Không thể thêm câu hỏi có STT: " . $err_list . ', vui lòng xem lại.';
+            $result['status_value'] = "Không tìm thấy tệp được tải lên!";
             $result['status'] = 0;
         }
+
         return response()->json($result);
     }
 
@@ -624,7 +654,6 @@ class TeacherConTroller extends Controller
         return response()->json([
             'message' => 'Cập nhật đề thi thành công!',
             "data" => $test
-
         ]);
     }
 
@@ -842,6 +871,6 @@ class TeacherConTroller extends Controller
         return response()->json([
             'message' => 'Gửi thông báo thành công!',
             'data' => $notification,
-        ], 201);
+        ], 200);
     }
 }

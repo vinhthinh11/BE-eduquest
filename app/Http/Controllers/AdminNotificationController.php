@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\notifications;
+use App\Models\admin;
 use App\Models\student_notifications;
 use App\Models\teacher_notifications;
 use Illuminate\Support\Facades\Auth;
@@ -12,18 +13,39 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AdminNotificationController extends Controller
 {
-    // danh sách thông báo
-    public function listNotification(Request $request){
-        $notification_id = $request->notification_id;
-        $getList = notifications::where('notification_id', $notification_id)->get();
-        if ($getList->isEmpty()) {
+    // danh sách thông báo cho gv
+    public function listNotificationGV(Request $request){
+        $getListGV = notifications::whereExists(function ($query) {
+            $query->select(DB::raw(1))
+                ->from('teacher_notifications')
+                ->whereColumn('teacher_notifications.notification_id', 'notifications.notification_id');
+        })->get();
+        if ($getListGV->isEmpty()) {
             return response()->json([
-                'message' => 'No data found',
+                'message' => 'Không tìm thấy dữ liệu',
             ], 400);
         }
         return response()->json([
-            'message' => 'success',
-            'data' => $getList
+            'message' => 'Thành công',
+            'data' => $getListGV
+        ]);
+    }
+
+    // danh sách thông báo cho học sinh
+    public function listNotificationHS(Request $request){
+        $getListHS = notifications::whereExists(function ($query) {
+            $query->select(DB::raw(1))
+                ->from('student_notifications')
+                ->whereColumn('student_notifications.notification_id', 'notifications.notification_id');
+        })->get();
+        if ($getListHS->isEmpty()) {
+            return response()->json([
+                'message' => 'Không tìm thấy dữ liệu',
+            ], 400);
+        }
+        return response()->json([
+            'message' => 'Thành công',
+            'data' => $getListHS
         ]);
     }
 
