@@ -752,9 +752,6 @@ class Admincontroller extends Controller
 
     public function checkAddTest(Request $request)
     {
-
-        $result = [];
-
         $testName   = $request->test_name;
         $password   = bcrypt($request->password);
         $gradeId    = $request->grade_id;
@@ -878,7 +875,6 @@ class Admincontroller extends Controller
             'data'    => $data,
         ]);
     }
-
 
     public function addTest(Request $request)
     {

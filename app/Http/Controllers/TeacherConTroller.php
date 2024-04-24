@@ -67,10 +67,9 @@ class TeacherConTroller extends Controller
             ->first();
         if ($teacher) {
             //đẩy view ở đây nha!!
-            //return view('teacher.info', ['teacher' => $teacher]);
             return response()->json(['teacher' => $teacher], 200);
         }
-        return response()->json(['message' => 'Giáo viên không tồn tại!'], 404);
+        return response()->json(['message' => 'Giáo viên không tồn tại!'], 400);
     }
     public function updateProfile(Request $request)
     {
@@ -147,37 +146,28 @@ class TeacherConTroller extends Controller
 
             return response()->json(['message' => 'Tải lên thành công', 'path' => $path], 200);
         }
-            return response()->json(['message' => 'Không có tệp nào được tải lên'], 404);
+            return response()->json(['message' => 'Không có tệp nào được tải lên'], 400);
     }
-    public function getClass(Request $request)
+        public function getClassDetail($class_id)
     {
-        $user = $request->user('teachers');
-        $validator = Validator::make($request->all(), [
-            'class_id' => 'integer|unique:classes,class_id',
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'class_id không hợp lệ',
-            ], 400);
-        }
-
-        $students = student::join('genders', 'genders.gender_id', '=', 'students.gender_id')
+        $classDetail = students::select(
+                'students.student_id',
+                'students.avatar',
+                'students.username',
+                'students.name',
+                'students.birthday',
+                'genders.gender_detail',
+                'students.last_login',
+                'classes.class_name'
+            )
+            ->join('genders', 'genders.gender_id', '=', 'students.gender_id')
             ->join('classes', 'students.class_id', '=', 'classes.class_id')
-            ->join("teachers", "teachers.teacher_id", "=", "classes.teacher_id")
-            ->where("teachers.teacher_id", $user->teacher_id)
+            ->where('students.class_id', $class_id)
             ->get();
 
-        if ($students->isEmpty()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Không tìm thấy Lớp',
-            ], 404);
-        }
         return response()->json([
-            'status' => true,
-            'message' => 'Lấy dữ liệu Lớp thành công!',
-            'data' => $students
+            'message' => 'Lấy dữ liệu thành công!',
+            'data' => $classDetail
         ], 200);
     }
 
@@ -192,7 +182,7 @@ class TeacherConTroller extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Giáo viên không hợp lệ',
-            ], 400);
+            ], 422);
         }
 
         $classes = classes::join('grades', 'grades.grade_id', '=', 'classes.grade_id')
@@ -264,7 +254,6 @@ class TeacherConTroller extends Controller
         $sheet->setCellValue('D3', 'Lớp');
         $sheet->setCellValue('E3', 'Điểm');
 
-        //add data
         foreach ($scores as $key => $score) {
             $row = $key + 4;
             $sheet->setCellValue('A' . $row, $key + 1);
@@ -668,7 +657,6 @@ class TeacherConTroller extends Controller
         return response()->json([
             'message' => 'Cập nhật đề thi thành công!',
             "data" => $test
-
         ]);
     }
 
@@ -887,6 +875,6 @@ class TeacherConTroller extends Controller
         return response()->json([
             'message' => 'Gửi thông báo thành công!',
             'data' => $notification,
-        ], 201);
+        ], 200);
     }
 }
