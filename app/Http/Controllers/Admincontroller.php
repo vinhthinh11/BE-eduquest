@@ -376,28 +376,6 @@ class Admincontroller extends Controller
 
     public function deleteAdmin(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'admin_id' => [
-                'required',
-                'exists:admins,admin_id',
-                function ($attribute, $value, $fail) use ($request) {
-                    $loggedInAdminId = $request->user("admins")->admin_id;
-                    if ($value == $loggedInAdminId) {
-                        $fail('Bạn không có quyền xóa tài khoản của mình!');
-                    }
-                },
-            ],
-        ],[
-            'admin_id.exists' => 'ADMIN không tồn tại trên hệ thống!',
-            'admin_id.required' => 'Yêu cầu nhập đúng ID của ADMIN!',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
-        }
 
         $admin = admin::find($request->admin_id)->delete();
 
@@ -409,13 +387,13 @@ class Admincontroller extends Controller
     public function updateAdmin(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'admin_id' => 'sometimes|exists:admins,admin_id',
+            'admin_id' => 'required|exists:admins,admin_id',
             'name' => 'sometimes|string|min:6|max:50',
             'gender_id' => 'sometimes|integer',
             'birthday' => 'sometimes|date',
             'password' => 'sometimes|string|min:6|max:20',
         ], [
-            'admin_id.required' => 'Admin không được để trống!',
+            'admin_id.required' => 'admin_id k  hông được để trống!',
             'admin_id.exists' => 'Admin không tồn tại!',
             'name.min' => 'Tên Admin tối thiểu 6 kí tự!',
             'name.required' => 'Tên Admin không được để trống!',
@@ -431,17 +409,13 @@ class Admincontroller extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-        $admin = $request->user("admins");
+
+        $admin = admin::find($request->admin_id);
         $data = $request->only(['name', 'username', 'gender_id', 'birthday', 'password', 'permission',]);
 
-        if (!$admin) {
-            return response()->json([
-                'status'    => false,
-                'message'   => 'Tài khoản không tồn tại!'
-            ], 400);
-        } else if (isset($data['password'])) {
+
+        if (isset($data['password']))
             $data['password'] = bcrypt($data['password']);
-        }
 
         $admin->fill($data)->save();
 

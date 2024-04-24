@@ -56,6 +56,9 @@ class student extends  Authenticatable implements JWTSubject
 
         return $test;
     }
+    public function classes(){
+        return $this->belongsTo(classes::class, 'class_id');
+    }
 
     public function statistics($student_id)
     {

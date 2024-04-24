@@ -11,8 +11,8 @@ class TBMDuyetDeThiController extends Controller
     public function getTests(Request $request)
     {
         $user = $request->user('subject_heads');
-        $tests = tests::where('subject_id', $user->subject_id)->get();
-        return response()->json($tests);
+        $tests = tests::where('subject_id', $user->subject_id)->orderByDesc('timest')->get();
+        return response()->json(["data"=>$tests]);
     }
     public function getTestDetail(Request $request, $test_code)
     {
