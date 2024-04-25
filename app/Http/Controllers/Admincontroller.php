@@ -380,9 +380,17 @@ class Admincontroller extends Controller
 
     public function deleteAdmin(Request $request)
     {
-
+           $validator = Validator::make($request->all(), [
+            'admin_id' => 'required|exists:admins,admin_id'],
+            ['admin_id.required' => 'admin_id không được để trống!',
+            ]);
+            if ($validator->fails()) {
+            return response()->json([
+                'message' =>"test",
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $admin = admin::find($request->admin_id)->delete();
-
         return response()->json([
             'message' => 'Xóa Admin thành công!',
             'admin' => $admin
@@ -397,7 +405,7 @@ class Admincontroller extends Controller
             'birthday' => 'sometimes|date',
             'password' => 'sometimes|string|min:6|max:20',
         ], [
-            'admin_id.required' => 'admin_id k  hông được để trống!',
+            'admin_id.required' => 'admin_id không được để trống!',
             'admin_id.exists' => 'Admin không tồn tại!',
             'name.min' => 'Tên Admin tối thiểu 6 kí tự!',
             'name.required' => 'Tên Admin không được để trống!',
