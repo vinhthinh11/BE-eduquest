@@ -14,10 +14,7 @@ class AuthController extends Controller
      *
      * @return void
      */
-    public function __construct()
-    {
-        $this->middleware('auth:admins', ['except' => ['login']]);
-    }
+
 
     /**
      * Get a JWT via given credentials.
@@ -75,9 +72,25 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function me()
+    public function me(Request $request)
     {
-        return response()->json(auth()->user());
+        $user = auth('admins')->user();
+        if($user){
+            return response()->json($user);
+        }
+        $user = auth('subject_heads')->user();
+        if($user){
+            return response()->json($user);
+        }
+        $user = auth('teachers')->user();
+        if($user){
+            return response()->json($user);
+        }
+        $user = auth('students')->user();
+        if($user){
+            return response()->json($user);
+        }
+        return response()->json(['error' => 'User not found'], 401);
     }
 
     /**

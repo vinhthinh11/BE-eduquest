@@ -143,17 +143,12 @@ class AdminTeacherController extends Controller
             ], 422);
         }
 
-        $teacher = $request->user("admins");
+        $teacher = teacher::find($request->teacher_id);
         $data = $request->only(['name', 'username', 'gender_id', 'birthday', 'password', 'permission']);
 
-        if (!$teacher) {
-            return response()->json([
-                'status'    => false,
-                'message'   => 'Tài khoản không tồn tại!'
-            ]);
-        } else if (isset($data['password'])) {
+
+         if (isset($data['password']))
             $data['password'] = bcrypt($data['password']);
-        }
 
         $teacher->fill($data)->save();
 

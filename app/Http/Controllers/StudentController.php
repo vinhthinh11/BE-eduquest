@@ -11,6 +11,7 @@ use App\Models\student_test_detail;
 use App\Models\notifications;
 use App\Models\student_notifications;
 use App\Models\teacher_notifications;
+use App\Models\tests;
 use Carbon\Carbon;
 use Carbon\CarbonTimeZone;
 use Illuminate\Http\Request;
@@ -34,6 +35,24 @@ class StudentController extends Controller
             return response()->json(['student' => $student], 200);
         }
         return response()->json(['message' => 'Học sinh không tồn tại!'], 404);
+    }
+    public function getTest(Request $request){
+    $user = $request->user('students');
+    $grade_id = student::with("classes")->where("student_id", $user->student_id)->first()->classes->grade_id;
+    $test = tests::where("grade_id", $grade_id)->where('status_id',"!=",3)->orderBy('timest','desc')->get();
+    return response()->json(['data' => $test], 200);
+    }
+    public function getTestDetail(Request $request, $test_code)
+    {
+        $questions = [];
+        $data  = tests::find($test_code);
+        if (!$data) return response()->json(["message" => "Không tìm thấy đề thi!"], 400);
+        foreach ($data->questions as $question) {
+            $questions[] = $question;
+        }
+        $data['questions'] = $questions;
+
+        return response()->json(["data" => $data]);
     }
     public function updateProfile(Request $request)
     {

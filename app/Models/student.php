@@ -36,6 +36,9 @@ class student extends  Authenticatable implements JWTSubject
     ];
 
     protected $primaryKey = 'student_id';
+    protected $hidden = [
+        'password',
+    ];
     public $timestamps = false;
 
 
@@ -56,6 +59,9 @@ class student extends  Authenticatable implements JWTSubject
             ->first();
 
         return $test;
+    }
+    public function classes(){
+        return $this->belongsTo(classes::class, 'class_id');
     }
 
     public function getQuestOfTest($testCode)
