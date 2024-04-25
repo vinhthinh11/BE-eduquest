@@ -390,40 +390,24 @@ class StudentController extends Controller
         return response()->json(['status' => true, 'message' => 'Nộp bài Thành Công!'], 200);
     }
 
+    //fix bug phần này
     public function showResult(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'student_id' => 'required|exists:students,student_id',
-            'test_code' => 'required|exists:tests,test_code',
-        ], [
-            'student_id.required' => 'Trường student_id là bắt buộc.',
-            'student_id.exists' => 'Học sinh không tồn tại.',
-            'test_code.required' => 'Trường test_code là bắt buộc.',
-            'test_code.exists' => 'Bài thi không tồn tại.',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-        $student = Student::find($request->input('student_id'));
-
+        $student = Student::find(11);
         if (!$student) {
-            return response()->json(['status' => false, 'message' => 'Học Sinh không tồn tại!'], 404);
+            return response()->json(['status' => false, 'message' => 'Học Sinh không tồn tại!'], 400);
         }
 
         if (!$student->doing_exam) {
-            $score = scores::where('student_id', $student->student_id)
-                ->where('test_code', $request->input('test_code'))
+            $score = scores::where('student_id', $request->student_id)
+                ->where('test_code', $request->test_code)
                 ->first();
 
-            $result = student_test_detail::join('questions', 'student_test_details.question_id', '=', 'questions.question_id')
-                ->where('student_test_details.test_code', $request->input('test_code'))
-                ->where('student_test_details.student_id', $student->student_id)
-                ->select('student_test_details.*', 'questions.question_content')
-                ->orderBy('student_test_details.ID')
+            $result = student_test_detail::join('questions', 'student_test_detail.question_id', '=', 'questions.question_id')
+                ->where('student_test_detail.test_code', $request->test_code)
+                ->where('student_test_detail.student_id', $student->student_id)
+                ->select('student_test_detail.*', 'questions.question_content')
+                ->orderBy('student_test_detail.ID')
                 ->get();
 
             if ($score && $result->isNotEmpty()) {
@@ -441,11 +425,11 @@ class StudentController extends Controller
         } else {
             $testCode = $student->doing_exam;
 
-            $test = student_test_detail::join('questions', 'student_test_details.question_id', '=', 'questions.question_id')
-                ->where('student_test_details.test_code', $testCode)
-                ->where('student_test_details.student_id', $student->student_id)
-                ->select('student_test_details.*', 'questions.question_content')
-                ->orderBy('student_test_details.ID')
+            $test = student_test_detail::join('questions', 'student_test_detail.question_id', '=', 'questions.question_id')
+                ->where('student_test_detail.test_code', $testCode)
+                ->where('student_test_detail.student_id', $student->student_id)
+                ->select('student_test_detail.*', 'questions.question_content')
+                ->orderBy('student_test_detail.ID')
                 ->get();
 
             $timeRemaining = explode(":", $student->time_remaining);
@@ -513,7 +497,7 @@ class StudentController extends Controller
        ]);
    }
 
-   //danh sách thông báo 
+   //danh sách thông báo
    public function getNotification(Request $request){
         $student_id = $request->student_id;
         $student = Student::find($student_id);

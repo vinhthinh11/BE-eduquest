@@ -128,11 +128,14 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     });
 
     Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
+    
+    //test and fix bug phần ni
     Route::post('/update-timing', [StudentController::class, 'updateTiming'])->name('updateTiming');
     Route::post('/update-doing-exam', [StudentController::class, 'updateDoingExam'])->name('updateDoingExam');
     Route::post('/update-answer', [StudentController::class, 'updateAnswer'])->name('updateAnswer');
     Route::post('/reset-doing-exam', [StudentController::class, 'resetDoingExam'])->name('resetDoingExam');
     Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
+    Route::post('/show-result', [StudentController::class, 'showResult'])->name('showResult');
     Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
     Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
 
