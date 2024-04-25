@@ -27,5 +27,7 @@ class student_test_detail extends  Model
         'student_answer',
         'timest'
     ];
+    public $timestamps = false;
+
 
 }
