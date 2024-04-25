@@ -18,7 +18,10 @@ class classes extends Model
     public $timestamps = false;
     protected $primaryKey = 'class_id';
 
-
+    public function teacher()
+    {
+        return $this->belongsTo(teacher::class, 'teacher_id');
+    }
     function getClasses()
     {
         $getClasses = DB::select('select * from classes');
