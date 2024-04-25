@@ -31,6 +31,9 @@ class subject_head extends  Authenticatable implements JWTSubject
     ];
     public $timestamps = false;
     protected $primaryKey = 'subject_head_id';
+    protected $hidden = [
+        'password',
+    ];
 
     function getTBM()
     {
