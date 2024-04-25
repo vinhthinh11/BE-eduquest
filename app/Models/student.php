@@ -36,6 +36,9 @@ class student extends  Authenticatable implements JWTSubject
     ];
 
     protected $primaryKey = 'student_id';
+    protected $hidden = [
+        'password',
+    ];
     public $timestamps = false;
 
     public function getJWTIdentifier()
