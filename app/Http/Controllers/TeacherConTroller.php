@@ -148,29 +148,26 @@ class TeacherConTroller extends Controller
         }
             return response()->json(['message' => 'Không có tệp nào được tải lên'], 400);
     }
-        public function getClassDetail($class_id)
+    public function getStudent(Request $request)
     {
-        $classDetail = students::select(
-                'students.student_id',
-                'students.avatar',
-                'students.username',
-                'students.name',
-                'students.birthday',
-                'genders.gender_detail',
-                'students.last_login',
-                'classes.class_name'
-            )
-            ->join('genders', 'genders.gender_id', '=', 'students.gender_id')
-            ->join('classes', 'students.class_id', '=', 'classes.class_id')
-            ->where('students.class_id', $class_id)
-            ->get();
-
+        $user = $request->user('teachers');
+        $students = student::join('classes', 'students.class_id', '=', 'classes.class_id')->where('teacher_id', $user->teacher_id)->get();
+        // ở đây có trường hợp giáo viên chưa chủ nhiệm lớp nào thì số học sinh trả về sẽ là 0
         return response()->json([
-            'message' => 'Lấy dữ liệu thành công!',
-            'data' => $classDetail
+            'message' => 'Lấy dữ liệu Lớp thành công!',
+            'data' => $students
         ], 200);
     }
-
+    public function getClass(Request $request)
+    {
+        $user = $request->user('teachers');
+        $classes = classes::with('teacher')->where('teacher_id', $user->teacher_id)->get();
+        //
+        return response()->json([
+            'message'   => 'Lấy dữ liệu lớp thành công!',
+            'data'      => $classes
+        ], 200);
+    }
     public function getClassByTeacher(Request $request)
     {
         $user = $request->user('teachers');
@@ -671,15 +668,14 @@ class TeacherConTroller extends Controller
             'password'      => 'required|string|min:6|max:10',
             'grade_id' => 'integer|exists:grades,grade_id',
             'level_id' => 'required|integer|exists:levels,level_id',
-            'time_to_do'   => 'required|numeric|min:15|max:120',
+            'time_to_do'   => 'required|numeric|min:10|max:120',
         ], [
             'test_name.unique'  => 'Tên đề không nên trùng nhau!',
             'password.min'      => 'Password tối thiểu 6 kí tự!',
             'grade_id.exists'   => 'Không tìm thấy Lớp!',
             'total_questions.min' => 'Tối thiểu 10 câu hỏi trong đề!',
             'level_id.required' => 'Level_id là bắt buộc!',
-            'time_to_do.min' => 'Thoi gian tối thiểu cho bài thi là mười lăm phút!',
-            'time_to_do.max' => 'Thoi gian tối thi lon nhat cho bài thi là một trăm hai mươi phút!',
+            'time_to_do.min' => 'Thời gian làm bài tối thiếu là 10 phút!',
         ]);
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
@@ -688,7 +684,7 @@ class TeacherConTroller extends Controller
         // lấy số lượng câu hỏi của giáo viên dạy môn đó trong ngân hang câu hỏi
         $numQuestion = questions::where('subject_id', $user->subject_id)->where('grade_id', $request->grade_id)->where('level_id', $request->level_id)->count();
         // kiểm tra số lượng câu hỏi trong ngân hàng đề thi có đủ hay không
-        if ($numQuestion < $request->total_questions) return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi không đủ!"], 400);
+        if ($numQuestion < $request->total_questions) return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi là".$numQuestion."không đủ!"], 400);
         $user = $request->user('teachers');
         DB::beginTransaction();
         try {

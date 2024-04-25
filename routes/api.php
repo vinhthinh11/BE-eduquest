@@ -21,18 +21,21 @@ Route::post('login', [AuthController::class, 'login']);
 Route::get('me', [AuthController::class, 'me']);
 
 // ----- Route for Admin -----
-Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () { //
+Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
     //Profile
     Route::get('/info/{username}',    [Admincontroller::class, 'getInfo'])->name('getInfo');
     Route::put('/update-profile',     [Admincontroller::class, 'updateProfile'])->name('updateProfile');
     Route::put('/update-avatar',      [Admincontroller::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
 
     //ql Admin
+    Route::group(['prefix' => 'admin'], function () {
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
     Route::post('/create', [AdminController::class, 'createAdmin'])->name('createAdmin');
     Route::delete('/delete', [AdminController::class, 'deleteAdmin'])->name('deleteAdmin');
     Route::put('/update', [AdminController::class, 'updateAdmin'])->name('updateAdmin');
     Route::post('/file', [AdminController::class, 'check_add_admin_via_file'])->name('admin.check_add_admin_via_file');
+    });
+
 
     //ql Question
     Route::group(['prefix' => 'question'], function () {
@@ -120,13 +123,17 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     Route::get('/info/{username}', [StudentController::class, 'getInfo'])->name('getInfo');
     Route::put('/update-profile',      [StudentController::class, 'updateProfile'])->name('updateProfile');
     Route::put('/update-avatar',      [StudentController::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
+    Route::get('/score/get', [StatistController::class, 'statistScoreStudent'])->name('statistScoreStudent');
+
+    // Route::get('/get', [AdminHSController::class, 'index'])->name('index');
 
     //Statist
     Route::group(['prefix' => 'statist'], function () {
         Route::get('/get',         [StatistController::class, 'statistStudent'])->name('statistStudent');
-        Route::get('/get-scores', [StatistController::class, 'statistScoreStudent'])->name('statistScoreStudent');
     });
-
+Route::group(['prefix' => '/test'], function () {
+    Route::get('/get', [StudentController::class, 'getTest'])->name('getTest');
+    Route::get('/get/{test_code}', [StudentController::class, 'getTestDetail'])->name('getTestDetail');
     Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
     Route::post('/update-timing', [StudentController::class, 'updateTiming'])->name('updateTiming');
     Route::post('/update-doing-exam', [StudentController::class, 'updateDoingExam'])->name('updateDoingExam');
@@ -135,6 +142,8 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
     Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
     Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
+});
+
 
     //học sinh luyện đề
     Route::group(['prefix' => '/practice'], function () {
@@ -183,14 +192,18 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
 
     // qly điểm
     Route::group(['prefix' => '/score'], function () {
-        Route::get('/get',        [TeacherConTroller::class, 'getScore'])->name('getScore');
-        Route::post('/export',      [TeacherConTroller::class, 'exportScore'])->name('exportScore');
+        Route::get('/get', [TeacherConTroller::class, 'getScore'])->name('getScore');
+        Route::post('/export', [TeacherConTroller::class, 'exportScore'])->name('exportScore');
     });
 
     // qly lớp
     Route::group(['prefix' => '/class'], function () {
-        Route::get('/get/{class_id}',        [TeacherConTroller::class, 'getClassDetail'])->name('getClassDetail');
-        Route::get('/get-class-by-teacher',      [TeacherConTroller::class, 'getClassByTeacher'])->name('getClassByTeacher');
+        Route::get('/get', [TeacherConTroller::class, 'getClass'])->name('getClass');
+
+    });
+    Route::group(['prefix' => '/student'], function () {
+        Route::get('/get', [TeacherConTroller::class, 'getStudent'])->name('getClass');
+
     });
 
     // Chat with teacher
@@ -212,7 +225,8 @@ Route::group(['prefix' => '/subject-head', 'middleware' => 'head_subject'], func
 
     //duyệt đề thi
     Route::group(['prefix' => '/test'], function () {
-        Route::get('/get', [TBMDuyetDeThiConTroller::class, 'getTests'])->name('duyetDT');
-        Route::put('/update', [TBMDuyetDeThiConTroller::class, 'khongDuyetDT'])->name('khongDuyetDT');
+        Route::get('/get', [TBMDuyetDeThiConTroller::class, 'getTests'])->name('getTest');
+        Route::get('/get/{test_code}', [TBMDuyetDeThiConTroller::class, 'getTestDetail'])->name('duyetDT');
+        Route::put('/update/{test_code}', [TBMDuyetDeThiConTroller::class, 'updateTest'])->name('updateTest');
     });
 });

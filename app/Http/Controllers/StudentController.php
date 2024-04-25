@@ -11,6 +11,7 @@ use App\Models\student_test_detail;
 use App\Models\notifications;
 use App\Models\student_notifications;
 use App\Models\teacher_notifications;
+use App\Models\tests;
 use Carbon\Carbon;
 use Carbon\CarbonTimeZone;
 use Illuminate\Http\Request;
@@ -34,6 +35,24 @@ class StudentController extends Controller
             return response()->json(['student' => $student], 200);
         }
             return response()->json(['message' => 'Học sinh không tồn tại!'], 404);
+    }
+    public function getTest(Request $request){
+    $user = $request->user('students');
+    $grade_id = student::with("classes")->where("student_id", $user->student_id)->first()->classes->grade_id;
+    $test = tests::where("grade_id", $grade_id)->where('status_id',"!=",3)->orderBy('timest','desc')->get();
+    return response()->json(['data' => $test], 200);
+    }
+    public function getTestDetail(Request $request, $test_code)
+    {
+        $questions = [];
+        $data  = tests::find($test_code);
+        if (!$data) return response()->json(["message" => "Không tìm thấy đề thi!"], 400);
+        foreach ($data->questions as $question) {
+            $questions[] = $question;
+        }
+        $data['questions'] = $questions;
+
+        return response()->json(["data" => $data]);
     }
     public function updateProfile(Request $request)
     {
@@ -281,55 +300,73 @@ class StudentController extends Controller
         return response()->json(['status' => true, 'message' => 'Thành công. Chuẩn bị chuyển trang!'], 200);
     }
 
-    public function acceptTest(Request $request)
+    public function addTest(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'student_id' => 'required|exists:students,student_id'
-        ], [
-            'student_id.*' => 'Học Sinh không tồn tại!',
-        ]);
+        $result   = [];
+        $student  = new student();
+        $testCode = $request->test_code;
+        $password = md5($request->password);
+        $check  = $request->user('students');
+        $id = $check->student_id;
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
+        if ($password != $student->getTest($testCode)->password) {
+            $result['status_value'] = "Sai mật khẩu";
+            $result['status'] = 0;
+        } else {
+            $listQuest =  $student->getQuestOfTest($testCode);
+            if ($listQuest !== null) {
+                foreach ($listQuest as $quest) {
+                    $array = array();
+                    $array[0] = $quest->answer_a;
+                    $array[1] = $quest->answer_b;
+                    $array[2] = $quest->answer_c;
+                    $array[3] = $quest->answer_d;
+                    $ID = rand(1, time()) + rand(100000, 999999);
+                    $time = $student->getTest($testCode)->time_to_do . ':00';
+                    if (is_array($array) && count($array) >= 4) {
+                        $student->addStudentQuest($id, $ID, $testCode, $quest->question_id, $array[0], $array[1], $array[2], $array[3]);
+                    } else {
+                        $result['status_value'] = "Không có đáp án";
+                        $result['status'] = 0;
+                    }
+                    $student->updateStudentExam($id, $testCode, $time);
+                }
+                $result['status_value'] = "Thành công. Chuẩn bị chuyển trang!";
+                $result['status'] = 1;
+            } else {
+                $result['status_value'] = "Không có câu hỏi cho bài kiểm tra này";
+                $result['status'] = 0;
+            }
         }
 
-        $student = Student::find($request->input('student_id'));
 
+        return response()->json([
+            'result' => $result,
+        ]);
+    }
+
+    public function acceptTest(Request $request)
+    {
+        $student  = $request->user('students')->student_id;
+        $doingExam = $request->user('students')->doing_exam;
         if (!$student) {
             return response()->json(['status' => false, 'message' => 'Học Sinh không tồn tại!'], 404);
         }
+        $model = new student();
+        $test = $model->getResultQuest($doingExam, $student);
+        $testCode = $test->first()->test_code;
+        $totalQuestions = $test->first()->total_questions;
 
-        $testResults = student_test_detail::join('questions', 'student_test_details.question_id', '=', 'questions.question_id')
-            ->join('tests', 'student_test_details.test_code', '=', 'tests.test_code')
-            ->where('student_test_details.test_code', $student->doing_exam)
-            ->where('student_test_details.student_id', $student->student_id)
-            ->orderBy('student_test_details.ID')
-            ->get();
-
-        $totalQuestions = $testResults->count();
-        $correct = $testResults->where('student_answer', trim($testResults->first()->correct_answer))->count();
-
-        $c = 10 / $totalQuestions;
-        $score = $correct * $c;
+        $correct = 0;
+        $point = 10/$totalQuestions;
+        foreach ($test as $t) {
+            if (trim($t->student_answer) == trim($t->correct_answer))
+            $correct++;
+        }
+        $score = $correct * $point;
         $scoreDetail = $correct . '/' . $totalQuestions;
-
-        practice_scores::create([
-            'student_id' => $student->id,
-            'practice_code' => $testResults->first()->test_code,
-            'score_number' => round($score, 2),
-            'score_detail' => $scoreDetail,
-            'completion_time' => now(),
-        ]);
-
-        $student->update([
-            'doing_practice' => null,
-            'practice_time_remaining' => null,
-            'practice_starting_time' => null,
-        ]);
-
+        $model->insertScore($student, $testCode, round($score, 2), $scoreDetail);
+        $model->resetDoingExam($student);
         return response()->json(['status' => true, 'message' => 'Nộp bài Thành Công!'], 200);
     }
 
@@ -513,7 +550,7 @@ class StudentController extends Controller
        ]);
    }
 
-   //danh sách thông báo 
+   //danh sách thông báo
    public function getNotification(Request $request){
         $student_id = $request->student_id;
         $student = Student::find($student_id);

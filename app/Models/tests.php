@@ -33,6 +33,10 @@ class tests extends  Model {
     {
         return $this->belongsTo(subjects::class, 'subject_id');
     }
+    public function grade()
+    {
+        return $this->belongsTo(grade::class, 'grade_id');
+    }
     protected static function booted () {
         static::deleting(function(tests $test) { // before delete() method call this
             quest_of_test::where('test_code', $test->test_code)->delete();
