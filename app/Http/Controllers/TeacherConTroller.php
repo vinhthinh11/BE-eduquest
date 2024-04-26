@@ -73,81 +73,45 @@ class TeacherConTroller extends Controller
     }
     public function updateProfile(Request $request)
     {
-        $data['id'] = $request->id;
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|min:3|max:255',
-            'gender_id' => 'required',
-            'birthday' => 'nullable|date',
-            'password' => 'required|min:6|max:20',
-            'email' => 'nullable|email|unique:teachers,email,' . $data['id'] . ',teacher_id',
-        ], [
-            'name.required' => 'Vui lòng nhập tên!',
-            'name.min' => 'Tên cần ít nhất 3 ký tự!',
-            'name.max' => 'Tên dài nhất 255 ký tự!',
-            'gender_id.required' => 'Vui lòng chon giới tính!',
-            'birthday.date' => 'Ngày sinh chưa đúng định dạng!',
-            'password.required' => 'Vui lòng nhập mật khẩu!',
-            'password.min' => 'Vui nhap it nhat 6 ky tu!',
-            'email.email' => 'Vui long nhap email hop le!',
-            'email.unique' => 'Email da ton tai!',
-        ]);
+        $me = $request->user('teachers');
+        // $validator = Validator::make($request->all(), [
+        //     'name' => 'sometimes|min:3|max:255',
+        //     'gender_id' => 'sometimes|integer',
+        //     'birthday' => 'sometimes|date',
+        //     'password' => 'sometimes|min:6|max:20',
+        //     'email' => 'sometimes|email|unique:admins,email',
+        //     'avatar' => 'somtimes|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        // ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
+        // if ($validator->fails()) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'errors' => $validator->errors(),
+        //     ], 422);
+        // }
+
+        if ($request->hasFile('avatar')) {
+            if ($me->avatar != "avatar-default.jpg") {
+                Storage::delete('public/' . str_replace('/storage/', '', $me->avatar));
+            }
+            $image = $request->file('avatar');
+            $imageName = time() . '.' . $image->getClientOriginalExtension();
+            $imagePath = $image->storeAs('images',  $imageName, 'public');
+            $data['avatar'] = '/storage/' . $imagePath;
         }
-        $me = teacher::find($request->id);
-        $me->update([
-            'name' => $request['name'],
-            'email' => $request['email'],
-            'gender_id' => $request['gender_id'],
-            'birthday' => $request['birthday'],
-            'password' => bcrypt($request['password']),
-            'last_login' => Carbon::now(CarbonTimeZone::createFromHourOffset(7 * 60))->timezone('Asia/Ho_Chi_Minh'),
-        ]);
+
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt($request->password);
+        }
+
+        $me->update($data);
+
         return response()->json([
             'status' => true,
             'message' => "Cập nhập tài khoản cá nhân thành công!"
         ]);
     }
-
-    public function updateAvatarProfile(Request $request)
-    {
-        $user = $request->user('teachers');
-
-        $validator = Validator::make($request->all(), [
-            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        ], [
-            'avatar.required' => 'Vui lòng chọn hình ảnh đại diện',
-            'avatar.image' => 'Vui lòng chọn hình ảnh đại diện',
-            'avatar.mimes' => 'Vui lòng chọn hình ảnh đúng định dạng (jpeg, png, jpg, gif, svg)',
-            'avatar.max' => 'Kích thước hình ảnh không được vượt quá 2048KB',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        if ($request->hasFile('avatar')) {
-            $image = $request->file('avatar');
-            $path = $image->store('images/teacher'); //lưu ảnh ở file store
-
-        if ($user->avatar) {
-            Storage::delete($user->avatar);
-        }
-
-            $user->avatar = $path;
-            $user->save();
-
-            return response()->json(['message' => 'Tải lên thành công', 'path' => $path], 200);
-        }
-            return response()->json(['message' => 'Không có tệp nào được tải lên'], 400);
-    }
+    
     public function getStudent(Request $request)
     {
         $user = $request->user('teachers');
@@ -754,7 +718,7 @@ class TeacherConTroller extends Controller
 
                 DB::beginTransaction();
 
-                $subject_id = $request->test_code; 
+                $subject_id = $request->test_code;
                 $test = tests::create([
                     'subject_id' => $subject_id,
                     'test_name' => $test_name,

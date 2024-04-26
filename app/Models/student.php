@@ -41,6 +41,7 @@ class student extends  Authenticatable implements JWTSubject
     ];
     public $timestamps = false;
 
+
     public function getJWTIdentifier()
     {
         return $this->getKey();
@@ -219,5 +220,21 @@ class student extends  Authenticatable implements JWTSubject
                 'time_remaining' => null,
                 'starting_time' => null
             ]);
+    }
+
+
+    //update answer
+    public function updateAnswer($studentId, $testCode, $questionId, $studentAnswer)
+    {
+        return student_test_detail::where('student_id', $studentId)
+            ->where('test_code', $testCode)
+            ->where('question_id', $questionId)
+            ->update(['student_answer' => $studentAnswer]);
+    }
+
+    public function updateTiming($studentId, $time)
+    {
+        return student::where('student_id', $studentId)
+            ->update(['time_remaining' => $time]);
     }
 }

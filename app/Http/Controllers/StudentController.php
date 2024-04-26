@@ -34,7 +34,7 @@ class StudentController extends Controller
             //return view('student.info', ['student' => $student]);
             return response()->json(['student' => $student], 200);
         }
-            return response()->json(['message' => 'Học sinh không tồn tại!'], 404);
+        return response()->json(['message' => 'Học sinh không tồn tại!'], 404);
     }
     public function getTest(Request $request){
     $user = $request->user('students');
@@ -56,40 +56,39 @@ class StudentController extends Controller
     }
     public function updateProfile(Request $request)
     {
-        $data['id'] = $request->id;
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|min:3|max:255',
-            'gender_id' => 'required',
-            'birthday' => 'nullable|date',
-            'password' => 'required|min:6|max:20',
-            'email' => 'nullable|email|unique:students,email,'.$data['id'].',student_id',
-        ], [
-            'name.required' => 'Vui lòng nhập tên!',
-            'name.min' => 'Tên cần ít nhất 3 ký tự!',
-            'name.max' => 'Tên dài nhất 255 ký tự!',
-            'gender_id.required' => 'Vui lòng chon giới tính!',
-            'birthday.date' => 'Ngày sinh chưa đúng định dạng!',
-            'password.required' => 'Vui lòng nhập mật khẩu!',
-            'password.min' => 'Vui nhap it nhat 6 ky tu!',
-            'email.email' => 'Vui long nhap email hop le!',
-            'email.unique' => 'Email da ton tai!',
-        ]);
+        $me = $request->user('students');
+        // $validator = Validator::make($request->all(), [
+        //     'name' => 'sometimes|min:3|max:255',
+        //     'gender_id' => 'sometimes|integer',
+        //     'birthday' => 'sometimes|date',
+        //     'password' => 'sometimes|min:6|max:20',
+        //     'email' => 'sometimes|email|unique:admins,email',
+        //     'avatar' => 'somtimes|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        // ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
+        // if ($validator->fails()) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'errors' => $validator->errors(),
+        //     ], 422);
+        // }
+
+        if ($request->hasFile('avatar')) {
+            if ($me->avatar != "avatar-default.jpg") {
+                Storage::delete('public/' . str_replace('/storage/', '', $me->avatar));
+            }
+            $image = $request->file('avatar');
+            $imageName = time() . '.' . $image->getClientOriginalExtension();
+            $imagePath = $image->storeAs('images',  $imageName, 'public');
+            $data['avatar'] = '/storage/' . $imagePath;
         }
-        $me = student::find($request->id);
-        $me->update([
-                    'name' => $request['name'],
-                    'email' => $request['email'],
-                    'gender_id' => $request['gender_id'],
-                    'birthday' => $request['birthday'],
-                    'password' => bcrypt($request['password']),
-                    'last_login' => Carbon::now(CarbonTimeZone::createFromHourOffset(7 * 60))->timezone('Asia/Ho_Chi_Minh'),
-                ]);
+
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt($request->password);
+        }
+
+        $me->update($data);
+
         return response()->json([
             'status' => true,
             'message' => "Cập nhập tài khoản cá nhân thành công!"
@@ -119,16 +118,16 @@ class StudentController extends Controller
             $image = $request->file('avatar');
             $path = $image->store('images/student');
 
-        if ($user->avatar) {
-            Storage::delete($user->avatar);
-        }
+            if ($user->avatar) {
+                Storage::delete($user->avatar);
+            }
 
             $user->avatar = $path;
             $user->save();
 
             return response()->json(['message' => 'Tải lên thành công', 'path' => $path], 200);
         }
-            return response()->json(['message' => 'Không có tệp nào được tải lên'], 404);
+        return response()->json(['message' => 'Không có tệp nào được tải lên'], 404);
     }
     public function updateDoingExam(Request $request)
     {
@@ -358,10 +357,10 @@ class StudentController extends Controller
         $totalQuestions = $test->first()->total_questions;
 
         $correct = 0;
-        $point = 10/$totalQuestions;
+        $point = 10 / $totalQuestions;
         foreach ($test as $t) {
             if (trim($t->student_answer) == trim($t->correct_answer))
-            $correct++;
+                $correct++;
         }
         $score = $correct * $point;
         $scoreDetail = $correct . '/' . $totalQuestions;
@@ -370,80 +369,22 @@ class StudentController extends Controller
         return response()->json(['status' => true, 'message' => 'Nộp bài Thành Công!'], 200);
     }
 
-    public function acceptPractice(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'student_id' => 'required|exists:students,student_id'
-        ], [
-            'student_id.*' => 'Học Sinh không tồn tại!',
-        ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-        $student = Student::find($request->input('student_id'));
-
-        if (!$student) {
-            return response()->json(['status' => false, 'message' => 'Học Sinh không tồn tại!'], 404);
-        }
-
-        $practiceResults = student_practice_detail::join('questions', 'student_practice_detail.question_id', '=', 'questions.question_id')
-            ->join('practice', 'student_practice_detail.practice_code', '=', 'practice.practice_code')
-            ->where('student_practice_detail.practice_code', $student->doing_practice)
-            ->where('student_practice_detail.student_id', $student->student_id)
-            ->orderBy('student_practice_detail.ID')
-            ->get();
-
-        $totalQuestions = $practiceResults->count();
-        $correct = 0;
-
-        foreach ($practiceResults as $result) {
-            if (trim($result->student_answer) === trim($result->correct_answer)) {
-                $correct++;
-            }
-        }
-
-        $c = 10 / $totalQuestions;
-        $score = $correct * $c;
-        $scoreDetail = $correct . '/' . $totalQuestions;
-
-        practice_scores::create([
-            'student_id' => $student->id,
-            'practice_code' => $practiceResults->first()->practice_code,
-            'score_number' => round($score, 2),
-            'score_detail' => $scoreDetail,
-            'completion_time' => now(),
-        ]);
-
-        $student->update([
-            'doing_practice' => null,
-            'practice_time_remaining' => null,
-            'practice_starting_time' => null,
-        ]);
-
-        return response()->json(['status' => true, 'message' => 'Nộp bài Thành Công!'], 200);
-    }
-
-    //fix bug phần này
     public function showResult(Request $request)
     {
-        $student = Student::find(11);
-        if (!$student) {
-            return response()->json(['status' => false, 'message' => 'Học Sinh không tồn tại!'], 400);
-        }
 
-        if (!$student->doing_exam) {
-            $score = scores::where('student_id', $request->student_id)
-                ->where('test_code', $request->test_code)
+        $student  = $request->user('students');
+        if ($student->doing_exam == '') {
+            $testCode = $request->test_code;
+            $score = scores::where('student_id', $student->student_id)
+                ->where('test_code', $testCode)
                 ->first();
 
-            $result = student_test_detail::join('questions', 'student_test_detail.question_id', '=', 'questions.question_id')
-                ->where('student_test_detail.test_code', $request->test_code)
+            $result = DB::table('student_test_detail')
+                ->join('questions', 'student_test_detail.question_id', '=', 'questions.question_id')
+                ->join('tests', 'student_test_detail.test_code', '=', 'tests.test_code')
+                ->where('student_test_detail.test_code', $testCode)
                 ->where('student_test_detail.student_id', $student->student_id)
-                ->select('student_test_detail.*', 'questions.question_content')
                 ->orderBy('student_test_detail.ID')
                 ->get();
 
@@ -459,83 +400,48 @@ class StudentController extends Controller
             } else {
                 return response()->json(['status' => false, 'message' => 'Không tìm thấy điểm hoặc kết quả!'], 404);
             }
-        } else {
-            $testCode = $student->doing_exam;
-
-            $test = student_test_detail::join('questions', 'student_test_detail.question_id', '=', 'questions.question_id')
-                ->where('student_test_detail.test_code', $testCode)
-                ->where('student_test_detail.student_id', $student->student_id)
-                ->select('student_test_detail.*', 'questions.question_content')
-                ->orderBy('student_test_detail.ID')
-                ->get();
-
-            $timeRemaining = explode(":", $student->time_remaining);
-            $min = $timeRemaining[0];
-            $sec = $timeRemaining[1];
-
-            return response()->json([
-                'status' => true,
-                'data' => [
-                    'test' => $test,
-                    'time_remaining' => ['min' => $min, 'sec' => $sec],
-                ],
-                'message' => 'Show kết quả thi cho Học sinh thành công!',
-            ], 200);
         }
+            // } else {
+            //     $testCode = $student->doing_exam;
+
+            //     $test = student_test_detail::join('questions', 'student_test_details.question_id', '=', 'questions.question_id')
+            //         ->where('student_test_details.test_code', $testCode)
+            //         ->where('student_test_details.student_id', $student->student_id)
+            //         ->select('student_test_details.*', 'questions.question_content')
+            //         ->orderBy('student_test_details.ID')
+            //         ->get();
+
+            //     $timeRemaining = explode(":", $student->time_remaining);
+            //     $min = $timeRemaining[0];
+            //     $sec = $timeRemaining[1];
+
+            //     return response()->json([
+            //         'status' => true,
+            //         'data' => [
+            //             'test' => $test,
+            //             'time_remaining' => ['min' => $min, 'sec' => $sec],
+            //         ],
+            //         'message' => 'Show kết quả thi cho Học sinh thành công!',
+            //     ], 200);
+            // }
     }
-   public function updateAnswer(Request $request)
-   {
-       $validator = Validator::make($request->all(), [
-           'student_id' => 'numeric',
-           'test_code' => 'required|string',
-           'id' => 'required|numeric',
-           'answer' => 'required|string',
-           'min' => 'required|numeric|min:0|max:60',
-           'sec' => 'required|numeric|min:0|max:60',
-       ], [
-           'student_id.numeric' => 'Mã sinh viên phải là một số.',
-           'test_code.required' => 'Vui lòng nhập mã bài thi.',
-           'test_code.string' => 'Mã bài thi phải là một chuỗi.',
-           'id.required' => 'Vui lòng nhập mã câu hỏi.',
-           'id.numeric' => 'Mã câu hỏi phải là một số.',
-           'answer.required' => 'Vui lòng nhập đáp án.',
-           'min.required' => 'Vui lòng nhập phút.',
-           'min.numeric' => 'Phút phải là một số.',
-           'min.min' => 'Phút phải là một số nguyên dương.',
-           'min.max' => 'Phút phải là một số nhỏ hơn hoặc bằng 60.',
-           'sec.required' => 'Vui lòng nhập giây.',
-           'sec.numeric' => 'Giây phải là một số.',
-           'sec.min' => 'Giây phải là một số nguyên dương.',
-           'sec.max' => 'Giây phải là một số nhỏ hơn hoặc bằng 60.',
-       ]);
 
-       if ($validator->fails()) {
-           return response()->json(['errors' => $validator->errors()], 422);
-       }
+    public function updateAnswer(Request $request)
+    {
+        $questionId = $request->question_id;
+        $student    = $request->user('students');
+        $answer     = $request->answer;
+        $model      = new student();
+        $model->updateAnswer($student->student_id, $student->doing_exam, $questionId, $answer);
+        return response()->json([
+            'question_id: ' => $questionId,
+            'answer'        => $answer,
+        ]);
+    }
 
-       $data = $request->only(['student_id', 'test_code', 'id', 'answer', 'min', 'sec']);
-
-       DB::table('student_test_detail')
-           ->where('student_id', $data['student_id'])
-           ->where('test_code', $data['test_code'])
-           ->where('question_id', $data['id'])
-           ->update(['student_answer' => $data['answer']]);
-
-       $total_seconds = ($data['min'] * 60) + $data['sec'];
-
-       DB::table('students')
-           ->where('student_id', $data['student_id'])
-           ->update(['time_remaining' => $total_seconds]);
-
-       return response()->json([
-           'status' => true,
-           'message' => 'Cập nhật đáp án cho Học sinh thành công!',
-           'data' => ['student_answer' => $data['answer'], 'time_remaining' => $total_seconds]
-       ]);
-   }
-
-   //danh sách thông báo
-   public function getNotification(Request $request){
+    //danh sách thông báo
+    public function getNotification(Request $request)
+    {
         $student_id = $request->student_id;
         $student = Student::find($student_id);
         if (!$student) {
@@ -558,5 +464,5 @@ class StudentController extends Controller
             'message' => 'Thành công',
             'data' => $getList
         ]);
-   }
+    }
 }

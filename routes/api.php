@@ -24,8 +24,7 @@ Route::get('me', [AuthController::class, 'me']);
 Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
     //Profile
     Route::get('/info/{username}',    [Admincontroller::class, 'getInfo'])->name('getInfo');
-    Route::put('/update-profile',     [Admincontroller::class, 'updateProfile'])->name('updateProfile');
-    Route::put('/update-avatar',      [Admincontroller::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
+    Route::post('/update-profile',     [Admincontroller::class, 'updateProfile'])->name('updateProfile');
 
     //ql Admin
     Route::group(['prefix' => 'admin'], function () {
@@ -121,8 +120,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
 Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     //Profile
     Route::get('/info/{username}', [StudentController::class, 'getInfo'])->name('getInfo');
-    Route::put('/update-profile',      [StudentController::class, 'updateProfile'])->name('updateProfile');
-    Route::put('/update-avatar',      [StudentController::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
+    Route::post('/update-profile',      [StudentController::class, 'updateProfile'])->name('updateProfile');
     Route::get('/score/get', [StatistController::class, 'statistScoreStudent'])->name('statistScoreStudent');
 
     // Route::get('/get', [AdminHSController::class, 'index'])->name('index');
@@ -131,23 +129,21 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     Route::group(['prefix' => 'statist'], function () {
         Route::get('/get',         [StatistController::class, 'statistStudent'])->name('statistStudent');
     });
-
-    //Test
-    Route::group(['prefix' => '/test'], function () {
-        Route::get('/get', [StudentController::class, 'getTest'])->name('getTest');
-        Route::get('/get/{test_code}', [StudentController::class, 'getTestDetail'])->name('getTestDetail');
-        Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
-
-        //test and fix bug phần ni
-        Route::post('/update-timing', [StudentController::class, 'updateTiming'])->name('updateTiming');
-        Route::post('/update-doing-exam', [StudentController::class, 'updateDoingExam'])->name('updateDoingExam');
-        Route::post('/update-answer', [StudentController::class, 'updateAnswer'])->name('updateAnswer');
-        Route::post('/reset-doing-exam', [StudentController::class, 'resetDoingExam'])->name('resetDoingExam');
-        Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
-        Route::post('/show-result', [StudentController::class, 'showResult'])->name('showResult');
-        Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
-        Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
-    });
+Route::group(['prefix' => '/test'], function () {
+    Route::get('/get', [StudentController::class, 'getTest'])->name('getTest');
+    Route::get('/get/{test_code}', [StudentController::class, 'getTestDetail'])->name('getTestDetail');
+    Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
+    Route::post('/update-timing', [StudentController::class, 'updateTiming'])->name('updateTiming');
+    Route::post('/update-doing-exam', [StudentController::class, 'updateDoingExam'])->name('updateDoingExam');
+    Route::post('/update-answer', [StudentController::class, 'updateAnswer'])->name('updateAnswer');
+    Route::post('/reset-doing-exam', [StudentController::class, 'resetDoingExam'])->name('resetDoingExam');
+    Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
+    Route::post('/accpet-exam', [StudentController::class, 'acceptTest'])->name('acceptTest');
+    // Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
+    Route::get('/show-result-test', [StudentController::class, 'showResult'])->name('acceptTest');
+    Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
+    Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
+});
 
 
     //học sinh luyện đề
@@ -191,8 +187,7 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
 
     //Profile
     Route::get('/info/{username}', [TeacherConTroller::class, 'getInfo'])->name('getInfo');
-    Route::put('/update-profile',      [TeacherConTroller::class, 'updateProfile'])->name('updateProfile');
-    Route::put('/update-avatar',      [TeacherConTroller::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
+    Route::post('/update-profile',      [TeacherConTroller::class, 'updateProfile'])->name('updateProfile');
 
 
     // qly điểm
@@ -223,8 +218,7 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
 Route::group(['prefix' => '/subject-head', 'middleware' => 'head_subject'], function () {
     //Profile
     Route::get('/info/{username}', [SubjectHeadController::class, 'getInfo'])->name('getInfo');
-    Route::put('/update-profile',      [SubjectHeadController::class, 'updateProfile'])->name('updateProfile');
-    Route::put('/update-avatar',      [SubjectHeadController::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
+    Route::post('/update-profile',      [SubjectHeadController::class, 'updateProfile'])->name('updateProfile');
 
     Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
 
