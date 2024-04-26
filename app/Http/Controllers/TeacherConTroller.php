@@ -712,10 +712,10 @@ class TeacherConTroller extends Controller
     {
         $validator = Validator::make($request->all(), [
             'test_code' => 'required|integer|exists:tests,test_code',
-            'file'      => 'required|file|mimes:pdf',
+            'file'      => 'required|file|mimes:xlsx,xls',
         ], [
             'test_code.exists' => 'Không tìm thấy đề!',
-            'file.mimes' => 'File phải là pdf!',
+            'file.mimes' => 'File phải là Excel!',
         ]);
 
         if ($validator->fails()) {
@@ -747,15 +747,16 @@ class TeacherConTroller extends Controller
                 $status_id = $row['H'];
                 $timest = $row['J'];
 
-                if (empty($test_name) || empty($grade_id) || empty($level_id) || empty($timest) || empty($grade_id) || empty($total_questions) || empty($time_to_do) || empty($note) || empty($status_id)) {
+                if (empty($test_name) || empty($grade_id) || empty($level_id) || empty($timest) || empty($total_questions) || empty($time_to_do) || empty($note) || empty($status_id)) {
                     $err_list[] = $stt;
                     continue;
                 }
 
                 DB::beginTransaction();
 
+                $subject_id = $request->test_code; 
                 $test = tests::create([
-                    'subject_id' => $$request->subject_id,
+                    'subject_id' => $subject_id,
                     'test_name' => $test_name,
                     'level_id' => $level_id,
                     'grade_id' => $grade_id,

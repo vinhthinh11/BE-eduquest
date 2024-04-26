@@ -131,21 +131,23 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     Route::group(['prefix' => 'statist'], function () {
         Route::get('/get',         [StatistController::class, 'statistStudent'])->name('statistStudent');
     });
-Route::group(['prefix' => '/test'], function () {
-    Route::get('/get', [StudentController::class, 'getTest'])->name('getTest');
-    Route::get('/get/{test_code}', [StudentController::class, 'getTestDetail'])->name('getTestDetail');
-    Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
-    
-    //test and fix bug phần ni
-    Route::post('/update-timing', [StudentController::class, 'updateTiming'])->name('updateTiming');
-    Route::post('/update-doing-exam', [StudentController::class, 'updateDoingExam'])->name('updateDoingExam');
-    Route::post('/update-answer', [StudentController::class, 'updateAnswer'])->name('updateAnswer');
-    Route::post('/reset-doing-exam', [StudentController::class, 'resetDoingExam'])->name('resetDoingExam');
-    Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
-    Route::post('/show-result', [StudentController::class, 'showResult'])->name('showResult');
-    Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
-    Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
-});
+
+    //Test
+    Route::group(['prefix' => '/test'], function () {
+        Route::get('/get', [StudentController::class, 'getTest'])->name('getTest');
+        Route::get('/get/{test_code}', [StudentController::class, 'getTestDetail'])->name('getTestDetail');
+        Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
+
+        //test and fix bug phần ni
+        Route::post('/update-timing', [StudentController::class, 'updateTiming'])->name('updateTiming');
+        Route::post('/update-doing-exam', [StudentController::class, 'updateDoingExam'])->name('updateDoingExam');
+        Route::post('/update-answer', [StudentController::class, 'updateAnswer'])->name('updateAnswer');
+        Route::post('/reset-doing-exam', [StudentController::class, 'resetDoingExam'])->name('resetDoingExam');
+        Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
+        Route::post('/show-result', [StudentController::class, 'showResult'])->name('showResult');
+        Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
+        Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
+    });
 
 
     //học sinh luyện đề
@@ -171,8 +173,8 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
         Route::post('/create', [TeacherConTroller::class,'createTest'])->name('teacherCreateTest');
         Route::put('/update/{test_code}', [TeacherConTroller::class,'updateTest'])->name('teacherUpdateTest');
         Route::delete('/delete/{test_code}', [TeacherConTroller::class,'deleteTest'])->name('teacherDeleteTest');
-        Route::post('/file', [TeacherConTroller::class,'addFileTest'])->name('teacheraddFileTest');
         Route::post('/search', [TeacherConTroller::class,'searchOfTest'])->name('teachersearchOfTest');
+        Route::post('/file', [TeacherConTroller::class,'addFileTest'])->name('teacheraddFileTest');
     });
 
     // qly câu hỏi

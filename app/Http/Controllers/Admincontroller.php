@@ -378,16 +378,22 @@ class Admincontroller extends Controller
         ]);
     }
 
-    public function deleteAdmin(Request $request)
-    {
-
-        $admin = admin::find($request->admin_id)->delete();
-
-        return response()->json([
-            'message' => 'Xóa Admin thành công!',
-            'admin' => $admin
-        ]);
-    }
+   public function deleteAdmin(Request $request)
+   {
+       $admin_id = $request->admin_id;
+       $admin = admin::find($admin_id);
+       if ($admin) {
+           $admin->delete();
+           return response()->json([
+               'message' => 'Xóa Admin thành công!',
+               'admin' => $admin
+           ]);
+       } else {
+           return response()->json([
+               'message' => 'Admin không tồn tại!'
+           ], 404);
+       }
+   }
     public function updateAdmin(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -637,21 +643,19 @@ class Admincontroller extends Controller
             'answer_b'          => 'nullable|string',
             'answer_c'          => 'nullable|string',
             'answer_d'          => 'nullable|string',
-            'correct_answer'    => 'nullable|in:A,B,C,D',
+            'correct_answer'    => 'nullable',
             'grade_id'          => 'nullable|integer|exists:grades,grade_id',
             'unit'              => 'nullable|string',
             'suggest'           => 'nullable|string',
-            'status_id'         => 'nullable|integer|in:1,2,3',
+            'status_id'         => 'nullable|integer',
             'teacher_id'        => 'nullable|integer|exists:teachers,teacher_id',
         ], [
             'question_id.required'      => 'ID câu hỏi là bắt buộc!',
             'question_id.exists'        => 'Không tìm thấy câu hỏi với ID đã chọn!',
             'level_id.exists'           => 'Không tìm thấy level với ID đã chọn!',
             'grade_id.exists'           => 'Không tìm thấy grade với ID đã chọn!',
-            'status_id.in'              => 'Cấp độ không được để trống!',
             'teacher_id.integer'        => 'Teacher ID phải là số nguyên!',
             'teacher_id.exists'         => 'Không tìm thấy giáo viên với ID đã chọn!',
-            'correct_answer.in'         => 'Đáp án đúng phải là A, B, C hoặc D!',
         ]);
 
         if ($validator->fails()) {
@@ -664,31 +668,12 @@ class Admincontroller extends Controller
         if (empty($question)) {
             return response()->json(["message" => "Không tìm thấy câu hỏi!"], 400);
         }
-        // $validator = Validator::make($request->all(), [
-        //     'question_content' => 'string|max:255',
-        //     'level_id' => 'numeric',
-        //     'answer_a' => 'string',
-        //     'answer_b' => 'string',
-        //     'answer_c' => 'string',
-        //     'answer_d' => 'string',
-        //     'correct_answer' => 'numeric',
-        //     'grade_id' => 'numeric',
-        //     'unit' => 'numeric',
-        //     'suggest' => 'string',
-        //     'status_id' => 'numeric',
-        //     'teacher_id' => 'numeric',
-        //     'subject_id' => 'numeric',
-        // ]);
-        // if ($validator->fails()) {
-        //     return response($validator->errors()->all(), 400);
-        // }
+
         $data = $request->only(['question_content', 'level_id', 'answer_a', 'answer_b', 'subject_id', 'answer_c', 'answer_d', 'correct_answer', 'grade_id', 'unit', 'suggest', 'status_id', 'teacher_id']);
         $question->fill($data);
         $question->fill($data)->save();
         return response()->json(["question" => $question]);
     }
-
-
 
     public function deleteQuestion(Request $request)
     {
@@ -720,7 +705,6 @@ class Admincontroller extends Controller
             'status'    => true,
             'message'   => 'Xoá câu hỏi thành công!',
         ]);
-        // return response()->json($question_id);
     }
 
 
