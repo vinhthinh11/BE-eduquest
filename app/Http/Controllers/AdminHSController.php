@@ -20,7 +20,7 @@ class AdminHSController extends Controller
     public $successStatus = 200;
     public function index()
     {
-        $data = student::get();
+        $data = student::orderBy("student_id","desc")->get();
         if (empty($data)) {
             return response()->json([
                 'data' => $data

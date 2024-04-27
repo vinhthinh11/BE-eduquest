@@ -16,4 +16,5 @@ class scores extends Model
         'score_detail',
         'completion_time'
     ];
+    public $timestamps = false;
 }

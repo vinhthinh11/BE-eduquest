@@ -688,7 +688,7 @@ class TeacherConTroller extends Controller
         $user = $request->user('teachers');
         DB::beginTransaction();
         try {
-            $test_code = time();;
+            $test_code = time();
             $data = $request->all();
             $test = (array_merge($data, ['test_code' => $test_code, 'subject_id' => $user->subject_id, 'status_id' => 3, 'password' => bcrypt($request->password)]));
             // tạo chi tiết đề thi
