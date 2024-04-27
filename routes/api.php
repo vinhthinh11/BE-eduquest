@@ -24,8 +24,7 @@ Route::get('me', [AuthController::class, 'me']);
 Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
     //Profile
     Route::get('/info/{username}',    [Admincontroller::class, 'getInfo'])->name('getInfo');
-    Route::put('/update-profile',     [Admincontroller::class, 'updateProfile'])->name('updateProfile');
-    Route::post('/update-avatar',      [Admincontroller::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
+    Route::post('/update-profile',     [Admincontroller::class, 'updateProfile'])->name('updateProfile');
 
     //ql Admin
     Route::group(['prefix' => 'admin'], function () {
@@ -121,8 +120,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
 Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     //Profile
     Route::get('/info/{username}', [StudentController::class, 'getInfo'])->name('getInfo');
-    Route::put('/update-profile',      [StudentController::class, 'updateProfile'])->name('updateProfile');
-    Route::put('/update-avatar',      [StudentController::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
+    Route::post('/update-profile',      [StudentController::class, 'updateProfile'])->name('updateProfile');
     Route::get('/score/get', [StatistController::class, 'statistScoreStudent'])->name('statistScoreStudent');
 
     // Route::get('/get', [AdminHSController::class, 'index'])->name('index');
@@ -174,8 +172,8 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
         Route::post('/create', [TeacherConTroller::class,'createTest'])->name('teacherCreateTest');
         Route::put('/update/{test_code}', [TeacherConTroller::class,'updateTest'])->name('teacherUpdateTest');
         Route::delete('/delete/{test_code}', [TeacherConTroller::class,'deleteTest'])->name('teacherDeleteTest');
-        Route::post('/file', [TeacherConTroller::class,'addFileTest'])->name('teacheraddFileTest');
         Route::post('/search', [TeacherConTroller::class,'searchOfTest'])->name('teachersearchOfTest');
+        Route::post('/file', [TeacherConTroller::class,'addFileTest'])->name('teacheraddFileTest');
     });
 
     // qly câu hỏi
@@ -192,8 +190,7 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
 
     //Profile
     Route::get('/info/{username}', [TeacherConTroller::class, 'getInfo'])->name('getInfo');
-    Route::put('/update-profile',      [TeacherConTroller::class, 'updateProfile'])->name('updateProfile');
-    Route::put('/update-avatar',      [TeacherConTroller::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
+    Route::post('/update-profile',      [TeacherConTroller::class, 'updateProfile'])->name('updateProfile');
 
 
     // qly điểm
@@ -224,8 +221,7 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
 Route::group(['prefix' => '/subject-head', 'middleware' => 'head_subject'], function () {
     //Profile
     Route::get('/info/{username}', [SubjectHeadController::class, 'getInfo'])->name('getInfo');
-    Route::put('/update-profile',      [SubjectHeadController::class, 'updateProfile'])->name('updateProfile');
-    Route::put('/update-avatar',      [SubjectHeadController::class, 'updateAvatarProfile'])->name('updateaAatarProfile');
+    Route::post('/update-profile',      [SubjectHeadController::class, 'updateProfile'])->name('updateProfile');
 
     Route::get('/', [AdminTBMonController::class, 'index'])->name('index');
 

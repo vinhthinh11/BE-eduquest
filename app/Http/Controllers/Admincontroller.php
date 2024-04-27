@@ -72,83 +72,43 @@ class Admincontroller extends Controller
 
     public function updateProfile(Request $request)
     {
-        $data['id'] = $request->id;
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|min:3|max:255',
-            'gender_id' => 'required',
-            'birthday' => 'nullable|date',
-            'password' => 'required|min:6|max:20',
-            'email' => 'nullable|email|unique:admins,email,'.$data['id'].',admin_id',
-        ], [
-            'name.required' => 'Vui lòng nhập tên!',
-            'name.min' => 'Tên cần ít nhất 3 ký tự!',
-            'name.max' => 'Tên dài nhất 255 ký tự!',
-            'gender_id.required' => 'Vui lòng chon giới tính!',
-            'birthday.date' => 'Ngày sinh chưa đúng định dạng!',
-            'password.required' => 'Vui lòng nhập mật khẩu!',
-            'password.min' => 'Vui nhap it nhat 6 ky tu!',
-            'email.email' => 'Vui long nhap email hop le!',
-            'email.unique' => 'Email da ton tai!',
-        ]);
+        $me = $request->user('admins');
+        // $validator = Validator::make($request->all(), [
+        //     'name' => 'sometimes|min:3|max:255',
+        //     'gender_id' => 'sometimes|integer',
+        //     'birthday' => 'sometimes|date',
+        //     'password' => 'sometimes|min:6|max:20',
+        //     'email' => 'sometimes|email|unique:admins,email',
+        //     'avatar' => 'somtimes|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        // ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
+        // if ($validator->fails()) {
+        //     return response()->json([
+        //         'status' => false,
+        //         'errors' => $validator->errors(),
+        //     ], 422);
+        // }
+
+        if ($request->hasFile('avatar')) {
+            if ($me->avatar != "avatar-default.jpg") {
+                Storage::delete('public/' . str_replace('/storage/', '' , $me->avatar));
+            }
+            $image = $request->file('avatar');
+            $imageName = time() . '.' . $image->getClientOriginalExtension();
+            $imagePath = $image->storeAs('images' , $imageName, 'public');
+            $data['avatar'] = '/storage/' . $imagePath;
         }
-        $me = Admin::find($request->id);
-        $me->update([
-                    'name' => $request['name'],
-                    'email' => $request['email'],
-                    'gender_id' => $request['gender_id'],
-                    'birthday' => $request['birthday'],
-                    'password' => bcrypt($request['password']),
-                    'last_login' => Carbon::now(CarbonTimeZone::createFromHourOffset(7 * 60))->timezone('Asia/Ho_Chi_Minh'),
-                ]);
+
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt($request->password);
+        }
+
+        $me->update($data);
+
         return response()->json([
             'status' => true,
             'message' => "Cập nhập tài khoản cá nhân thành công!"
         ]);
-    }
-    public function updateAvatarProfile(Request $request)
-    {
-        $user = $request->user('admins');
-
-        $validator = Validator::make($request->all(), [
-            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        ], [
-            'avatar.required' => 'Vui lòng chọn hình ảnh đại diện',
-            'avatar.image' => 'Vui lòng chọn hình ảnh đại diện',
-            'avatar.mimes' => 'Vui lòng chọn hình ảnh đúng định dạng (jpeg, png, jpg, gif, svg)',
-            'avatar.max' => 'Kích thước hình ảnh không được vượt quá 2048KB',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        if ($user->avatar) {
-            Storage::delete($user->avatar);
-        }
-        if ($request->hasFile('avatar')) {
-            $image = $request->file('avatar');
-            $path = $image->store('images/avatar', 'public');
-
-
-            $user->avatar = $path;
-            $user->save();
-
-            return response()->json(['message' => 'Tải lên thành công', 'url' => asset("storage/${path}")], 200);
-        }
-            return response()->json(['message' => 'Không có tệp nào được tải lên'], 404);
-    }
-    public function indexLogin()
-    {
-        return view('loginTest');
     }
 
     public function submitLogin(Request $request)
@@ -378,24 +338,22 @@ class Admincontroller extends Controller
         ]);
     }
 
-    public function deleteAdmin(Request $request)
-    {
-           $validator = Validator::make($request->all(), [
-            'admin_id' => 'required|exists:admins,admin_id'],
-            ['admin_id.required' => 'admin_id không được để trống!',
-            ]);
-            if ($validator->fails()) {
-            return response()->json([
-                'message' =>"test",
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-        $admin = admin::find($request->admin_id)->delete();
-        return response()->json([
-            'message' => 'Xóa Admin thành công!',
-            'admin' => $admin
-        ]);
-    }
+   public function deleteAdmin(Request $request)
+   {
+       $admin_id = $request->admin_id;
+       $admin = admin::find($admin_id);
+       if ($admin) {
+           $admin->delete();
+           return response()->json([
+               'message' => 'Xóa Admin thành công!',
+               'admin' => $admin
+           ]);
+       } else {
+           return response()->json([
+               'message' => 'Admin không tồn tại!'
+           ], 404);
+       }
+   }
     public function updateAdmin(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -659,21 +617,19 @@ class Admincontroller extends Controller
             'answer_b'          => 'nullable|string',
             'answer_c'          => 'nullable|string',
             'answer_d'          => 'nullable|string',
-            'correct_answer'    => 'nullable|in:A,B,C,D',
+            'correct_answer'    => 'nullable',
             'grade_id'          => 'nullable|integer|exists:grades,grade_id',
             'unit'              => 'nullable|string',
             'suggest'           => 'nullable|string',
-            'status_id'         => 'nullable|integer|in:1,2,3',
+            'status_id'         => 'nullable|integer',
             'teacher_id'        => 'nullable|integer|exists:teachers,teacher_id',
         ], [
             'question_id.required'      => 'ID câu hỏi là bắt buộc!',
             'question_id.exists'        => 'Không tìm thấy câu hỏi với ID đã chọn!',
             'level_id.exists'           => 'Không tìm thấy level với ID đã chọn!',
             'grade_id.exists'           => 'Không tìm thấy grade với ID đã chọn!',
-            'status_id.in'              => 'Cấp độ không được để trống!',
             'teacher_id.integer'        => 'Teacher ID phải là số nguyên!',
             'teacher_id.exists'         => 'Không tìm thấy giáo viên với ID đã chọn!',
-            'correct_answer.in'         => 'Đáp án đúng phải là A, B, C hoặc D!',
         ]);
 
         if ($validator->fails()) {
@@ -686,31 +642,12 @@ class Admincontroller extends Controller
         if (empty($question)) {
             return response()->json(["message" => "Không tìm thấy câu hỏi!"], 400);
         }
-        // $validator = Validator::make($request->all(), [
-        //     'question_content' => 'string|max:255',
-        //     'level_id' => 'numeric',
-        //     'answer_a' => 'string',
-        //     'answer_b' => 'string',
-        //     'answer_c' => 'string',
-        //     'answer_d' => 'string',
-        //     'correct_answer' => 'numeric',
-        //     'grade_id' => 'numeric',
-        //     'unit' => 'numeric',
-        //     'suggest' => 'string',
-        //     'status_id' => 'numeric',
-        //     'teacher_id' => 'numeric',
-        //     'subject_id' => 'numeric',
-        // ]);
-        // if ($validator->fails()) {
-        //     return response($validator->errors()->all(), 400);
-        // }
+
         $data = $request->only(['question_content', 'level_id', 'answer_a', 'answer_b', 'subject_id', 'answer_c', 'answer_d', 'correct_answer', 'grade_id', 'unit', 'suggest', 'status_id', 'teacher_id']);
         $question->fill($data);
         $question->fill($data)->save();
         return response()->json(["question" => $question]);
     }
-
-
 
     public function deleteQuestion(Request $request)
     {
@@ -742,7 +679,6 @@ class Admincontroller extends Controller
             'status'    => true,
             'message'   => 'Xoá câu hỏi thành công!',
         ]);
-        // return response()->json($question_id);
     }
 
 
