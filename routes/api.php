@@ -35,7 +35,6 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
     Route::post('/file', [AdminController::class, 'check_add_admin_via_file'])->name('admin.check_add_admin_via_file');
     });
 
-
     //ql Question
     Route::group(['prefix' => 'question'], function () {
         Route::post('/create', [Admincontroller::class, 'checkAddQuestions'])->name('checkAddQuestion');
@@ -123,27 +122,25 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     Route::post('/update-profile',      [StudentController::class, 'updateProfile'])->name('updateProfile');
     Route::get('/score/get', [StatistController::class, 'statistScoreStudent'])->name('statistScoreStudent');
 
-    // Route::get('/get', [AdminHSController::class, 'index'])->name('index');
-
     //Statist
     Route::group(['prefix' => 'statist'], function () {
         Route::get('/get',         [StatistController::class, 'statistStudent'])->name('statistStudent');
     });
-Route::group(['prefix' => '/test'], function () {
-    Route::get('/get', [StudentController::class, 'getTest'])->name('getTest');
-    Route::get('/get/{test_code}', [StudentController::class, 'getTestDetail'])->name('getTestDetail');
-    Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
-    Route::post('/update-timing', [StudentController::class, 'updateTiming'])->name('updateTiming');
-    Route::post('/update-doing-exam', [StudentController::class, 'updateDoingExam'])->name('updateDoingExam');
-    Route::post('/update-answer', [StudentController::class, 'updateAnswer'])->name('updateAnswer');
-    Route::post('/reset-doing-exam', [StudentController::class, 'resetDoingExam'])->name('resetDoingExam');
-    Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
-    Route::post('/accpet-exam', [StudentController::class, 'acceptTest'])->name('acceptTest');
-    // Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
-    Route::get('/show-result-test', [StudentController::class, 'showResult'])->name('acceptTest');
-    Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
-    Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
-});
+    Route::group(['prefix' => '/test'], function () {
+        Route::get('/get', [StudentController::class, 'getTest'])->name('getTest');
+        Route::get('/get/{test_code}', [StudentController::class, 'getTestDetail'])->name('getTestDetail');
+        Route::get('/addTest', [Admincontroller::class, 'addTest'])->name('addTest');
+        Route::post('/update-timing', [StudentController::class, 'updateTiming'])->name('updateTiming');
+        Route::post('/update-doing-exam', [StudentController::class, 'updateDoingExam'])->name('updateDoingExam');
+        Route::post('/update-answer', [StudentController::class, 'updateAnswer'])->name('updateAnswer');
+        Route::post('/reset-doing-exam', [StudentController::class, 'resetDoingExam'])->name('resetDoingExam');
+        Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
+        Route::post('/accpet-exam', [StudentController::class, 'acceptTest'])->name('acceptTest');
+        // Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
+        Route::get('/show-result-test', [StudentController::class, 'showResult'])->name('acceptTest');
+        Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
+        Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
+    });
 
 
     //học sinh luyện đề
