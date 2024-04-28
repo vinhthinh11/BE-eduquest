@@ -14,7 +14,8 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 class AdminNotificationController extends Controller
 {
     // danh sách thông báo cho gv
-    public function listNotificationGV(Request $request){
+    public function listNotificationGV(Request $request)
+    {
         $getListGV = notifications::whereExists(function ($query) {
             $query->select(DB::raw(1))
                 ->from('teacher_notifications')
@@ -32,7 +33,8 @@ class AdminNotificationController extends Controller
     }
 
     // danh sách thông báo cho học sinh
-    public function listNotificationHS(Request $request){
+    public function listNotificationHS(Request $request)
+    {
         $getListHS = notifications::whereExists(function ($query) {
             $query->select(DB::raw(1))
                 ->from('student_notifications')
@@ -50,14 +52,16 @@ class AdminNotificationController extends Controller
     }
 
     // gửi thông báo
-    public function sendNotification(Request $request){
+    public function sendNotification(Request $request)
+    {
         $result = [];
         $username = $request->username;
         $name = $request->name;
         $notification_title = $request->notification_title;
         $notification_content = $request->notification_content;
-        $teacher_id = $request->teacher_id->array();
-        $class_id = $request->class_id->array();
+        $teacher_id = $request->json('teacher_id');
+        $class_id = $request->json('class_id');
+
         if (empty($notification_title)||empty($notification_content)) {
             $result['status_value'] = "Nội dung hoặc tiêu đề không được trống!";
             $result['status'] = 0;
@@ -74,8 +78,7 @@ class AdminNotificationController extends Controller
                     'time_sent' => now()
                 ]);
                 $notification->saveQuietly();
-                $notificationId = $notification->notification_id;
-
+                $notificationId = $notification->id;
                 // Gửi thông báo cho giáo viên
                 if (!empty($teacher_id)) {
                     foreach ($teacher_id as $teacherId) {

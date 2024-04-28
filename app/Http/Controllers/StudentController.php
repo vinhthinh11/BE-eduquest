@@ -36,16 +36,18 @@ class StudentController extends Controller
         }
         return response()->json(['message' => 'Học sinh không tồn tại!'], 404);
     }
-    public function getScore(Request $request){
+    public function getScore(Request $request)
+    {
         $student = $request->user('students');
         $scores = scores::where('student_id', $student->student_id)->get();
         return response()->json(['data' => $scores], 200);
     }
-    public function getTest(Request $request){
-    $user = $request->user('students');
-    $grade_id = student::with("classes")->where("student_id", $user->student_id)->first()->classes->grade_id;
-    $test = tests::where("grade_id", $grade_id)->where('status_id',"!=",3)->orderBy('timest','desc')->get();
-    return response()->json(['data' => $test], 200);
+    public function getTest(Request $request)
+    {
+        $user = $request->user('students');
+        $grade_id = student::with("classes")->where("student_id", $user->student_id)->first()->classes->grade_id;
+        $test = tests::where("grade_id", $grade_id)->where('status_id', "!=", 3)->orderBy('timest', 'desc')->get();
+        return response()->json(['data' => $test], 200);
     }
     public function getTestDetail(Request $request, $test_code)
     {
@@ -391,7 +393,7 @@ class StudentController extends Controller
             ->whereColumn('student_test_detail.student_answer', 'questions.correct_answer')
             ->count();
         // calculate the score
-        $score = round($correct * 10 / $total_question,2);
+        $score = round($correct * 10 / $total_question, 2);
         // save the score to the scores table
         scores::create([
             'student_id' => $student->student_id,
@@ -402,7 +404,6 @@ class StudentController extends Controller
         ]);
 
         return response()->json(['status' => $student, 'correct' => $correct, 'score' => $score]);
-
     }
 
 
@@ -437,43 +438,43 @@ class StudentController extends Controller
                 return response()->json(['status' => false, 'message' => 'Không tìm thấy điểm hoặc kết quả!'], 404);
             }
         }
-            // } else {
-            //     $testCode = $student->doing_exam;
+        // } else {
+        //     $testCode = $student->doing_exam;
 
-            //     $test = student_test_detail::join('questions', 'student_test_details.question_id', '=', 'questions.question_id')
-            //         ->where('student_test_details.test_code', $testCode)
-            //         ->where('student_test_details.student_id', $student->student_id)
-            //         ->select('student_test_details.*', 'questions.question_content')
-            //         ->orderBy('student_test_details.ID')
-            //         ->get();
+        //     $test = student_test_detail::join('questions', 'student_test_details.question_id', '=', 'questions.question_id')
+        //         ->where('student_test_details.test_code', $testCode)
+        //         ->where('student_test_details.student_id', $student->student_id)
+        //         ->select('student_test_details.*', 'questions.question_content')
+        //         ->orderBy('student_test_details.ID')
+        //         ->get();
 
-            //     $timeRemaining = explode(":", $student->time_remaining);
-            //     $min = $timeRemaining[0];
-            //     $sec = $timeRemaining[1];
+        //     $timeRemaining = explode(":", $student->time_remaining);
+        //     $min = $timeRemaining[0];
+        //     $sec = $timeRemaining[1];
 
-            //     return response()->json([
-            //         'status' => true,
-            //         'data' => [
-            //             'test' => $test,
-            //             'time_remaining' => ['min' => $min, 'sec' => $sec],
-            //         ],
-            //         'message' => 'Show kết quả thi cho Học sinh thành công!',
-            //     ], 200);
-            // }
+        //     return response()->json([
+        //         'status' => true,
+        //         'data' => [
+        //             'test' => $test,
+        //             'time_remaining' => ['min' => $min, 'sec' => $sec],
+        //         ],
+        //         'message' => 'Show kết quả thi cho Học sinh thành công!',
+        //     ], 200);
+        // }
     }
     /** Thực hiện update cho current student set doing exam to test_code comming from request
      * @param $test_code
-    */
-    public function beginDoingTest(Request $request){
-        $student = student::find( $request->user('students')->student_id );
+     */
+    public function beginDoingTest(Request $request)
+    {
+        $student = student::find($request->user('students')->student_id);
         $testCode = $request->test_code;
         // check if if the if the time_to_to is valid
-        $afterUpdate =$student->update([
+        $afterUpdate = $student->update([
             'doing_exam' => $testCode,
             'starting_time' => now(),
         ]);
-        return response()->json([ 'student' => $afterUpdate]);
-
+        return response()->json(['student' => $afterUpdate]);
     }
 
     public function updateAnswer(Request $request)
@@ -492,11 +493,11 @@ class StudentController extends Controller
 
         if ($student_test_detail) {
             // update the student answer
-        $sql = "UPDATE student_test_detail
+            $sql = "UPDATE student_test_detail
         SET student_answer = ?
         WHERE student_id = ? AND test_code = ? AND question_id = ?";
-        DB::update($sql, [$student_answer, $student_id, $testCode, $question_id]);
-            return response()->json(["message"=>"thuc hien update record"]);
+            DB::update($sql, [$student_answer, $student_id, $testCode, $question_id]);
+            return response()->json(["message" => "thuc hien update record"]);
         } else {
             // insert the student answer
             student_test_detail::create([
@@ -506,7 +507,7 @@ class StudentController extends Controller
                 'question_id' => $question_id,
                 'student_answer' => $student_answer,
             ]);
-            return response()->json(["message"=>"thuc hien create record"]);
+            return response()->json(["message" => "thuc hien create record"]);
         }
     }
 
