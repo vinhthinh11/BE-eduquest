@@ -28,11 +28,14 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
 
     //ql Admin
     Route::group(['prefix' => 'admin'], function () {
+    Route::group(['prefix' => 'admin'], function () {
     Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
     Route::post('/create', [AdminController::class, 'createAdmin'])->name('createAdmin');
     Route::delete('/delete', [AdminController::class, 'deleteAdmin'])->name('deleteAdmin');
     Route::put('/update', [AdminController::class, 'updateAdmin'])->name('updateAdmin');
     Route::post('/file', [AdminController::class, 'check_add_admin_via_file'])->name('admin.check_add_admin_via_file');
+    });
+
     });
 
 
@@ -197,10 +200,18 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     Route::group(['prefix' => '/score'], function () {
         Route::get('/get', [TeacherConTroller::class, 'getScore'])->name('getScore');
         Route::post('/export', [TeacherConTroller::class, 'exportScore'])->name('exportScore');
+        Route::get('/get', [TeacherConTroller::class, 'getScore'])->name('getScore');
+        Route::post('/export', [TeacherConTroller::class, 'exportScore'])->name('exportScore');
     });
 
     // qly lớp
     Route::group(['prefix' => '/class'], function () {
+        Route::get('/get', [TeacherConTroller::class, 'getClass'])->name('getClass');
+
+    });
+    Route::group(['prefix' => '/student'], function () {
+        Route::get('/get', [TeacherConTroller::class, 'getStudent'])->name('getClass');
+
         Route::get('/get', [TeacherConTroller::class, 'getClass'])->name('getClass');
 
     });
@@ -227,6 +238,9 @@ Route::group(['prefix' => '/subject-head', 'middleware' => 'head_subject'], func
 
     //duyệt đề thi
     Route::group(['prefix' => '/test'], function () {
+        Route::get('/get', [TBMDuyetDeThiConTroller::class, 'getTests'])->name('getTest');
+        Route::get('/get/{test_code}', [TBMDuyetDeThiConTroller::class, 'getTestDetail'])->name('duyetDT');
+        Route::put('/update/{test_code}', [TBMDuyetDeThiConTroller::class, 'updateTest'])->name('updateTest');
         Route::get('/get', [TBMDuyetDeThiConTroller::class, 'getTests'])->name('getTest');
         Route::get('/get/{test_code}', [TBMDuyetDeThiConTroller::class, 'getTestDetail'])->name('duyetDT');
         Route::put('/update/{test_code}', [TBMDuyetDeThiConTroller::class, 'updateTest'])->name('updateTest');

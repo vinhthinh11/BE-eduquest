@@ -111,7 +111,7 @@ class TeacherConTroller extends Controller
             'message' => "Cập nhập tài khoản cá nhân thành công!"
         ]);
     }
-    
+
     public function getStudent(Request $request)
     {
         $user = $request->user('teachers');
@@ -648,6 +648,7 @@ class TeacherConTroller extends Controller
         // lấy số lượng câu hỏi của giáo viên dạy môn đó trong ngân hang câu hỏi
         $numQuestion = questions::where('subject_id', $user->subject_id)->where('grade_id', $request->grade_id)->where('level_id', $request->level_id)->count();
         // kiểm tra số lượng câu hỏi trong ngân hàng đề thi có đủ hay không
+        if ($numQuestion < $request->total_questions) return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi là".$numQuestion."không đủ!"], 400);
         if ($numQuestion < $request->total_questions) return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi là".$numQuestion."không đủ!"], 400);
         $user = $request->user('teachers');
         DB::beginTransaction();
