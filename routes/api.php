@@ -148,8 +148,9 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
         Route::get('/get/{class_id}', [StudentController::class, 'getChat'])->name('listChat');
         Route::get('/all/{class_id}', [StudentController::class, 'getAllChat'])->name('listAllChat');
         Route::post('/send', [StudentController::class, 'sendChat'])->name('sendChat');
+        Route::delete('/un-sent', [StudentController::class, 'unSent'])->name('unSent');
+        Route::put('/edit', [StudentController::class, 'editChat'])->name('editChat');
     });
-
 
     //học sinh luyện đề
     Route::group(['prefix' => '/practice'], function () {
@@ -193,7 +194,6 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     //Profile
     Route::get('/info/{username}', [TeacherConTroller::class, 'getInfo'])->name('getInfo');
     Route::post('/update-profile',      [TeacherConTroller::class, 'updateProfile'])->name('updateProfile');
-
 
     // qly điểm
     Route::group(['prefix' => '/score'], function () {

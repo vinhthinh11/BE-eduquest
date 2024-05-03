@@ -581,4 +581,82 @@ class StudentController extends Controller
             'data'      => $chat
         ], 200);
     }
+
+    public function unSent(Request $request)
+    {
+        $user = $request->user('students');
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Người dùng không hợp lệ!',
+            ], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'ID' => 'required|exists:chats,ID',
+        ], [
+            'ID.required' => 'Trường ID là bắt buộc.',
+            'ID.exists' => 'Đoạn chat không tồn tại.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $chat = Chats::where('username', $user->username)->where('ID', $request->ID)->first();
+        if ($chat) {
+            $chat->delete();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Thu hồi tin nhắn thành công!',
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'Tin nhắn không tồn tại hoặc không có quyền thu hồi!',
+            ], 400);
+        }
+    }
+
+    public function editChat(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'chat_content' => 'required|string',
+        ], [
+            'chat_content.required' => 'Vui lòng nhập nội dung chat',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $user = $request->user('students');
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Người dùng không hợp lệ!',
+            ], 401);
+        }
+
+        $chat = Chats::where('username', $user->username)->where('ID', $request->ID)->first();
+        if ($chat) {
+            $chat->chat_content = $request->chat_content;
+            $chat->save();
+            return response()->json([
+                'status' => true,
+                'message' => 'Sửa tin nhắn thành công!',
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'Tin nhắn không tồn tại hoặc không có quyền sửa!',
+            ], 400);
+        }
+    }
 }
