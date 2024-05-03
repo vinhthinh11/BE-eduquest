@@ -111,7 +111,7 @@ class TeacherConTroller extends Controller
             'message' => "Cập nhập tài khoản cá nhân thành công!"
         ]);
     }
-    
+
     public function getStudent(Request $request)
     {
         $user = $request->user('teachers');
@@ -126,7 +126,7 @@ class TeacherConTroller extends Controller
     {
         $user = $request->user('teachers');
         $classes = classes::with('teacher')->where('teacher_id', $user->teacher_id)->get();
-        //
+        
         return response()->json([
             'message'   => 'Lấy dữ liệu lớp thành công!',
             'data'      => $classes
@@ -652,7 +652,7 @@ class TeacherConTroller extends Controller
         $user = $request->user('teachers');
         DB::beginTransaction();
         try {
-            $test_code = time();;
+            $test_code = time();
             $data = $request->all();
             $test = (array_merge($data, ['test_code' => $test_code, 'subject_id' => $user->subject_id, 'status_id' => 3, 'password' => bcrypt($request->password)]));
             // tạo chi tiết đề thi

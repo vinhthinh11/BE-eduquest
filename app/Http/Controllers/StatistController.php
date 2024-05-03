@@ -11,6 +11,7 @@ use App\Models\subjects;
 use App\Models\tests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Tymon\JWTAuth\Claims\Subject;
 
 class StatistController extends Controller
 {
@@ -77,7 +78,6 @@ class StatistController extends Controller
             'data'      => $statistics
         ]);
     }
-
     public function statistScoreStudent(Request $request)
     {
         $student_id = $request->student_id;

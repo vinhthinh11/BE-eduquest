@@ -36,6 +36,11 @@ class StudentController extends Controller
         }
         return response()->json(['message' => 'Học sinh không tồn tại!'], 404);
     }
+    public function getScore(Request $request){
+        $student = $request->user('students');
+        $scores = scores::where('student_id', $student->student_id)->get();
+        return response()->json(['data' => $scores], 200);
+    }
     public function getTest(Request $request){
     $user = $request->user('students');
     $grade_id = student::with("classes")->where("student_id", $user->student_id)->first()->classes->grade_id;
@@ -265,11 +270,11 @@ class StudentController extends Controller
             ], 422);
         }
 
-        $practiceCode = $request->input('practice_code', '493205');
-        $student = Student::find($request->input('student_id'));
+        $practiceCode = $request->practice_code;
+        $student = Student::find($request->student_id);
 
         if (!$student) {
-            return response()->json(['status' => false, 'message' => 'Học Sinh không tồn tại!'], 404);
+            return response()->json(['status' => false, 'message' => 'Học Sinh không tồn tại!'], 400);
         }
 
         $listQuest = student_practice_detail::join('questions', 'student_practice_detail.question_id', '=', 'questions.question_id')
@@ -368,6 +373,37 @@ class StudentController extends Controller
         $model->resetDoingExam($student);
         return response()->json(['status' => true, 'message' => 'Nộp bài Thành Công!'], 200);
     }
+    /** Thực hiện nộp bài và tính điểm cho sinh viên */
+    public function submitTest(Request $request)
+    {
+        $student  = $request->user('students');
+        $test_code = $request->user('students')->doing_exam;
+        // set doing_exam to null
+        $student->doing_exam = null;
+        $student->starting_time = null;
+        $student->save();
+
+        $total_question = tests::find($test_code)->total_questions;
+        // check how many questions the student has answered is correct
+        $correct  = student_test_detail::where('student_id', $student->student_id)
+            ->where('test_code', $test_code)
+            ->join('questions', 'student_test_detail.question_id', '=', 'questions.question_id')
+            ->whereColumn('student_test_detail.student_answer', 'questions.correct_answer')
+            ->count();
+        // calculate the score
+        $score = round($correct * 10 / $total_question,2);
+        // save the score to the scores table
+        scores::create([
+            'student_id' => $student->student_id,
+            'test_code' => $test_code,
+            'score_number' => $score,
+            'score_detail' => $correct . '/' . $total_question,
+            'completion_time' => now(),
+        ]);
+
+        return response()->json(['status' => $student, 'correct' => $correct, 'score' => $score]);
+
+    }
 
 
     public function showResult(Request $request)
@@ -425,18 +461,53 @@ class StudentController extends Controller
             //     ], 200);
             // }
     }
+    /** Thực hiện update cho current student set doing exam to test_code comming from request
+     * @param $test_code
+    */
+    public function beginDoingTest(Request $request){
+        $student = student::find( $request->user('students')->student_id );
+        $testCode = $request->test_code;
+        // check if if the if the time_to_to is valid
+        $afterUpdate =$student->update([
+            'doing_exam' => $testCode,
+            'starting_time' => now(),
+        ]);
+        return response()->json([ 'student' => $afterUpdate]);
+
+    }
 
     public function updateAnswer(Request $request)
     {
-        $questionId = $request->question_id;
-        $student    = $request->user('students');
-        $answer     = $request->answer;
-        $model      = new student();
-        $model->updateAnswer($student->student_id, $student->doing_exam, $questionId, $answer);
-        return response()->json([
-            'question_id: ' => $questionId,
-            'answer'        => $answer,
-        ]);
+        // perform udpate student answer in student_test_detail table
+        $question_id = $request->question_id;
+        $student_id    = $request->user('students')->student_id;
+        $testCode     = $request->user('students')->doing_exam;
+        $student_answer     = $request->student_answer;
+        // now our mission is to update the student answer
+        // first check if the question_id exists in the student_test_detail table
+        $student_test_detail = student_test_detail::where('question_id', $question_id)
+            ->where('student_id', $student_id)
+            ->where('test_code', $testCode)
+            ->first();
+
+        if ($student_test_detail) {
+            // update the student answer
+        $sql = "UPDATE student_test_detail
+        SET student_answer = ?
+        WHERE student_id = ? AND test_code = ? AND question_id = ?";
+        DB::update($sql, [$student_answer, $student_id, $testCode, $question_id]);
+            return response()->json(["message"=>"thuc hien update record"]);
+        } else {
+            // insert the student answer
+            student_test_detail::create([
+                'ID' => Uuid::uuid4()->toString(),
+                'student_id' => $student_id,
+                'test_code' => $testCode,
+                'question_id' => $question_id,
+                'student_answer' => $student_answer,
+            ]);
+            return response()->json(["message"=>"thuc hien create record"]);
+        }
     }
 
     //danh sách thông báo

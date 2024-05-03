@@ -304,7 +304,7 @@ class Admincontroller extends Controller
             'name'          => 'required|string|min:3|max:50|unique:admins,name',
             'username'      => 'required|string|min:6|max:50|unique:admins,username',
             'gender_id'     => 'required|integer',
-            // 'password'      => 'required|string|min:6|max:20',
+            'password'      => 'required|string|min:6|max:20',
             'email'         => 'nullable|email|unique:admins,email',
             'permission'    => 'nullable',
             'birthday'      => 'nullable|date',
@@ -363,7 +363,7 @@ class Admincontroller extends Controller
             'birthday' => 'sometimes|date',
             'password' => 'sometimes|string|min:6|max:20',
         ], [
-            'admin_id.required' => 'admin_id k  hông được để trống!',
+            'admin_id.required' => 'admin_id không được để trống!',
             'admin_id.exists' => 'Admin không tồn tại!',
             'name.min' => 'Tên Admin tối thiểu 6 kí tự!',
             'name.required' => 'Tên Admin không được để trống!',
@@ -397,7 +397,7 @@ class Admincontroller extends Controller
 
     public function getQuestion()
     {
-        $data = questions::with('teacher')->get();
+        $data = questions::with('teacher')->orderBy('question_id','desc')->get();
         if (!$data) return response()->json([
             'message' => 'No question found!',
         ], 400);
@@ -559,7 +559,7 @@ class Admincontroller extends Controller
             'answer_b'          => 'required|string',
             'answer_c'          => 'required|string',
             'answer_d'          => 'required|string',
-            'correct_answer'    => 'required|in:A,B,C,D',
+            'correct_answer'    => 'required|in:A,B,C,D,a,b,c,d',
             'status_id'         => 'required|integer|in:1,2,3',
             'suggest'           => 'nullable|string',
         ], [
@@ -588,6 +588,20 @@ class Admincontroller extends Controller
             ], 422);
         }
         $data = request()->only(['question_content', 'level_id', 'answer_a', 'answer_b', 'subject_id', 'answer_c', 'answer_d', 'correct_answer', 'grade_id', 'unit', 'suggest', 'status_id', 'teacher_id']);
+        switch (strtolower($data['correct_answer'])) {
+            case 'a':
+                $data['correct_answer'] = $data['answer_a'];
+                break;
+            case 'b':
+                $data['correct_answer'] = $data['answer_b'];
+                break;
+            case 'c':
+                $data['correct_answer'] = $data['answer_c'];
+                break;
+            case 'd':
+                $data['correct_answer'] = $data['answer_d'];
+                break;
+        }
         $question =  questions::create($data);
         return response()->json(['question' => $question]);
     }

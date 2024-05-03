@@ -19,4 +19,13 @@ class practice extends Model
         'total_question',
         'student_id',
     ];
+    public function subject()
+    {
+        return $this->belongsTo(subjects::class, 'subject_id');
+    }
+
+    // public function scores()
+    // {
+    //     return $this->hasMany(practice_scores::class, 'practice_code');
+    // }
 }

@@ -163,18 +163,17 @@ class AdminTeacherController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name'          => 'required|string|min:6|max:50|unique:teachers,name',
-            'username'      => 'required|string|min:6|max:50|unique:teachers,username',
+            'username'      => 'string',
             'gender_id'     => 'required|integer',
             'password'      => 'required|string|min:6|max:20',
-            'email'         => 'nullable|email|unique:teachers,email',
+            'email'         => 'required|email|unique:teachers,email',
             'birthday'      => 'nullable|date',
+            'subject_id'    => 'required|integer|exists:subjects,subject_id',
         ], [
             'name.min'           => 'Tên Giáo Viên tối thiểu 6 kí tự!',
             'name.max'             => 'Ten Giờ Viên phải là 50 kí tự!',
             'name.unique'          => 'Ten Giáo Viên đã tồn tại!',
             'name.required'         => 'Tên Giáo Viên không được để trống!',
-            'username.required'     => 'Username không được để trống!',
-            'username.unique'       => 'Username đã tồn tại!',
             'password.required'     => 'Password không được để trống!',
             'password.min'          => 'Password tối thiểu 6 kí tự!',
             'email.email'           => 'Email không đúng định dạng!',
