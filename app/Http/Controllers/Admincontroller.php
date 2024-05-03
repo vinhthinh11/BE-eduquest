@@ -358,6 +358,7 @@ class Admincontroller extends Controller
     {
         $validator = Validator::make($request->all(), [
             'admin_id' => 'required|exists:admins,admin_id',
+            'admin_id' => 'required|exists:admins,admin_id',
             'name' => 'sometimes|string|min:6|max:50',
             'gender_id' => 'sometimes|integer',
             'birthday' => 'sometimes|date',
@@ -383,6 +384,11 @@ class Admincontroller extends Controller
         $admin = admin::find($request->admin_id);
         $data = $request->only(['name', 'username', 'gender_id', 'birthday', 'password', 'permission',]);
 
+        $admin = admin::find($request->admin_id);
+        $data = $request->only(['name', 'username', 'gender_id', 'birthday', 'password', 'permission',]);
+
+
+        if (isset($data['password']))
 
         if (isset($data['password']))
             $data['password'] = bcrypt($data['password']);
