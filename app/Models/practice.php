@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use DB;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class practice extends Model
 {
@@ -19,4 +20,9 @@ class practice extends Model
         'total_question',
         'student_id',
     ];
+     protected $primaryKey = 'practice_code';
+    public function questions():BelongsToMany
+    {
+        return $this->belongsToMany(questions::class, 'quest_of_practice', 'practice_code', 'question_id');
+    }
 }

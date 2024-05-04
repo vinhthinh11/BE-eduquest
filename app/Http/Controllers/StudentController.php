@@ -14,6 +14,7 @@ use App\Models\teacher_notifications;
 use App\Models\tests;
 use Carbon\Carbon;
 use Carbon\CarbonTimeZone;
+use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -44,20 +45,60 @@ class StudentController extends Controller
     public function getTest(Request $request){
     $user = $request->user('students');
     $grade_id = student::with("classes")->where("student_id", $user->student_id)->first()->classes->grade_id;
-    $test = tests::where("grade_id", $grade_id)->where('status_id',"!=",3)->orderBy('timest','desc')->get();
+    $test = tests::where("grade_id", $grade_id)
+                ->where('status_id', '!=', 3)
+                ->whereNotIn('test_code', function ($query) use ($user) {
+                    $query->select('test_code')
+                          ->from('scores')
+                          ->where('student_id', $user->student_id);
+                })
+                ->orderBy('timest', 'desc')
+                ->get();
     return response()->json(['data' => $test], 200);
     }
     public function getTestDetail(Request $request, $test_code)
     {
+        $student_id = $request->user('students')->student_id;
+        $starting_time = $request->user('students')->starting_time;
         $questions = [];
         $data  = tests::find($test_code);
         if (!$data) return response()->json(["message" => "Không tìm thấy đề thi!"], 400);
+        $student_answers=[];
+        // get student_answer from student_test_detail table and questions from questions table
         foreach ($data->questions as $question) {
             $questions[] = $question;
+              $student_answers[] = student_test_detail::where('student_id', $student_id)
+                ->where('test_code', $test_code)
+                ->where('question_id', $question->question_id)
+                ->first();
         }
         $data['questions'] = $questions;
+        $data['student_answers'] = $student_answers;
+        // time remaining in minutes will be now minus starting time plus time_to_do
+        $data["time_remaining"] =strtotime($starting_time) +$data->time_to_do*60 -time();
+        $data["now"]= date('Y-m-d H:i:s');
 
         return response()->json(["data" => $data]);
+    }
+    function getPracticeDetail (Request $request, $practice_code){
+        $student_id = $request->user('students')->student_id;
+        $starting_time = $request->user('students')->practice_starting_time;
+        $practice = practice::find($practice_code);
+        if (!$practice) return response()->json(["message" => "Không tìm thấy bài thi!"], 400);
+        $questions = [];
+        $student_answers=[];
+        // get student_answer from student_practice_detail table and questions from questions table
+        foreach ($practice->questions as $question) {
+            $questions[] = $question;
+              $student_answers[] = student_practice_detail::where('student_id', $student_id)
+                ->where('practice_code', $practice_code)
+                ->where('question_id', $question->question_id)
+                ->first();
+        }
+        $practice['questions'] = $questions;
+        $practice['student_answers'] = $student_answers;
+        return response()->json(["data" => $practice]);
+
     }
     public function updateProfile(Request $request)
     {
@@ -253,55 +294,19 @@ class StudentController extends Controller
 
     public function getPractice(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'student_id' => 'required|exists:students,student_id',
-            'practice_code' => 'required|exists:practices,practice_code',
-        ], [
-            'student_id.required' => 'Trường student_id là bắt buộc.',
-            'student_id.exists' => 'Học sinh không tồn tại.',
-            'practice_code.required' => 'Trường practice_code là bắt buộc.',
-            'practice_code.exists' => 'Bài tập không tồn tại.',
-        ]);
+        return response()->json(['data' => practice::all()], 200);
+        $user = $request->user('students');
+        $grade_id = student::with("classes")->where("student_id", $user->student_id)->first()->classes->grade_id;
+    $practice = practice::where("grade_id", $grade_id)
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $practiceCode = $request->input('practice_code', '493205');
-        $student = Student::find($request->input('student_id'));
-
-        if (!$student) {
-            return response()->json(['status' => false, 'message' => 'Học Sinh không tồn tại!'], 404);
-        }
-
-        $listQuest = student_practice_detail::join('questions', 'student_practice_detail.question_id', '=', 'questions.question_id')
-            ->where('practice_code', $practiceCode)
-            ->get();
-
-        foreach ($listQuest as $quest) {
-            $ID = Uuid::uuid4()->toString();
-            $time = practice::where('practice_code', $practiceCode)->first()->time_to_do . ':00';
-
-            $student->questions()->attach($quest->question_id, [
-                'ID' => $ID,
-                'practice_code' => $practiceCode,
-                'answer_a' => $quest->answer_a,
-                'answer_b' => $quest->answer_b,
-                'answer_c' => $quest->answer_c,
-                'answer_d' => $quest->answer_d,
-            ]);
-        }
-
-        $student->update([
-            'doing_exam' => $practiceCode,
-            'time_remaining' => $time,
-            'starting_time' => now(),
-        ]);
-
-        return response()->json(['status' => true, 'message' => 'Thành công. Chuẩn bị chuyển trang!'], 200);
+                ->whereNotIn('test_code', function ($query) use ($user) {
+                    $query->select('test_code')
+                          ->from('practice_scores')
+                          ->where('student_id', $user->student_id);
+                })
+                ->orderBy('timest', 'desc')
+                ->get();
+    return response()->json(['data' => $practice], 200);
     }
 
     public function addTest(Request $request)
@@ -404,6 +409,34 @@ class StudentController extends Controller
         return response()->json(['status' => $student, 'correct' => $correct, 'score' => $score]);
 
     }
+    function submitPractice(Request $request){
+        $student  = $request->user('students');
+        $practice_code = $request->user('students')->doing_practice;
+        // set doing_exam to null
+        $student->doing_practice = null;
+        $student->practice_starting_time = null;
+        $student->save();
+
+        $total_question = practice::find($practice_code)->total_question;
+        // check how many questions the student has answered is correct
+        $correct  = student_practice_detail::where('student_id', $student->student_id)
+            ->where('practice_code', $practice_code)
+            ->join('questions', 'student_practice_detail.question_id', '=', 'questions.question_id')
+            ->whereColumn('student_practice_detail.student_answer', 'questions.correct_answer')
+            ->count();
+        // calculate the score
+        $score = round($correct * 10 / $total_question,2);
+        // save the score to the scores table
+        practice_scores::create([
+            'student_id' => $student->student_id,
+            'practice_code' => $practice_code,
+            'score_number' => $score,
+            'score_detail' => $correct . '/' . $total_question,
+            'completion_time' => now(),
+        ]);
+
+        return response()->json(['status' => $student, 'correct' => $correct, 'score' => $score]);
+    }
 
 
     public function showResult(Request $request)
@@ -467,13 +500,29 @@ class StudentController extends Controller
     public function beginDoingTest(Request $request){
         $student = student::find( $request->user('students')->student_id );
         $testCode = $request->test_code;
-        // check if if the if the time_to_to is valid
-        $afterUpdate =$student->update([
-            'doing_exam' => $testCode,
-            'starting_time' => now(),
-        ]);
+        // check if the student is not doing any exam
+        $afterUpdate = null;
+        if( $student->doing_exam == null){
+            $afterUpdate =$student->update([
+                'doing_exam' => $testCode,
+                'starting_time' => now(),
+            ]);
+        }
         return response()->json([ 'student' => $afterUpdate]);
 
+    }
+    public function startDoingPractice( Request $request){
+        $student = student::find( $request->user('students')->student_id );
+        $practiceCode = $request->practice_code;
+        // check if the student is not doing any exam
+        $afterUpdate = null;
+        if( $student->doing_exam == null){
+            $afterUpdate =$student->update([
+                'doing_practice' => $practiceCode,
+                'practice_starting_time' => now(),
+            ]);
+        }
+        return response()->json([ 'student' => $afterUpdate]);
     }
 
     public function updateAnswer(Request $request)
@@ -507,6 +556,35 @@ class StudentController extends Controller
                 'student_answer' => $student_answer,
             ]);
             return response()->json(["message"=>"thuc hien create record"]);
+        }
+    }
+    function updatePraceticeAnswer (Request $request){
+        $question_id = $request->question_id;
+        $student_id    = $request->user('students')->student_id;
+        $practiceCode     = $request->user('students')->doing_practice;
+        $student_answer     = $request->student_answer;
+        $student_practice_detail = student_practice_detail::where('question_id', $question_id)
+            ->where('student_id', $student_id)
+            ->where('practice_code', $practiceCode)
+            ->first();
+
+        if ($student_practice_detail) {
+            // update the student answer
+        $sql = "UPDATE student_practice_detail
+        SET student_answer = ?
+        WHERE student_id = ? AND practice_code = ? AND question_id = ?";
+        DB::update($sql, [$student_answer, $student_id, $practiceCode, $question_id]);
+            return response()->json(["message"=>"update answer"]);
+        } else {
+            // insert the student answer
+            student_practice_detail::create([
+                'ID' => Uuid::uuid4()->toString(),
+                'student_id' => $student_id,
+                'practice_code' => $practiceCode,
+                'question_id' => $question_id,
+                'student_answer' => $student_answer,
+            ]);
+            return response()->json(["message"=>"create new answer"]);
         }
     }
 
