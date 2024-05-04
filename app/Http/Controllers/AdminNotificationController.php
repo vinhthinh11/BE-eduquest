@@ -78,6 +78,11 @@ class AdminNotificationController extends Controller
             'class_id.*.required' => 'Mỗi lớp học nhận thông báo trong danh sách là bắt buộc.',
             'class_id.*.integer' => 'ID của lớp học phải là một số nguyên.',
         ]);
+        if ($validator->passes() && empty($request->teacher_id) && empty($request->class_id)) {
+            return response()->json([
+                'error' => 'Bạn cần chọn ít nhất một giáo viên hoặc một lớp học để gửi thông báo.',
+            ], 422);
+        }
         if ($validator->fails()) {
             return response()->json([
                 'error' => $validator->errors(),

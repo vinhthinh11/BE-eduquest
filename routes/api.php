@@ -16,7 +16,6 @@ use App\Http\Controllers\HSLuyenDeController;
 use App\Http\Controllers\TBMDuyetDeThiController;
 use App\Http\Controllers\AdminNotificationController;
 
-
 Route::post('login', [AuthController::class, 'login']);
 Route::post('forget-password', [AuthController::class, 'forgetPassword']);
 Route::get('me', [AuthController::class, 'me']);

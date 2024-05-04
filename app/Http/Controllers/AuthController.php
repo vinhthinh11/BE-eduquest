@@ -13,6 +13,7 @@ use App\Models\admin;
 use App\Models\student;
 use App\Models\subject_head;
 use App\Models\teacher;
+use App\Rules\EmailExistsInMultipleTables;
 use Illuminate\Support\Str;
 
 class AuthController extends Controller
@@ -78,6 +79,19 @@ class AuthController extends Controller
     public function forgetPassword(Request $request)
     {
         $email = $request->email;
+        $validator = Validator::make($request->all(), [
+            'email' => ['required', 'email', new EmailExistsInMultipleTables],
+        ], [
+            'email.required' => 'Email là bắt buộc!',
+            'email.email' => 'Email phải là định dạng hợp lệ!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
         $userTypes =[new admin ,new subject_head, new teacher, new student];
         foreach ($userTypes as $userType) {
             $user = $userType::where('email', $email)->first();
@@ -85,10 +99,13 @@ class AuthController extends Controller
                 $newPass = Str::random(8);
                 $user->password = bcrypt($newPass);
                 $user->save();
-                    Mail::to($email)->send(new ForgetPass($newPass));
+
+                Mail::send('email.check_email_forget', ['user' => $user, 'newPass' => $newPass], function($message) use($user){
+                    $message->to($user->email, $user->name)->subject('Khôi phục mật khẩu của bạn!');
+                });
 
                     return response()->json([
-                        'user'   => $user,
+                        'message'   => 'Gửi email thành công!',
                     ], 200);
                 }
             }
