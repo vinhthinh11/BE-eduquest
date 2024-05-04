@@ -437,29 +437,6 @@ class StudentController extends Controller
                 return response()->json(['status' => false, 'message' => 'Không tìm thấy điểm hoặc kết quả!'], 404);
             }
         }
-        // } else {
-        //     $testCode = $student->doing_exam;
-
-        //     $test = student_test_detail::join('questions', 'student_test_details.question_id', '=', 'questions.question_id')
-        //         ->where('student_test_details.test_code', $testCode)
-        //         ->where('student_test_details.student_id', $student->student_id)
-        //         ->select('student_test_details.*', 'questions.question_content')
-        //         ->orderBy('student_test_details.ID')
-        //         ->get();
-
-        //     $timeRemaining = explode(":", $student->time_remaining);
-        //     $min = $timeRemaining[0];
-        //     $sec = $timeRemaining[1];
-
-        //     return response()->json([
-        //         'status' => true,
-        //         'data' => [
-        //             'test' => $test,
-        //             'time_remaining' => ['min' => $min, 'sec' => $sec],
-        //         ],
-        //         'message' => 'Show kết quả thi cho Học sinh thành công!',
-        //     ], 200);
-        // }
     }
     /** Thực hiện update cho current student set doing exam to test_code comming from request
      * @param $test_code
@@ -535,6 +512,17 @@ class StudentController extends Controller
             'message' => 'Thành công',
             'data' => $getList
         ]);
+    }
+    public function notifications($classId)
+    {
+        $notifications = notifications::whereIn('notification_id', function ($query) use ($classId) {
+                $query->select('notification_id')
+                    ->from('student_notifications')
+                    ->where('class_id', $classId);
+            })
+            ->get();
+
+        return $notifications;
     }
 
     public function getChat($class_id)

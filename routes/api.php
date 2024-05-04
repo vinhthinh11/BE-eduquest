@@ -56,11 +56,11 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::get('/detail/{test_code}', [Admincontroller::class, 'getTestDetail'])->name(('getTestDetail'));
     });
 
-    //Statist
+    //Thống Kê
     Route::group(['prefix' => 'statist'], function () {
-        Route::post('/list',         [StatistController::class, 'statist'])->name('statist');
-        Route::post('/list-scores', [StatistController::class, 'statistScores'])->name('statistScores');
-        Route::post('/list-test', [StatistController::class, 'listStatistTest'])->name('listStatistTest');
+        Route::get('/list',         [StatistController::class, 'statist'])->name('statist');
+        Route::get('/list-scores', [StatistController::class, 'statistScores'])->name('statistScores');
+
     });
     //ql Teacher
     Route::group(['prefix' => 'teacher'], function () {
@@ -121,11 +121,11 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     //Profile
     Route::get('/info/{username}', [StudentController::class, 'getInfo'])->name('getInfo');
     Route::post('/update-profile',      [StudentController::class, 'updateProfile'])->name('updateProfile');
-    Route::get('/score/get', [StatistController::class, 'statistScoreStudent'])->name('statistScoreStudent');
 
-    //Statist
+    //Thống kê
     Route::group(['prefix' => 'statist'], function () {
         Route::get('/get',         [StatistController::class, 'statistStudent'])->name('statistStudent');
+        Route::get('/subject-score', [StatistController::class, 'subjectScore'])->name('subjectScore');
     });
     Route::group(['prefix' => '/test'], function () {
         Route::get('/get', [StudentController::class, 'getTest'])->name('getTest');
@@ -141,9 +141,11 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
         Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
         Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
     });
+
     Route::group(['prefix'=> 'score'], function () {
         Route::get('/get', [StudentController::class, 'getScore'])->name('list');
     });
+
     Route::group(['prefix'=> 'chat'], function () {
         Route::get('/get/{class_id}', [StudentController::class, 'getChat'])->name('listChat');
         Route::get('/all/{class_id}', [StudentController::class, 'getAllChat'])->name('listAllChat');
@@ -163,6 +165,8 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
 
     //xem danh sách thông báo
     Route::get('/get-notification', [StudentController::class, 'getNotification'])->name('getNotification');
+
+    Route::get('/notification/{class_id}', [StudentController::class, 'notifications'])->name('notifications');
 });
 
 // ----- Route for Teacher -----
@@ -199,8 +203,6 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     Route::group(['prefix' => '/score'], function () {
         Route::get('/get', [TeacherConTroller::class, 'getScore'])->name('getScore');
         Route::post('/export', [TeacherConTroller::class, 'exportScore'])->name('exportScore');
-        Route::get('/get', [TeacherConTroller::class, 'getScore'])->name('getScore');
-        Route::post('/export', [TeacherConTroller::class, 'exportScore'])->name('exportScore');
     });
 
     // qly lớp
@@ -219,10 +221,10 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
 
     });
 
-    // Chat with teacher
+    // Thông báo
     Route::group(['prefix' => '/notification'], function () {
-        Route::get('/to-student', [TeacherConTroller::class, 'getNotificationToStudent'])->name('getNotificationToStudent');
-        Route::get('/by-admin', [TeacherConTroller::class, 'getNotificationByAdmin'])->name('getNotificationByAdmin');
+        Route::get('/to-student/{teacher_id}', [TeacherConTroller::class, 'notificationsToStudent'])->name('notificationsToStudent');
+        Route::get('/by-admin/{teacher_id}', [TeacherConTroller::class, 'notificationsByAdmin'])->name('notificationsByAdmin');
         Route::post('/send', [TeacherConTroller::class, 'sendNotification'])->name('sendNotification');
     });
 });
