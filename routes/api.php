@@ -110,10 +110,13 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::post('/file', [AdminHSController::class, 'check_add_hs_via_file'])->name('check_add_hs_via_file');
     });
 
-    //notification
-    Route::get('/list-notification-teacher', [AdminNotificationController::class, 'listNotificationGV'])->name('listNotificationGV');
-    Route::get('/list-notification-student', [AdminNotificationController::class, 'listNotificationHS'])->name('listNotificationHS');
-    Route::post('/send-notification', [AdminNotificationController::class, 'sendNotification'])->name('sendNotification');
+    //thông báo
+    Route::group(['prefix' => '/notification'], function () {
+        Route::get('/list-teacher', [AdminNotificationController::class, 'listNotificationGV'])->name('listNotificationGV');
+        Route::get('/list-student', [AdminNotificationController::class, 'listNotificationHS'])->name('listNotificationHS');
+        Route::post('/send', [AdminNotificationController::class, 'sendNotification'])->name('sendNotification');
+    });
+
 });
 
 // ----- Route for Student -----
