@@ -24,7 +24,10 @@ class teacher extends  Authenticatable implements JWTSubject
         'permission',
         'avatar',
         'birthday',
-        'last_login'
+        'last_login',
+        'otp',
+        'otp_expiry',
+        'password_change_time'
     ];
     protected $hidden = [
         'password',

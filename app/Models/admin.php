@@ -25,7 +25,10 @@ class admin extends  Authenticatable implements JWTSubject
         'last_login',
         'gender_id',
         'avatar',
-        'birthday'
+        'birthday',
+        'otp',
+        'otp_expiry',
+        'password_change_time'
     ];
 
 

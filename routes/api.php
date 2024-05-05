@@ -18,6 +18,7 @@ use App\Http\Controllers\AdminNotificationController;
 
 Route::post('login', [AuthController::class, 'login']);
 Route::post('forget-password', [AuthController::class, 'forgetPassword']);
+Route::post('verify-otp-and-reset-password', [AuthController::class, 'verifyOtpAndResetPassword']);
 Route::get('me', [AuthController::class, 'me']);
 
 // ----- Route for Admin -----
