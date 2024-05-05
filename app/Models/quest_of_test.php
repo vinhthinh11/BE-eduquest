@@ -10,7 +10,8 @@ class quest_of_test extends  Model
     protected $fillable = [
        'test_code',
        'question_id',
-       'timest'
+       'timest',
+       'teacher_id'
     ];
     public $timestamps = false;
     // public function test()

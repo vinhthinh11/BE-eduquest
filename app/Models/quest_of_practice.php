@@ -11,7 +11,8 @@ class quest_of_practice extends Model
     protected $table = 'quest_of_practice';
     protected $fillable = [
        'pratice_code',
-       'question_id'
+       'question_id',
+       'teacher_id',
     ];
 
 }
