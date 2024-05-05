@@ -116,6 +116,8 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::get('/list-teacher', [AdminNotificationController::class, 'listNotificationGV'])->name('listNotificationGV');
         Route::get('/list-student', [AdminNotificationController::class, 'listNotificationHS'])->name('listNotificationHS');
         Route::post('/send', [AdminNotificationController::class, 'sendNotification'])->name('sendNotification');
+        Route::post('/send-all-teacher', [AdminNotificationController::class, 'sendAllTeacher'])->name('sendAllTeacher');
+        Route::post('/send-all-grade', [AdminNotificationController::class, 'sendAllGrade'])->name('sendAllGrade');
     });
 
 });

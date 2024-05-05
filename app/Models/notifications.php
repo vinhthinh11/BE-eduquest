@@ -19,6 +19,7 @@ class notifications extends Model
         'notification_content',
         'time_sent'
     ];
+    protected $primaryKey = 'notification_id';
     public function getJWTIdentifier()
     {
         return $this->getKey();

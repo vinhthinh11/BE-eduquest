@@ -813,7 +813,6 @@ class Admincontroller extends Controller
             'data'    => $data,
         ]);
     }
-
     public function changeStatus(Request $request)
     {
         $validator = Validator::make($request->all(), [
