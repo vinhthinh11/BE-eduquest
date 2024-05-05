@@ -43,13 +43,6 @@ class teacher extends  Authenticatable implements JWTSubject
     }
     protected $primaryKey = 'teacher_id';
 
-
-    function getTeacher()
-    {
-        $getTeacher = DB::select('select * from teachers');
-        return $getTeacher;
-    }
-
     public function getJWTIdentifier()
     {
         return $this->getKey();
@@ -60,8 +53,4 @@ class teacher extends  Authenticatable implements JWTSubject
         return [];
     }
 
-    public function isTeacher()
-    {
-        return $this->role === 'teachers';
-    }
 }

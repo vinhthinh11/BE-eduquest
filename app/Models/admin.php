@@ -54,15 +54,11 @@ class admin extends  Authenticatable implements JWTSubject
     protected $hidden = [
         'password',
     ];
-    public function getAdminInfo($username)
-    {
-        return $this->select('admin_id', 'username', 'avatar', 'email', 'name', 'last_login', 'birthday', 'permission_detail', 'gender_detail', 'genders.gender_id')
-            ->join('permissions', 'admins.permission', '=', 'permissions.permission')
-            ->join('genders', 'admins.gender_id', '=', 'genders.gender_id')
-            ->where('username', $username)
-            ->first();
-    }
 
+    public function subject()
+    {
+        return $this->hasOne(subjects::class, 'subject_id');
+    }
     public function getCountQuestions($subject_id, $grade_id)
     {
         return DB::table('questions')
@@ -135,7 +131,5 @@ class admin extends  Authenticatable implements JWTSubject
         $questOfTest->question_id = $questionId;
         return $questOfTest->saveQuietly();
     }
-
-
 
 }

@@ -54,6 +54,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::post('/create', [Admincontroller::class, 'checkAddTest'])->name(('checkAddTest'));
         Route::get('/get', [Admincontroller::class, 'getTest'])->name(('getTest'));
         Route::get('/detail/{test_code}', [Admincontroller::class, 'getTestDetail'])->name(('getTestDetail'));
+        Route::post('/change-status', [Admincontroller::class, 'changeStatus'])->name(('changeStatus'));
     });
 
     //Thống Kê
@@ -245,8 +246,6 @@ Route::group(['prefix' => '/subject-head', 'middleware' => 'head_subject'], func
         Route::get('/get', [TBMDuyetDeThiConTroller::class, 'getTests'])->name('getTest');
         Route::get('/get/{test_code}', [TBMDuyetDeThiConTroller::class, 'getTestDetail'])->name('duyetDT');
         Route::put('/update/{test_code}', [TBMDuyetDeThiConTroller::class, 'updateTest'])->name('updateTest');
-        Route::get('/get', [TBMDuyetDeThiConTroller::class, 'getTests'])->name('getTest');
-        Route::get('/get/{test_code}', [TBMDuyetDeThiConTroller::class, 'getTestDetail'])->name('duyetDT');
-        Route::put('/update/{test_code}', [TBMDuyetDeThiConTroller::class, 'updateTest'])->name('updateTest');
+        Route::post('/duyet', [TBMDuyetDeThiConTroller::class, 'duyetDT'])->name('duyetDT');
     });
 });
