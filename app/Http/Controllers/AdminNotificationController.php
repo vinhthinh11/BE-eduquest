@@ -31,6 +31,8 @@ class AdminNotificationController extends Controller
         ]);
     }
 
+
+
     // danh sách thông báo cho học sinh
     public function listNotificationHS(Request $request){
         $getListHS = notifications::whereExists(function ($query) {

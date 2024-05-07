@@ -274,46 +274,96 @@ class AdminTBMonController extends Controller
             ]);
         }
 
+    // public function updateTBM(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'subject_head_id' => 'sometimes|exists:subject_head,subject_head_id',
+    //         'name' => 'sometimes|string|min:6|max:50',
+    //         'gender_id' => 'sometimes|integer',
+    //         'birthday' => 'nullable|date',
+    //         'password' => 'nullable|string|min:6|max:20',
+    //     ], [
+    //         'subject_head_id.required' => 'Trưởng bộ môn không được để trống!',
+    //         'student_id.exists' => 'Trưởng bộ môn không tồn tại!',
+    //         'name.min' => 'Tên Trưởng bộ môn tối thiểu 6 kí tự!',
+    //         'name.required' => 'Tên Trưởng bộ môn không được để trống!',
+    //         'gender_id.required' => 'Giới tính không được để trống!',
+    //         'birthday.date' => 'Ngày Sinh phải là một ngày hợp lệ!',
+    //         'password.min' => 'Mật khẩu tối thiểu 6 kí tự!',
+    //         'password.max' => 'Mật khẩu không được quá 20 kí tự!',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'errors' => $validator->errors(),
+    //         ], 422);
+    //     }
+    //     $tbm = subject_head::find($request->subject_head_id);
+    //     if ($tbm) {
+    //         $data = $request->all();
+    //         $data['password'] = bcrypt($data['password']);
+    //         $tbm->update($data);
+
+    //         return response()->json([
+    //             'status'    => true,
+    //             'message'   => 'Cập nhật trưởng bộ môn thành công!',
+    //         ]);
+    //     } else {
+    //         return response()->json([
+    //             'status'    => false,
+    //             'message'   => 'Không tìm thấy trưởng bộ môn!',
+    //         ]);
+    //     }
+    // }
     public function updateTBM(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'subject_head_id' => 'sometimes|exists:subject_head,subject_head_id',
-            'name' => 'sometimes|string|min:6|max:50',
-            'gender_id' => 'sometimes|integer',
-            'birthday' => 'nullable|date',
-            'password' => 'nullable|string|min:6|max:20',
-        ], [
-            'subject_head_id.required' => 'Trưởng bộ môn không được để trống!',
-            'student_id.exists' => 'Trưởng bộ môn không tồn tại!',
-            'name.min' => 'Tên Trưởng bộ môn tối thiểu 6 kí tự!',
-            'name.required' => 'Tên Trưởng bộ môn không được để trống!',
-            'gender_id.required' => 'Giới tính không được để trống!',
-            'birthday.date' => 'Ngày Sinh phải là một ngày hợp lệ!',
-            'password.min' => 'Mật khẩu tối thiểu 6 kí tự!',
-            'password.max' => 'Mật khẩu không được quá 20 kí tự!',
-        ]);
+{
+    $validator = Validator::make($request->all(), [
+        'subject_head_id' => 'sometimes|exists:subject_head,subject_head_id',
+        'name' => 'sometimes|string|min:6|max:50',
+        'gender_id' => 'sometimes|integer',
+        'birthday' => 'nullable|date',
+        'password' => 'nullable|string|min:6|max:20',
+    ], [
+        'subject_head_id.required' => 'Trưởng bộ môn không được để trống!',
+        'subject_head_id.exists' => 'Trưởng bộ môn không tồn tại!',
+        'name.min' => 'Tên Trưởng bộ môn tối thiểu 6 kí tự!',
+        'name.required' => 'Tên Trưởng bộ môn không được để trống!',
+        'gender_id.required' => 'Giới tính không được để trống!',
+        'birthday.date' => 'Ngày Sinh phải là một ngày hợp lệ!',
+        'password.min' => 'Mật khẩu tối thiểu 6 kí tự!',
+        'password.max' => 'Mật khẩu không được quá 20 kí tự!',
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-        $tbm = subject_head::find($request->subject_head_id);
-        if ($tbm) {
-            $data = $request->all();
-            $data['password'] = bcrypt($data['password']);
-            $tbm->update($data);
-
-            return response()->json([
-                'status'    => true,
-                'message'   => 'Cập nhật trưởng bộ môn thành công!',
-            ]);
-        } else {
-            return response()->json([
-                'status'    => false,
-                'message'   => 'Không tìm thấy trưởng bộ môn!',
-            ]);
-        }
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => false,
+            'errors' => $validator->errors(),
+        ], 422);
     }
+
+    $tbm = subject_head::find($request->subject_head_id);
+    if (!$tbm) {
+        return response()->json([
+            'status'    => false,
+            'message'   => 'Không tìm thấy trưởng bộ môn!',
+        ]);
+    }
+
+    // Kiểm tra nếu trường password tồn tại trong dữ liệu gửi đi
+    if ($request->has('password')) {
+        $data = $request->all();
+        $data['password'] = bcrypt($data['password']);
+        $tbm->update($data);
+    } else {
+        // Nếu không có trường password, bỏ qua việc cập nhật trường này
+        $tbm->update($request->except('password'));
+    }
+
+    return response()->json([
+        'status'    => true,
+        'message'   => 'Cập nhật trưởng bộ môn thành công!',
+    ]);
+}
+
 }
