@@ -33,6 +33,9 @@ class student extends  Authenticatable implements JWTSubject
         'doing_practice',
         'practice_time_remaining',
         'practice_starting_time',
+        'otp',
+        'otp_expiry',
+        'password_change_time'
     ];
 
     protected $primaryKey = 'student_id';
@@ -40,6 +43,7 @@ class student extends  Authenticatable implements JWTSubject
         'password',
     ];
     public $timestamps = false;
+
 
     public function getJWTIdentifier()
     {
@@ -219,5 +223,21 @@ class student extends  Authenticatable implements JWTSubject
                 'time_remaining' => null,
                 'starting_time' => null
             ]);
+    }
+
+
+    //update answer
+    public function updateAnswer($studentId, $testCode, $questionId, $studentAnswer)
+    {
+        return student_test_detail::where('student_id', $studentId)
+            ->where('test_code', $testCode)
+            ->where('question_id', $questionId)
+            ->update(['student_answer' => $studentAnswer]);
+    }
+
+    public function updateTiming($studentId, $time)
+    {
+        return student::where('student_id', $studentId)
+            ->update(['time_remaining' => $time]);
     }
 }

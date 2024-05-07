@@ -4,8 +4,18 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use App\Mail\ForgetPass;
+use App\Models\admin;
+use App\Models\student;
+use App\Models\subject_head;
+use App\Models\teacher;
+use App\Rules\EmailExistsInMultipleTables;
+use App\Services\OtpService;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -49,7 +59,7 @@ class AuthController extends Controller
             return response()->json(["access_token"=>$token]);
         }
         // subject_head
-         $token = auth('subject_heads')->attempt($credentials);
+        $token = auth('subject_heads')->attempt($credentials);
         if($token){
             return response()->json(["access_token"=>$token]);
         }
@@ -67,6 +77,80 @@ class AuthController extends Controller
             return response()->json(['error' => 'Wrong email or password'], 400);
     }
 
+    public function forgetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => ['required', 'email', new EmailExistsInMultipleTables],
+        ], [
+            'email.required' => 'Email là bắt buộc!',
+            'email.email' => 'Email phải là định dạng hợp lệ!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // Gửi OTP cho người dùng
+        $email = $request->email;
+        $otp = OtpService::sendOtp($email);
+
+        return response()->json([
+            'message' => 'Gửi OTP thành công!',
+            'otp' => $otp, // Trả về OTP để kiểm tra sau này
+        ], 200);
+    }
+
+    public function verifyOtpAndResetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => ['required', 'email', new EmailExistsInMultipleTables],
+            'otp' => 'required|string',
+        ],[
+            'email.required' => 'Email là bắt buộc!',
+            'email.email' => 'Email phải là định dạng hợp lệ!',
+            'otp.required' => 'OTP là bắt buộc!',
+            'otp.string' => 'OTP phải là định dạng hợp lệ!',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // Kiểm tra OTP và xác nhận mật khẩu mới
+        $email = $request->email;
+        $otp = $request->otp;
+
+        if (OtpService::verifyOtp($email, $otp)) {
+            // Xác nhận OTP thành công, reset mật khẩu
+            $userTypes = [Admin::class, Subject_Head::class, Teacher::class, Student::class];
+            foreach ($userTypes as $userType) {
+                $user = $userType::where('email', $email)->first();
+                if ($user) {
+                    $newPass = Str::random(8);
+                    $user->password = bcrypt($newPass);
+                    $user->password_change_time = Carbon::now()->addMinutes(15); //set mật khẩu mới có hạn 15 phút
+                    $user->save();
+                    Mail::send('email.check_email_forget', ['user' => $user, 'newPass' => $newPass], function ($message) use ($user) {
+                        $message->to($user->email, $user->name)->subject('Khôi phục mật khẩu của bạn!');
+                    });
+                }
+            }
+
+            return response()->json([
+                'message' => 'Xác nhận OTP và đặt lại mật khẩu thành công!',
+            ], 200);
+        } else {
+            return response()->json([
+                'message' => 'Xác nhận OTP không thành công!',
+            ], 400);
+        }
+    }
     /**
      * Get the authenticated User.
      *

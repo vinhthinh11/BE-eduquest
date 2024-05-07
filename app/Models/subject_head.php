@@ -26,8 +26,10 @@ class subject_head extends  Authenticatable implements JWTSubject
         'avatar',
         'birthday',
         'last_login',
-        'subject_id'
-
+        'subject_id',
+        'otp',
+        'otp_expiry',
+        'password_change_time'
     ];
     public $timestamps = false;
     protected $primaryKey = 'subject_head_id';

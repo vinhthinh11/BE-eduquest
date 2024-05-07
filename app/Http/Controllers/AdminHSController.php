@@ -20,7 +20,7 @@ class AdminHSController extends Controller
     public $successStatus = 200;
     public function index()
     {
-        $data = student::get();
+        $data = student::orderBy("student_id","desc")->get();
         if (empty($data)) {
             return response()->json([
                 'data' => $data
@@ -240,7 +240,7 @@ class AdminHSController extends Controller
         $data = $request->all();
         $data['password'] = bcrypt($data['password']);
         $data['last_login'] = Carbon::now('Asia/Ho_Chi_Minh');
-        $student = new students($data);
+        $student = students::create($data);
         return response()->json([
             'message'   => 'Thêm Học Sinh thành công!',
             'student' => $student,
@@ -308,12 +308,15 @@ class AdminHSController extends Controller
         }
         $hs = students::find($request->student_id);
         if ($hs) {
-            $data = $request->all();
-            $hs->update($data);
-
+            $data = $request->only(['name', 'gender_id','class_id', 'birthday', 'password']);
+            if (isset($data['password'])) {
+                $data['password'] = bcrypt($data['password']);
+            }
+            $hs->fill($data)->save();
             return response()->json([
                 'status'    => true,
                 'message'   => 'Cập nhật học sinh thành công!',
+                'student'   => $hs,
             ]);
         } else {
             return response()->json([
