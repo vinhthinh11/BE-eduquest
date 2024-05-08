@@ -16,4 +16,6 @@ class teacher_notifications extends Model
         'notification_id',
         'teacher_id'
     ];
+    public $timestamps = false;
+
 }

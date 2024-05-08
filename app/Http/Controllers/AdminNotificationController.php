@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\classes;
 use Illuminate\Http\Request;
 use App\Models\notifications;
-use App\Models\admin;
 use App\Models\student_notifications;
+use App\Models\teacher;
 use App\Models\teacher_notifications;
-use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Validator;
 
 class AdminNotificationController extends Controller
 {
     // danh sách thông báo cho gv
-    public function listNotificationGV(Request $request){
+    public function listNotificationGV()
+    {
         $getListGV = notifications::whereExists(function ($query) {
             $query->select(DB::raw(1))
                 ->from('teacher_notifications')
@@ -32,7 +34,8 @@ class AdminNotificationController extends Controller
     }
 
     // danh sách thông báo cho học sinh
-    public function listNotificationHS(Request $request){
+    public function listNotificationHS()
+    {
         $getListHS = notifications::whereExists(function ($query) {
             $query->select(DB::raw(1))
                 ->from('student_notifications')
@@ -50,60 +53,86 @@ class AdminNotificationController extends Controller
     }
 
     // gửi thông báo
-    public function sendNotification(Request $request){
-        $result = [];
-        $username = $request->username;
-        $name = $request->name;
-        $notification_title = $request->notification_title;
-        $notification_content = $request->notification_content;
-        $teacher_id = $request->teacher_id->array();
-        $class_id = $request->class_id->array();
-        if (empty($notification_title)||empty($notification_content)) {
-            $result['status_value'] = "Nội dung hoặc tiêu đề không được trống!";
-            $result['status'] = 0;
-        } else {
-            if (empty($teacher_id)&&empty($class_id)) {
-                $result['status_value'] = "Chưa chọn người nhận!";
-                $result['status'] = 0;
-            } else {
-                $notification = new notifications([
-                    'username' => $username,
-                    'name' => $name,
-                    'notification_title' => $notification_title,
-                    'notification_content' => $notification_content,
-                    'time_sent' => now()
-                ]);
-                $notification->saveQuietly();
-                $notificationId = $notification->notification_id;
+    public function sendNotification(Request $request)
+    {
+        $user = $request->user('admins');
 
-                // Gửi thông báo cho giáo viên
-                if (!empty($teacher_id)) {
-                    foreach ($teacher_id as $teacherId) {
-                        $sendTeacherNotification = new teacher_notifications([
-                            'notification_id' => $notificationId,
-                            'teacher_id' => $teacherId
-                        ]);
-                        $sendTeacherNotification->saveQuietly();
-                    }
+        $validator = Validator::make($request->all(), ([
+            'notification_title' => 'required',
+            'notification_content' => 'required',
+            'teacher_id' => 'array|min:1|exists:teachers,teacher_id',
+            'teacher_id.*' => 'required|integer',
+            'class_id' => 'array|min:1|exists:classes,class_id',
+            'class_id.*' => 'required|integer',
+        ]), [
+            'notification_title.required' => 'Tiêu đề thông báo không được để trống.',
+            'notification_content.required' => 'Nội dung thông báo không được để trống.',
+            'teacher_id.array' => 'Giáo viên nhận thông báo phải là một mảng.',
+            'teacher_id.exists' => 'Giáo viên nhận thông báo không có trong cơ sở dữ liệu.',
+            'teacher_id.min' => 'Phải chọn ít nhất một giáo viên nhận thông báo.',
+            'teacher_id.*.required' => 'Mỗi giáo viên nhận thông báo trong danh sách là bắt buộc.',
+            'teacher_id.*.integer' => 'ID của giáo viên phải là một số nguyên.',
+            'class_id.array' => 'Lớp học nhận thông báo phải là một mảng.',
+            'class_id.exists' => 'Lớp học nhận thông báo không có trong cơ sở dữ liệu.',
+            'class_id.min' => 'Phải chọn ít nhất một lớp học nhận thông báo.',
+            'class_id.*.required' => 'Mỗi lớp học nhận thông báo trong danh sách là bắt buộc.',
+            'class_id.*.integer' => 'ID của lớp học phải là một số nguyên.',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => $validator->errors(),
+            ], 422);
+        }
+
+        $notification = new notifications([
+            'username' => $user->username,
+            'name' => $user->name,
+            'notification_title' => $request->notification_title,
+            'notification_content' => $request->notification_content,
+            'time_sent' => Carbon::now('Asia/Ho_Chi_Minh'),
+        ]);
+        $notification->saveQuietly();
+        $teacherNames = [];
+        $classNames = [];
+
+        if (!empty($request->teacher_id)) {
+            foreach ($request->teacher_id as $teacherId) {
+                $teacher = teacher::find($teacherId);
+                if ($teacher) {
+                    $teacherNames[] = $teacher->name;
+                    $sendTeacherNotification = new teacher_notifications([
+                        'notification_id' => $notification->id,
+                        'teacher_id' => $teacherId
+                    ]);
+                    $sendTeacherNotification->saveQuietly();
                 }
-
-                // Gửi thông báo cho lớp học
-                if (!empty($class_id)) {
-                    foreach ($class_id as $classId) {
-                        $sendClassNotification = new student_notifications([
-                            'notification_id' => $notificationId,
-                            'class_id' => $classId
-                        ]);
-                        $sendClassNotification->saveQuietly();
-                    }
-                }
-
-                $result['status_value'] = "Gửi thành công!";
-                $result['status'] = 1;
             }
         }
+        if (!empty($request->class_id)) {
+            foreach ($request->class_id as $classId) {
+                $class = classes::find($classId);
+                if ($class) {
+                    $classNames[] = $class->class_name;
+                    $sendClassNotification = new student_notifications([
+                        'notification_id' => $notification->id,
+                        'class_id' => $classId
+                    ]);
+                    $sendClassNotification->saveQuietly();
+                }
+            }
+        }
+
+        $message = 'Gửi thông báo thành công!';
+        if (!empty($teacherNames)) {
+            $message .= ' Đã gửi đến giáo viên: ' . implode(', ', $teacherNames) . '.';
+        }
+        if (!empty($classNames)) {
+            $message .= ' Đã gửi đến lớp: ' . implode(', ', $classNames) . '.';
+        }
+
         return response()->json([
-            'result' => $result,
-        ]);
+            'message'   => $message,
+            'data' => $notification
+        ], 200);
     }
 }

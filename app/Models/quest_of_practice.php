@@ -13,5 +13,6 @@ class quest_of_practice extends Model
        'pratice_code',
        'question_id'
     ];
+    public $timestamps = false;
 
 }

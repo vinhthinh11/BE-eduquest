@@ -23,5 +23,8 @@ class subjects extends Model
         $getAllMon = DB::select('select * from subjects');
         return $getAllMon;
     }
-
+    // public function practices()
+    // {
+    //     return $this->hasMany(Practice::class, 'subject_id');
+    // }
 }

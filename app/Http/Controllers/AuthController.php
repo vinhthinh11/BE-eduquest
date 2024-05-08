@@ -4,8 +4,16 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use App\Mail\ForgetPass;
+use App\Models\admin;
+use App\Models\student;
+use App\Models\subject_head;
+use App\Models\teacher;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -49,7 +57,7 @@ class AuthController extends Controller
             return response()->json(["access_token"=>$token]);
         }
         // subject_head
-         $token = auth('subject_heads')->attempt($credentials);
+        $token = auth('subject_heads')->attempt($credentials);
         if($token){
             return response()->json(["access_token"=>$token]);
         }
@@ -67,6 +75,27 @@ class AuthController extends Controller
             return response()->json(['error' => 'Wrong email or password'], 400);
     }
 
+    public function forgetPassword(Request $request)
+    {
+        $email = $request->email;
+        $userTypes =[new admin ,new subject_head, new teacher, new student];
+        foreach ($userTypes as $userType) {
+            $user = $userType::where('email', $email)->first();
+            if ($user) {
+                $newPass = Str::random(8);
+                $user->password = bcrypt($newPass);
+                $user->save();
+                    Mail::to($email)->send(new ForgetPass($newPass));
+
+                    return response()->json([
+                        'user'   => $user,
+                    ], 200);
+                }
+            }
+            return response()->json([
+                'message'   => 'Không tìm thấy email!',
+            ], 400);
+    }
     /**
      * Get the authenticated User.
      *

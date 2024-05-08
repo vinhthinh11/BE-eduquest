@@ -111,7 +111,7 @@ class TeacherConTroller extends Controller
             'message' => "Cập nhập tài khoản cá nhân thành công!"
         ]);
     }
-    
+
     public function getStudent(Request $request)
     {
         $user = $request->user('teachers');
@@ -126,7 +126,7 @@ class TeacherConTroller extends Controller
     {
         $user = $request->user('teachers');
         $classes = classes::with('teacher')->where('teacher_id', $user->teacher_id)->get();
-        //
+
         return response()->json([
             'message'   => 'Lấy dữ liệu lớp thành công!',
             'data'      => $classes
@@ -649,6 +649,7 @@ class TeacherConTroller extends Controller
         $numQuestion = questions::where('subject_id', $user->subject_id)->where('grade_id', $request->grade_id)->where('level_id', $request->level_id)->count();
         // kiểm tra số lượng câu hỏi trong ngân hàng đề thi có đủ hay không
         if ($numQuestion < $request->total_questions) return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi là".$numQuestion."không đủ!"], 400);
+        if ($numQuestion < $request->total_questions) return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi là".$numQuestion."không đủ!"], 400);
         $user = $request->user('teachers');
         DB::beginTransaction();
         try {
@@ -756,10 +757,8 @@ class TeacherConTroller extends Controller
     }
 
 
-    public function getNotificationToStudent(Request $request)
+    public function notificationsToStudent($teacher_id)
     {
-        $teacher_id = $request->user('teachers');
-
         $notifications = notifications::whereIn('notification_id', function ($query) use ($teacher_id) {
             $query->select('notification_id')
                 ->from('student_notifications')
@@ -771,23 +770,21 @@ class TeacherConTroller extends Controller
         })->get();
 
         return response()->json([
-            "message" => "Show thông báo cho giáo viên thành công!",
-            "data" => $notifications
+            'message' => 'Thông báo được truy xuất thành công!',
+            'notifications' => $notifications
         ], 200);
     }
-    public function getNotificationByAdmin(Request $request)
+    public function notificationsByAdmin($teacher_id)
     {
-        $teacher_id = $request->user('teachers');
-
-        $notifications = notifications::whereIn('notification_id', function ($query) use ($teacher_id) {
+        $notifications = Notifications::whereIn('notification_id', function ($query) use ($teacher_id) {
             $query->select('notification_id')
                 ->from('teacher_notifications')
                 ->where('teacher_id', $teacher_id);
         })->get();
 
         return response()->json([
-            "message" => "Show thông báo từ ADMIN thành công!",
-            "data" => $notifications
+            'message' => 'Thông báo được truy xuất thành công!',
+            'notifications' => $notifications
         ], 200);
     }
 
@@ -807,7 +804,6 @@ class TeacherConTroller extends Controller
             'class_id.*.required' => 'Mỗi class_id trong mảng là bắt buộc!',
             'class_id.*.integer' => 'Mỗi class_id trong mảng phải là số nguyên!',
         ]);
-
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
         }
@@ -816,25 +812,30 @@ class TeacherConTroller extends Controller
         if (!$user) {
             return response()->json(['error' => 'Chưa nhận ra người dùng!'], 401);
         }
-        $notificationData = [
+
+        $notification = Notifications::create([
             'name' => $user->name,
             'username' => $user->username,
-            'notification_title' => $request->input('notification_title'),
-            'notification_content' => $request->input('notification_content'),
+            'notification_title' => $request->notification_title,
+            'notification_content' => $request->notification_content,
             'time_sent' => Carbon::now('Asia/Ho_Chi_Minh'),
-        ];
-        $notification = Notifications::create($notificationData);
-
+        ]);
+        $classNames = [];
         foreach ($request->class_id as $class_id) {
             Student_Notifications::create([
                 'notification_id' => $notification->id,
                 'class_id' => $class_id,
             ]);
+            $class = Classes::find($class_id);
+            if ($class) {
+                $classNames[] = $class->class_name;
+            }
         }
+
         Log::info('Notification sent', ['notification_id' => $notification->id]);
 
         return response()->json([
-            'message' => 'Gửi thông báo thành công!',
+            'message' => 'Gửi thông báo thành công cho các lớp: ' . implode(', ', $classNames),
             'data' => $notification,
         ], 200);
     }

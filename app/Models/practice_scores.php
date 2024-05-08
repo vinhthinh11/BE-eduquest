@@ -17,4 +17,9 @@ class practice_scores extends Model
         'score_detail',
         'completion_time'
     ];
+    public $timestamps = false;
+    // public function practice()
+    // {
+    //     return $this->belongsTo(Practice::class, 'practice_code');
+    // }
 }

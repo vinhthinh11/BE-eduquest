@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\chats;
 use App\Models\practice;
 use App\Models\practice_scores;
 use App\Models\scores;
@@ -37,16 +38,23 @@ class StudentController extends Controller
         }
         return response()->json(['message' => 'Học sinh không tồn tại!'], 404);
     }
-    public function getScore(Request $request){
+    public function getScore(Request $request)
+    {
         $student = $request->user('students');
-        $scores = scores::where('student_id', $student->student_id)->get();
+        $scores = scores::where('student_id', $student->student_id)->orderBy('completion_time','desc')-> get();
+        return response()->json(['data' => $scores], 200);
+    }
+    public function getPracticeScore(Request $request)
+    {
+        $student = $request->user('students');
+        $scores = practice_scores::where('student_id', $student->student_id)->orderBy('completion_time','desc')-> get();
         return response()->json(['data' => $scores], 200);
     }
     public function getTest(Request $request){
     $user = $request->user('students');
     $grade_id = student::with("classes")->where("student_id", $user->student_id)->first()->classes->grade_id;
     $test = tests::where("grade_id", $grade_id)
-                ->where('status_id', '!=', 3)
+                ->where('status_id', '==', 2)
                 ->whereNotIn('test_code', function ($query) use ($user) {
                     $query->select('test_code')
                           ->from('scores')
@@ -97,6 +105,8 @@ class StudentController extends Controller
         }
         $practice['questions'] = $questions;
         $practice['student_answers'] = $student_answers;
+         $practice["time_remaining"] =strtotime($starting_time) +$practice->time_to_do*60 -time();
+          $practice["now"]= date('Y-m-d H:i:s');
         return response()->json(["data" => $practice]);
 
     }
@@ -294,24 +304,21 @@ class StudentController extends Controller
 
     public function getPractice(Request $request)
     {
-        return response()->json(['data' => practice::all()], 200);
         $user = $request->user('students');
         $grade_id = student::with("classes")->where("student_id", $user->student_id)->first()->classes->grade_id;
-    $practice = practice::where("grade_id", $grade_id)
-
-                ->whereNotIn('test_code', function ($query) use ($user) {
-                    $query->select('test_code')
+    $practice = practice::where("grade_id", $grade_id)->with("subject")
+                ->whereNotIn('practice_code', function ($query) use ($user) {
+                    $query->select('practice_code')
                           ->from('practice_scores')
                           ->where('student_id', $user->student_id);
                 })
-                ->orderBy('timest', 'desc')
+                ->orderBy('practice_code', 'desc')
                 ->get();
     return response()->json(['data' => $practice], 200);
     }
 
     public function addTest(Request $request)
     {
-        $result   = [];
         $student  = new student();
         $testCode = $request->test_code;
         $password = md5($request->password);
@@ -396,7 +403,7 @@ class StudentController extends Controller
             ->whereColumn('student_test_detail.student_answer', 'questions.correct_answer')
             ->count();
         // calculate the score
-        $score = round($correct * 10 / $total_question,2);
+        $score = round($correct * 10 / $total_question, 2);
         // save the score to the scores table
         scores::create([
             'student_id' => $student->student_id,
@@ -417,7 +424,7 @@ class StudentController extends Controller
         $student->practice_starting_time = null;
         $student->save();
 
-        $total_question = practice::find($practice_code)->total_question;
+        $total_question = practice::find($practice_code)->total_questions;
         // check how many questions the student has answered is correct
         $correct  = student_practice_detail::where('student_id', $student->student_id)
             ->where('practice_code', $practice_code)
@@ -441,7 +448,6 @@ class StudentController extends Controller
 
     public function showResult(Request $request)
     {
-
         $student  = $request->user('students');
         if ($student->doing_exam == '') {
             $testCode = $request->test_code;
@@ -470,35 +476,13 @@ class StudentController extends Controller
                 return response()->json(['status' => false, 'message' => 'Không tìm thấy điểm hoặc kết quả!'], 404);
             }
         }
-            // } else {
-            //     $testCode = $student->doing_exam;
-
-            //     $test = student_test_detail::join('questions', 'student_test_details.question_id', '=', 'questions.question_id')
-            //         ->where('student_test_details.test_code', $testCode)
-            //         ->where('student_test_details.student_id', $student->student_id)
-            //         ->select('student_test_details.*', 'questions.question_content')
-            //         ->orderBy('student_test_details.ID')
-            //         ->get();
-
-            //     $timeRemaining = explode(":", $student->time_remaining);
-            //     $min = $timeRemaining[0];
-            //     $sec = $timeRemaining[1];
-
-            //     return response()->json([
-            //         'status' => true,
-            //         'data' => [
-            //             'test' => $test,
-            //             'time_remaining' => ['min' => $min, 'sec' => $sec],
-            //         ],
-            //         'message' => 'Show kết quả thi cho Học sinh thành công!',
-            //     ], 200);
-            // }
     }
     /** Thực hiện update cho current student set doing exam to test_code comming from request
      * @param $test_code
-    */
-    public function beginDoingTest(Request $request){
-        $student = student::find( $request->user('students')->student_id );
+     */
+    public function beginDoingTest(Request $request)
+    {
+        $student = student::find($request->user('students')->student_id);
         $testCode = $request->test_code;
         // check if the student is not doing any exam
         $afterUpdate = null;
@@ -541,11 +525,11 @@ class StudentController extends Controller
 
         if ($student_test_detail) {
             // update the student answer
-        $sql = "UPDATE student_test_detail
+            $sql = "UPDATE student_test_detail
         SET student_answer = ?
         WHERE student_id = ? AND test_code = ? AND question_id = ?";
-        DB::update($sql, [$student_answer, $student_id, $testCode, $question_id]);
-            return response()->json(["message"=>"thuc hien update record"]);
+            DB::update($sql, [$student_answer, $student_id, $testCode, $question_id]);
+            return response()->json(["message" => "thuc hien update record"]);
         } else {
             // insert the student answer
             student_test_detail::create([
@@ -613,5 +597,139 @@ class StudentController extends Controller
             'message' => 'Thành công',
             'data' => $getList
         ]);
+    }
+    public function notifications($classId)
+    {
+        $notifications = notifications::whereIn('notification_id', function ($query) use ($classId) {
+                $query->select('notification_id')
+                    ->from('student_notifications')
+                    ->where('class_id', $classId);
+            })
+            ->get();
+
+        return $notifications;
+    }
+
+    public function getChat($class_id)
+    {
+        $data = chats::where('class_id', $class_id)
+            ->orderBy('id', 'DESC')
+             ->limit(10)
+            ->get();
+        return response()->json(['data' => $data]);
+    }
+    public function getAllChat($class_id)
+    {
+        $data = chats::where('class_id', $class_id)
+            ->orderBy('id', 'DESC')
+            ->get();
+        return response()->json(['data' => $data]);
+    }
+
+    public function sendChat(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'content' => 'required|string',
+        ], [
+            'content.required' => 'Vui lòng nhập nội dung chat',
+            'content.unique' => 'Nội dung chat đã được gửi',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $chat = chats::create([
+            'username' => $request->username,
+            'name' => $request->name,
+            'class_id' => $request->class_id,
+            'chat_content' => $request->content,
+            'time_sent' => Carbon::now('Asia/Ho_Chi_Minh'),
+        ]);
+
+        return response()->json([
+            'message'   => 'Gửi tin nhắn thành công!',
+            'data'      => $chat
+        ], 200);
+    }
+
+    public function unSent(Request $request)
+    {
+        $user = $request->user('students');
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Người dùng không hợp lệ!',
+            ], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'ID' => 'required|exists:chats,ID',
+        ], [
+            'ID.required' => 'Trường ID là bắt buộc.',
+            'ID.exists' => 'Đoạn chat không tồn tại.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $chat = Chats::where('username', $user->username)->where('ID', $request->ID)->first();
+        if ($chat) {
+            $chat->delete();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Thu hồi tin nhắn thành công!',
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'Tin nhắn không tồn tại hoặc không có quyền thu hồi!',
+            ], 400);
+        }
+    }
+
+    public function editChat(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'chat_content' => 'required|string',
+        ], [
+            'chat_content.required' => 'Vui lòng nhập nội dung chat',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $user = $request->user('students');
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Người dùng không hợp lệ!',
+            ], 401);
+        }
+
+        $chat = Chats::where('username', $user->username)->where('ID', $request->ID)->first();
+        if ($chat) {
+            $chat->chat_content = $request->chat_content;
+            $chat->save();
+            return response()->json([
+                'status' => true,
+                'message' => 'Sửa tin nhắn thành công!',
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'Tin nhắn không tồn tại hoặc không có quyền sửa!',
+            ], 400);
+        }
     }
 }

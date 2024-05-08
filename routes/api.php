@@ -18,6 +18,7 @@ use App\Http\Controllers\AdminNotificationController;
 
 
 Route::post('login', [AuthController::class, 'login']);
+Route::post('forget-password', [AuthController::class, 'forgetPassword']);
 Route::get('me', [AuthController::class, 'me']);
 
 // ----- Route for Admin -----
@@ -28,13 +29,12 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
 
     //ql Admin
     Route::group(['prefix' => 'admin'], function () {
-    Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
-    Route::post('/create', [AdminController::class, 'createAdmin'])->name('createAdmin');
-    Route::delete('/delete', [AdminController::class, 'deleteAdmin'])->name('deleteAdmin');
-    Route::put('/update', [AdminController::class, 'updateAdmin'])->name('updateAdmin');
-    Route::post('/file', [AdminController::class, 'check_add_admin_via_file'])->name('admin.check_add_admin_via_file');
+        Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
+        Route::post('/create', [AdminController::class, 'createAdmin'])->name('createAdmin');
+        Route::delete('/delete', [AdminController::class, 'deleteAdmin'])->name('deleteAdmin');
+        Route::put('/update', [AdminController::class, 'updateAdmin'])->name('updateAdmin');
+        Route::post('/file', [AdminController::class, 'check_add_admin_via_file'])->name('admin.check_add_admin_via_file');
     });
-
 
     //ql Question
     Route::group(['prefix' => 'question'], function () {
@@ -56,11 +56,11 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::get('/detail/{test_code}', [Admincontroller::class, 'getTestDetail'])->name(('getTestDetail'));
     });
 
-    //Statist
+    //Thống Kê
     Route::group(['prefix' => 'statist'], function () {
-        Route::post('/list',         [StatistController::class, 'statist'])->name('statist');
-        Route::post('/list-scores', [StatistController::class, 'statistScores'])->name('statistScores');
-        Route::post('/list-test', [StatistController::class, 'listStatistTest'])->name('listStatistTest');
+        Route::get('/list',         [StatistController::class, 'statist'])->name('statist');
+        Route::get('/list-scores', [StatistController::class, 'statistScores'])->name('statistScores');
+
     });
     //ql Teacher
     Route::group(['prefix' => 'teacher'], function () {
@@ -110,10 +110,13 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::post('/file', [AdminHSController::class, 'check_add_hs_via_file'])->name('check_add_hs_via_file');
     });
 
-    //notification
-    Route::get('/list-notification-teacher', [AdminNotificationController::class, 'listNotificationGV'])->name('listNotificationGV');
-    Route::get('/list-notification-student', [AdminNotificationController::class, 'listNotificationHS'])->name('listNotificationHS');
-    Route::post('/send-notification', [AdminNotificationController::class, 'sendNotification'])->name('sendNotification');
+    //thông báo
+    Route::group(['prefix' => '/notification'], function () {
+        Route::get('/list-teacher', [AdminNotificationController::class, 'listNotificationGV'])->name('listNotificationGV');
+        Route::get('/list-student', [AdminNotificationController::class, 'listNotificationHS'])->name('listNotificationHS');
+        Route::post('/send', [AdminNotificationController::class, 'sendNotification'])->name('sendNotification');
+    });
+
 });
 
 // ----- Route for Student -----
@@ -121,13 +124,11 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     //Profile
     Route::get('/info/{username}', [StudentController::class, 'getInfo'])->name('getInfo');
     Route::post('/update-profile',      [StudentController::class, 'updateProfile'])->name('updateProfile');
-    Route::get('/score/get', [StatistController::class, 'statistScoreStudent'])->name('statistScoreStudent');
 
-    // Route::get('/get', [AdminHSController::class, 'index'])->name('index');
-
-    //Statist
+    //Thống kê
     Route::group(['prefix' => 'statist'], function () {
         Route::get('/get',         [StatistController::class, 'statistStudent'])->name('statistStudent');
+        Route::get('/subject-score', [StatistController::class, 'subjectScore'])->name('subjectScore');
     });
     Route::group(['prefix' => '/test'], function () {
     Route::get('/get', [StudentController::class, 'getTest'])->name('getTest');
@@ -143,13 +144,26 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
         Route::post('/start', [StudentController::class, 'startDoingPractice'])->name('startDoingPractice');
         Route::post('/answer', [StudentController::class, 'updatePraceticeAnswer'])->name('updatePraceticeAnswer');
         Route::post('/submit', [StudentController::class, 'submitPractice'])->name('submitPractice');
+        Route::get('/result', [StudentController::class, 'getPracticeScore'])->name('resultPractice');
+        Route::get('/result/{practice_code}', [StudentController::class, 'getResultPractice'])->name('getResultPractice');
 });
     Route::group(['prefix'=> 'score'], function () {
         Route::get('/get', [StudentController::class, 'getScore'])->name('getScore');
+
+    });
+
+    Route::group(['prefix'=> 'chat'], function () {
+        Route::get('/get/{class_id}', [StudentController::class, 'getChat'])->name('listChat');
+        Route::get('/all/{class_id}', [StudentController::class, 'getAllChat'])->name('listAllChat');
+        Route::post('/send', [StudentController::class, 'sendChat'])->name('sendChat');
+        Route::delete('/un-sent', [StudentController::class, 'unSent'])->name('unSent');
+        Route::put('/edit', [StudentController::class, 'editChat'])->name('editChat');
     });
 
     //xem danh sách thông báo
     Route::get('/get-notification', [StudentController::class, 'getNotification'])->name('getNotification');
+
+    Route::get('/notification/{class_id}', [StudentController::class, 'notifications'])->name('notifications');
 });
 
 // ----- Route for Teacher -----
@@ -182,7 +196,6 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     Route::get('/info/{username}', [TeacherConTroller::class, 'getInfo'])->name('getInfo');
     Route::post('/update-profile',      [TeacherConTroller::class, 'updateProfile'])->name('updateProfile');
 
-
     // qly điểm
     Route::group(['prefix' => '/score'], function () {
         Route::get('/get', [TeacherConTroller::class, 'getScore'])->name('getScore');
@@ -197,12 +210,18 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     Route::group(['prefix' => '/student'], function () {
         Route::get('/get', [TeacherConTroller::class, 'getStudent'])->name('getClass');
 
+        Route::get('/get', [TeacherConTroller::class, 'getClass'])->name('getClass');
+
+    });
+    Route::group(['prefix' => '/student'], function () {
+        Route::get('/get', [TeacherConTroller::class, 'getStudent'])->name('getClass');
+
     });
 
-    // Chat with teacher
+    // Thông báo
     Route::group(['prefix' => '/notification'], function () {
-        Route::get('/to-student', [TeacherConTroller::class, 'getNotificationToStudent'])->name('getNotificationToStudent');
-        Route::get('/by-admin', [TeacherConTroller::class, 'getNotificationByAdmin'])->name('getNotificationByAdmin');
+        Route::get('/to-student/{teacher_id}', [TeacherConTroller::class, 'notificationsToStudent'])->name('notificationsToStudent');
+        Route::get('/by-admin/{teacher_id}', [TeacherConTroller::class, 'notificationsByAdmin'])->name('notificationsByAdmin');
         Route::post('/send', [TeacherConTroller::class, 'sendNotification'])->name('sendNotification');
     });
 });
@@ -217,6 +236,9 @@ Route::group(['prefix' => '/subject-head', 'middleware' => 'head_subject'], func
 
     //duyệt đề thi
     Route::group(['prefix' => '/test'], function () {
+        Route::get('/get', [TBMDuyetDeThiConTroller::class, 'getTests'])->name('getTest');
+        Route::get('/get/{test_code}', [TBMDuyetDeThiConTroller::class, 'getTestDetail'])->name('duyetDT');
+        Route::put('/update/{test_code}', [TBMDuyetDeThiConTroller::class, 'updateTest'])->name('updateTest');
         Route::get('/get', [TBMDuyetDeThiConTroller::class, 'getTests'])->name('getTest');
         Route::get('/get/{test_code}', [TBMDuyetDeThiConTroller::class, 'getTestDetail'])->name('duyetDT');
         Route::put('/update/{test_code}', [TBMDuyetDeThiConTroller::class, 'updateTest'])->name('updateTest');

@@ -25,4 +25,13 @@ class practice extends Model
     {
         return $this->belongsToMany(questions::class, 'quest_of_practice', 'practice_code', 'question_id');
     }
+    public function subject()
+    {
+        return $this->belongsTo(subjects::class, 'subject_id');
+    }
+
+    // public function scores()
+    // {
+    //     return $this->hasMany(practice_scores::class, 'practice_code');
+    // }
 }
