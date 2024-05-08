@@ -135,22 +135,25 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
         Route::get('/list-all', [StatistController::class, 'allStudentPage'])->name('allStudentPage');
     });
     Route::group(['prefix' => '/test'], function () {
-        Route::get('/get', [StudentController::class, 'getTest'])->name('getTest');
-        Route::get('/get/{test_code}', [StudentController::class, 'getTestDetail'])->name('getTestDetail');
-        Route::post('/start', [StudentController::class, 'beginDoingTest'])->name('beginDoingTest');
-        Route::post('/answer', [StudentController::class, 'updateAnswer'])->name('updateAnswer');
-        Route::post('/submit', [StudentController::class, 'submitTest'])->name('submitTest');
-        Route::post('/update-timing', [StudentController::class, 'updateTiming'])->name('updateTiming');
-        Route::post('/update-doing-exam', [StudentController::class, 'updateDoingExam'])->name('updateDoingExam');
-        Route::post('/reset-doing-exam', [StudentController::class, 'resetDoingExam'])->name('resetDoingExam');
-        Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
-        Route::get('/show-result-test', [StudentController::class, 'showResult'])->name('acceptTest');
-        Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
-        Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
-    });
+    Route::get('/get', [StudentController::class, 'getTest'])->name('getTest');
+    Route::get('/get/{test_code}', [StudentController::class, 'getTestDetail'])->name('getTestDetail');
+    Route::post('/start', [StudentController::class, 'beginDoingTest'])->name('beginDoingTest');
+    Route::post('/answer', [StudentController::class, 'updateAnswer'])->name('updateAnswer');
+    Route::post('/submit', [StudentController::class, 'submitTest'])->name('submitTest');
+});
+    // student practice
+    Route::group(['prefix' => '/practice'], function () {
+        Route::get('/get', [StudentController::class, 'getPractice'])->name('getPractice');
+        Route::get('/get/{practice_code}', [StudentController::class, 'getPracticeDetail'])->name('acceptTest');
+        Route::post('/start', [StudentController::class, 'startDoingPractice'])->name('startDoingPractice');
+        Route::post('/answer', [StudentController::class, 'updatePraceticeAnswer'])->name('updatePraceticeAnswer');
+        Route::post('/submit', [StudentController::class, 'submitPractice'])->name('submitPractice');
+        Route::get('/result', [StudentController::class, 'getPracticeScore'])->name('resultPractice');
+        Route::get('/result/{practice_code}', [StudentController::class, 'getResultPractice'])->name('getResultPractice');
+});
+    Route::group(['prefix'=> 'score'], function () {
+        Route::get('/get', [StudentController::class, 'getScore'])->name('getScore');
 
-    Route::group(['prefix' => 'score'], function () {
-        Route::get('/get', [StudentController::class, 'getScore'])->name('list');
     });
 
     Route::group(['prefix' => 'chat'], function () {
@@ -159,15 +162,6 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
         Route::post('/send', [StudentController::class, 'sendChat'])->name('sendChat');
         Route::delete('/un-sent', [StudentController::class, 'unSent'])->name('unSent');
         Route::put('/edit', [StudentController::class, 'editChat'])->name('editChat');
-    });
-
-    //học sinh luyện đề
-    Route::group(['prefix' => '/practice'], function () {
-        Route::get('/get', [HSLuyenDeController::class, 'list'])->name('list');
-        Route::post('/check-practice', [HSLuyenDeController::class, 'checkPractice'])->name('checkPractice');
-        Route::post('/add-practice', [HSLuyenDeController::class, 'addPractice'])->name('addPractice');
-        Route::post('/accept-practice', [HSLuyenDeController::class, 'acceptPractice'])->name('acceptPractice');
-        Route::post('/show-practice', [HSLuyenDeController::class, 'showPractice'])->name('showPractice');
     });
 
     //xem danh sách thông báo

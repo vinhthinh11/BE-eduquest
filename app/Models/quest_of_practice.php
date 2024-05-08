@@ -14,5 +14,6 @@ class quest_of_practice extends Model
        'question_id',
        'teacher_id',
     ];
+    public $timestamps = false;
 
 }

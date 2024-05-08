@@ -35,10 +35,6 @@ class questions extends  Model
     {
         return $this->hasMany(student_practice_detail::class, 'question_id', 'question_id');
     }
-    public function questOfTest()
-    {
-        return $this->belongsToMany(quest_of_test::class, 'test_code');
-    }
     protected $primaryKey = 'question_id';
     function getQuestion()
     {
@@ -47,6 +43,9 @@ class questions extends  Model
     }
     public function tests():BelongsToMany{
         return $this->belongsToMany(tests::class, 'quest_of_test', 'question_id', 'test_code');
+    }
+     public function practices():BelongsToMany{
+        return $this->belongsToMany(practice::class, 'quest_of_practice', 'question_id', 'practice_code');
     }
 
 }
