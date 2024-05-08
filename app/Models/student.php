@@ -33,6 +33,9 @@ class student extends  Authenticatable implements JWTSubject
         'doing_practice',
         'practice_time_remaining',
         'practice_starting_time',
+        'otp',
+        'otp_expiry',
+        'password_change_time'
     ];
 
     protected $primaryKey = 'student_id';

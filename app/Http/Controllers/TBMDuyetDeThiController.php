@@ -16,7 +16,7 @@ class TBMDuyetDeThiController extends Controller
     }
     public function getTestDetail(Request $request, $test_code)
     {
-$questions = [];
+        $questions = [];
         $data  = tests::find($test_code);
         if (!$data) return response()->json(["message" => "Không tìm thấy đề thi!"], 400);
         foreach ($data->questions as $question) {

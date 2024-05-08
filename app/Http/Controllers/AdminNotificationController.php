@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\classes;
+use App\Models\grade;
 use Illuminate\Http\Request;
 use App\Models\notifications;
 use App\Models\student_notifications;
@@ -78,6 +79,11 @@ class AdminNotificationController extends Controller
             'class_id.*.required' => 'Mỗi lớp học nhận thông báo trong danh sách là bắt buộc.',
             'class_id.*.integer' => 'ID của lớp học phải là một số nguyên.',
         ]);
+        if ($validator->passes() && empty($request->teacher_id) && empty($request->class_id)) {
+            return response()->json([
+                'error' => 'Bạn cần chọn ít nhất một giáo viên hoặc một lớp học để gửi thông báo.',
+            ], 422);
+        }
         if ($validator->fails()) {
             return response()->json([
                 'error' => $validator->errors(),
@@ -132,6 +138,86 @@ class AdminNotificationController extends Controller
 
         return response()->json([
             'message'   => $message,
+            'data' => $notification
+        ], 200);
+    }
+
+    public function sendAllTeacher(Request $request)
+    {
+        $user = $request->user('admins');
+        $validator = Validator::make($request->all(), [
+            'notification_title' => 'required',
+            'notification_content' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => $validator->errors(),
+            ], 422);
+        }
+
+        // Lấy danh sách tất cả các giáo viên trong hệ thống
+        $allTeachers = Teacher::pluck('teacher_id');
+        $notification = new Notifications([
+            'username' => $user->username,
+            'name' => $user->name,
+            'notification_title' => $request->notification_title,
+            'notification_content' => $request->notification_content,
+            'time_sent' => Carbon::now('Asia/Ho_Chi_Minh'),
+        ]);
+        $notification->save();
+
+        // Gửi thông báo cho tất cả các giáo viên
+        $teacherNotifications = $allTeachers->map(function ($teacherId) use ($notification) {
+            return [
+                'notification_id' => $notification->id,
+                'teacher_id' => $teacherId
+            ];
+        });
+
+        teacher_notifications::insert($teacherNotifications->toArray());
+
+        return response()->json([
+            'message'   => 'Gửi thông báo đến tất cả giáo viên thành công!',
+            'data' => $notification
+        ], 200);
+    }
+
+    public function sendAllGrade(Request $request)
+    {
+        $user = $request->user('admins');
+        $validator = Validator::make($request->all(), [
+            'notification_title' => 'required',
+            'notification_content' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'error' => $validator->errors(),
+            ], 422);
+        }
+        $allClasses = classes::pluck('class_id');
+        foreach ($allClasses as $classId) {
+            // Create notification for each class
+            $notification = new notifications([
+                'username' => $user->username,
+                'name' => $user->name,
+                'notification_title' => $request->notification_title,
+                'notification_content' => $request->notification_content,
+                'time_sent' => Carbon::now('Asia/Ho_Chi_Minh'),
+            ]);
+            $notification->save();
+
+            // Save notification for each class
+            $sendClassNotification = new student_notifications([
+                'notification_id' => $notification->id,
+                'class_id' => $classId
+            ]);
+            $sendClassNotification->save();
+        }
+
+        return response()->json([
+            'message'   => 'Gửi thông báo đến tất cả lớp học thành công!',
             'data' => $notification
         ], 200);
     }

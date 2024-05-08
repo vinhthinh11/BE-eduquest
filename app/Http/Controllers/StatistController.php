@@ -2,11 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\classes;
+use App\Models\notifications;
+use App\Models\practice;
 use App\Models\practice_scores;
+use App\Models\quest_of_practice;
+use App\Models\quest_of_test;
+use App\Models\questions;
 use App\Models\scores;
+use App\Models\student;
+use App\Models\student_notifications;
+use App\Models\student_practice_detail;
+use App\Models\subject_head;
 use App\Models\subjects;
+use App\Models\teacher;
+use App\Models\teacher_notifications;
+use App\Models\tests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use SebastianBergmann\CodeCoverage\Report\Xml\Tests as XmlTests;
 
 class StatistController extends Controller
 {
@@ -79,4 +93,100 @@ class StatistController extends Controller
             'data' => $statistics
         ]);
     }
+
+    public function allAdminPage()
+    {
+        $tableCounts = [
+            'teacher' => teacher::count(),
+            'student' => student::count(),
+            'head' => subject_head::count(),
+            'question' => questions::count(),
+            'test' => tests::count(),
+            'score' => scores::count(),
+            'practice' => practice::count(),
+            'practice_scores' => practice_scores::count(),
+        ];
+
+        return response()->json([
+            'message' => 'Thống kê trả về dữ liệu số lượng bản ghi!',
+            'data'=>$tableCounts
+        ], 200);
+    }
+    public function allStudentPage()
+    {
+        $openTestCount = tests::where('status_id', '2')->count();
+        $tableCounts = [
+            'practice' => practice::count(),
+            'test' => $openTestCount,
+            'chat' => student_notifications::count(),
+            'notification' => notifications::count(),
+        ];
+
+        return response()->json([
+            'message' => 'Thống kê trả về dữ liệu số lượng bản ghi!',
+            'data'=>   $tableCounts
+        ], 200);
+    }
+    //mấy cái ở dưới đây querry lấy dữ liệu mà thiếu nhiều column quá :))))
+    //m xem làm được không thì fix thử t mỏi mắt quá rồi -.-
+    // với lại xem cái login head_subject nha t vào không được!!!!
+    public function allTeacherPage($teacher_id)
+    {
+        // Tìm id của các lớp mà giáo viên đó là chủ nhiệm
+        $class_ids = classes::where('teacher_id', $teacher_id)->pluck('class_id')->toArray();
+
+        // Lấy danh sách học sinh thuộc các lớp mà giáo viên đó là chủ nhiệm
+        $students = student::whereIn('class_id', $class_ids)->pluck('student_id')->toArray();
+
+        // Đếm số lượng câu hỏi mà giáo viên đó tạo
+        $question_test = quest_of_test::whereIn('teacher_id', [$teacher_id])->count();
+        $question_practice = quest_of_practice::whereIn('teacher_id', [$teacher_id])->count();
+        $question_count = questions::where('teacher_id', $teacher_id)->count();
+
+        $tableCounts = [
+            'ngân hàng câu hỏi'=> questions::count(),
+            'câu hỏi của giáo viên' => $question_count,
+            'câu hỏi test của giáo viên' => $question_test,
+            'câu hỏi luyện thi của giáo viên' => $question_practice,
+            'test' => tests::count(),
+            'practice' => practice::count(),
+            'câu hỏi test' => quest_of_test::count(),
+            'thông báo của admin' => teacher_notifications::where('teacher_id', $teacher_id)->count(),
+            'thông báo cho học sinh' => student_notifications::whereIn('class_id', $class_ids)->count(),
+            'điểm của học sinh trong lớp' => scores::whereIn('student_id', $students)->count(),
+        ];
+
+        return response()->json([
+            'message' => 'Thống kê trả về dữ liệu số lượng bản ghi!',
+            'data' => $tableCounts
+        ], 200);
+    }
+
+    public function allHeadPage($subject_head_id)
+    {
+        // Lấy danh sách các môn học mà trưởng bộ môn làm trưởng
+        $subjects = subjects::where('subject_id', $subject_head_id)->pluck('subject_id')->toArray();
+
+        // Đếm số lượng câu hỏi trong các môn học đó
+        $question_count = Questions::whereIn('subject_id', $subjects)->count();
+
+        // Đếm số lượng đề thi trong các môn học đó
+        $test_count = Tests::whereIn('subject_id', $subjects)->count();
+
+        $tableCounts = [
+            'subject' => $subjects,
+            'student' => Student::count(),
+            'test' => $test_count,
+            'score' => Scores::count(),
+            'practice' => Practice::count(),
+            'practice_scores' => Practice_Scores::count(),
+            'câu hỏi trong môn học' => $question_count,
+        ];
+
+        return response()->json([
+            'message' => 'Thống kê trả về dữ liệu số lần bản ghi!',
+            'data' => $tableCounts
+        ], 200);
+    }
+
 }

@@ -24,7 +24,10 @@ class teacher extends  Authenticatable implements JWTSubject
         'permission',
         'avatar',
         'birthday',
-        'last_login'
+        'last_login',
+        'otp',
+        'otp_expiry',
+        'password_change_time'
     ];
     protected $hidden = [
         'password',
@@ -40,13 +43,6 @@ class teacher extends  Authenticatable implements JWTSubject
     }
     protected $primaryKey = 'teacher_id';
 
-
-    function getTeacher()
-    {
-        $getTeacher = DB::select('select * from teachers');
-        return $getTeacher;
-    }
-
     public function getJWTIdentifier()
     {
         return $this->getKey();
@@ -57,8 +53,4 @@ class teacher extends  Authenticatable implements JWTSubject
         return [];
     }
 
-    public function isTeacher()
-    {
-        return $this->role === 'teachers';
-    }
 }
