@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\classes;
-use App\Models\grade;
 use Illuminate\Http\Request;
 use App\Models\notifications;
 use App\Models\student_notifications;
@@ -183,7 +182,7 @@ class AdminNotificationController extends Controller
         ], 200);
     }
 
-    public function sendAllGrade(Request $request)
+    public function sendAlClasses(Request $request)
     {
         $user = $request->user('admins');
         $validator = Validator::make($request->all(), [
@@ -215,7 +214,6 @@ class AdminNotificationController extends Controller
             ]);
             $sendClassNotification->save();
         }
-
         return response()->json([
             'message'   => 'Gửi thông báo đến tất cả lớp học thành công!',
             'data' => $notification

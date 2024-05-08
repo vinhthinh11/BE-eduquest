@@ -67,7 +67,7 @@ class Admincontroller extends Controller
         //return view('admin.info', ['admin' => $admin]);
         return response()->json(['admin' => $admin], 200);
     }
-        return response()->json(['message' => 'Admin không tồn tại!'], 404);
+        return response()->json(['message' => 'Admin không tồn tại!'], 400);
     }
 
     public function updateProfile(Request $request)

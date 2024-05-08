@@ -118,7 +118,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::get('/list-student', [AdminNotificationController::class, 'listNotificationHS'])->name('listNotificationHS');
         Route::post('/send', [AdminNotificationController::class, 'sendNotification'])->name('sendNotification');
         Route::post('/send-all-teacher', [AdminNotificationController::class, 'sendAllTeacher'])->name('sendAllTeacher');
-        Route::post('/send-all-grade', [AdminNotificationController::class, 'sendAllGrade'])->name('sendAllGrade');
+        Route::post('/send-all-classes', [AdminNotificationController::class, 'sendAlClasses'])->name('sendAlClasses');
     });
 });
 
@@ -144,9 +144,7 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
         Route::post('/update-doing-exam', [StudentController::class, 'updateDoingExam'])->name('updateDoingExam');
         Route::post('/reset-doing-exam', [StudentController::class, 'resetDoingExam'])->name('resetDoingExam');
         Route::post('/get-practice', [StudentController::class, 'getPractice'])->name('getPractice');
-        Route::get('/show-result-test', [StudentController::class, 'showResult'])->name('acceptTest');
-        Route::post('/accpet-exam', [StudentController::class, 'accpectExam'])->name('accpectExam');
-        Route::post('/accpet-practice', [StudentController::class, 'acceptPractice'])->name('acceptPractice');
+        Route::get('/show-result-test', [StudentController::class, 'showResult'])->name('showResult');
     });
 
     Route::group(['prefix' => 'score'], function () {

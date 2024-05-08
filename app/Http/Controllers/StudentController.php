@@ -540,7 +540,6 @@ class StudentController extends Controller
             ->get();
         return response()->json(['data' => $data]);
     }
-
     public function sendChat(Request $request)
     {
         $validator = Validator::make($request->all(), [
