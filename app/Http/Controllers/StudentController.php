@@ -573,31 +573,6 @@ class StudentController extends Controller
     }
 
     //danh sách thông báo
-    public function getNotification(Request $request)
-    {
-        $student_id = $request->student_id;
-        $student = Student::find($student_id);
-        if (!$student) {
-            return response()->json([
-                'message' => 'Học sinh không tồn tại',
-            ], 400);
-        }
-        $getList = notifications::whereExists(function ($query) use ($student_id) {
-            $query->select(DB::raw(1))
-                ->from('student_notifications')
-                ->whereColumn('student_notifications.notification_id', 'notifications.notification_id')
-                ->where('student_notifications.student_id', $student_id);
-        })->get();
-        if ($getList->isEmpty()) {
-            return response()->json([
-                'message' => 'Không tìm thấy dữ liệu',
-            ], 400);
-        }
-        return response()->json([
-            'message' => 'Thành công',
-            'data' => $getList
-        ]);
-    }
     public function notifications($classId)
     {
         $notifications = notifications::whereIn('notification_id', function ($query) use ($classId) {
@@ -628,11 +603,12 @@ class StudentController extends Controller
 
     public function sendChat(Request $request)
     {
+        $user = $request->user('students');
         $validator = Validator::make($request->all(), [
-            'content' => 'required|string',
+            'chat_content' => 'required|string',
         ], [
-            'content.required' => 'Vui lòng nhập nội dung chat',
-            'content.unique' => 'Nội dung chat đã được gửi',
+            'chat_content.required' => 'Vui lòng nhập nội dung chat',
+            'chat_content.unique' => 'Nội dung chat đã được gửi',
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -642,10 +618,10 @@ class StudentController extends Controller
         }
 
         $chat = chats::create([
-            'username' => $request->username,
-            'name' => $request->name,
-            'class_id' => $request->class_id,
-            'chat_content' => $request->content,
+            'username' => $user->username,
+            'name' => $user->name,
+            'class_id' => $user->class_id,
+            'chat_content' => $request->chat_content,
             'time_sent' => Carbon::now('Asia/Ho_Chi_Minh'),
         ]);
 

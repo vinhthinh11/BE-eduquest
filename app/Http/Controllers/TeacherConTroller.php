@@ -826,7 +826,7 @@ class TeacherConTroller extends Controller
         $classNames = [];
         foreach ($request->class_id as $class_id) {
             Student_Notifications::create([
-                'notification_id' => $notification->id,
+                'notification_id' => $notification->notification_id,
                 'class_id' => $class_id,
             ]);
             $class = Classes::find($class_id);

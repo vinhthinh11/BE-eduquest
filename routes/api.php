@@ -165,7 +165,6 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     });
 
     //xem danh sách thông báo
-    Route::get('/get-notification', [StudentController::class, 'getNotification'])->name('getNotification');
 
     Route::get('/notification/{class_id}', [StudentController::class, 'notifications'])->name('notifications');
 });
