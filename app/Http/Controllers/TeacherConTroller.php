@@ -115,7 +115,10 @@ class TeacherConTroller extends Controller
     public function getStudent(Request $request)
     {
         $user = $request->user('teachers');
-        $students = student::join('classes', 'students.class_id', '=', 'classes.class_id')->where('teacher_id', $user->teacher_id)->get();
+        //get all student that have class_id in classes that teacher_id is $user->teacher_id
+        $students = students::join('classes', 'students.class_id', '=', 'classes.class_id')
+            ->where('classes.teacher_id', $user->teacher_id)
+            ->select("name", "username",'email', "students.student_id", "students.class_id","students.birthday")->get();
         // ở đây có trường hợp giáo viên chưa chủ nhiệm lớp nào thì số học sinh trả về sẽ là 0
         return response()->json([
             'message' => 'Lấy dữ liệu Lớp thành công!',
