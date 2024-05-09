@@ -214,6 +214,7 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     });
     Route::group(['prefix' => '/student'], function () {
         Route::get('/get', [TeacherConTroller::class, 'getStudent'])->name('getStudent');
+        Route::get('/get/{class_id}', [TeacherConTroller::class, 'getStudentOfClass'])->name('getStudent');
 
     });
     // Thông báo
