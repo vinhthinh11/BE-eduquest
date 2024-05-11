@@ -27,6 +27,7 @@ class student_practice_detail extends Model
         'student_answer',
         'timest'
     ];
+    public $timestamps = false;
 
     public function getJWTIdentifier()
     {

@@ -168,7 +168,6 @@ class AdminTeacherController extends Controller
             'password'      => 'required|string|min:6|max:20',
             'email'         => 'required|email|unique:teachers,email',
             'birthday'      => 'nullable|date',
-            'subject_id'    => 'required|integer|exists:subjects,subject_id',
         ], [
             'name.min'           => 'Tên Giáo Viên tối thiểu 6 kí tự!',
             'name.max'             => 'Ten Giờ Viên phải là 50 kí tự!',

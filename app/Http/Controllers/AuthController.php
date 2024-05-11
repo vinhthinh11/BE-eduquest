@@ -99,7 +99,6 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Gửi OTP thành công!',
-            'otp' => $otp, // Trả về OTP để kiểm tra sau này
         ], 200);
     }
 
