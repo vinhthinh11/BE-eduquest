@@ -215,11 +215,10 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     Route::group(['prefix' => '/student'], function () {
         Route::get('/get', [TeacherConTroller::class, 'getStudent'])->name('getStudent');
         Route::get('/get/{class_id}', [TeacherConTroller::class, 'getStudentOfClass'])->name('getStudent');
-
     });
     // Thông báo
     Route::group(['prefix' => '/notification'], function () {
-        Route::get('/to-student/{teacher_id}', [TeacherConTroller::class, 'notificationsToStudent'])->name('notificationsToStudent');
+        Route::get('/to-student', [TeacherConTroller::class, 'notificationsToStudent'])->name('notificationsToStudent');
         Route::get('/by-admin/{teacher_id}', [TeacherConTroller::class, 'notificationsByAdmin'])->name('notificationsByAdmin');
         Route::post('/send', [TeacherConTroller::class, 'sendNotification'])->name('sendNotification');
     });
