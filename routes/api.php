@@ -21,10 +21,10 @@ Route::post('verify-otp-and-reset-password', [AuthController::class, 'verifyOtpA
 Route::get('me', [AuthController::class, 'me']);
 
 // ----- Route for Admin -----
-Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {//
+Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
 
     //Profile
-    Route::get('/info/{username}',    [Admincontroller::class, 'getInfo'])->name('getInfo');
+    Route::get('/info',    [Admincontroller::class, 'getInfo'])->name('getInfo');
     Route::post('/update-profile',     [Admincontroller::class, 'updateProfile'])->name('updateProfile');
 
     //ql Admin
@@ -124,7 +124,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {//
 // ----- Route for Student -----
 Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     //Profile
-    Route::get('/info/{username}', [StudentController::class, 'getInfo'])->name('getInfo');
+    Route::get('/info', [StudentController::class, 'getInfo'])->name('getInfo');
     Route::post('/update-profile',      [StudentController::class, 'updateProfile'])->name('updateProfile');
 
     //Thống kê
@@ -156,17 +156,15 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     });
 
     Route::group(['prefix' => 'chat'], function () {
-        Route::get('/get/{class_id}', [StudentController::class, 'getChat'])->name('listChat');
-        Route::get('/all/{class_id}', [StudentController::class, 'getAllChat'])->name('listAllChat');
+        Route::get('/get', [StudentController::class, 'getChat'])->name('listChat');
+        Route::get('/all', [StudentController::class, 'getAllChat'])->name('listAllChat');
         Route::post('/send', [StudentController::class, 'sendChat'])->name('sendChat');
         Route::delete('/un-sent', [StudentController::class, 'unSent'])->name('unSent');
         Route::put('/edit', [StudentController::class, 'editChat'])->name('editChat');
     });
 
     //xem danh sách thông báo
-    Route::get('/get-notification', [StudentController::class, 'getNotification'])->name('getNotification');
-
-    Route::get('/notification/{class_id}', [StudentController::class, 'notifications'])->name('notifications');
+    Route::get('/notification', [StudentController::class, 'notifications'])->name('notifications');
 });
 
 // ----- Route for Teacher -----
@@ -196,7 +194,7 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     });
 
     //Profile
-    Route::get('/info/{username}', [TeacherConTroller::class, 'getInfo'])->name('getInfo');
+    Route::get('/info', [TeacherConTroller::class, 'getInfo'])->name('getInfo');
     Route::post('/update-profile',      [TeacherConTroller::class, 'updateProfile'])->name('updateProfile');
 
     //Thống kê
@@ -219,7 +217,7 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     // Thông báo
     Route::group(['prefix' => '/notification'], function () {
         Route::get('/to-student', [TeacherConTroller::class, 'notificationsToStudent'])->name('notificationsToStudent');
-        Route::get('/by-admin/{teacher_id}', [TeacherConTroller::class, 'notificationsByAdmin'])->name('notificationsByAdmin');
+        Route::get('/by-admin', [TeacherConTroller::class, 'notificationsByAdmin'])->name('notificationsByAdmin');
         Route::post('/send', [TeacherConTroller::class, 'sendNotification'])->name('sendNotification');
     });
 });
@@ -227,7 +225,7 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
 // ----- Route for Subject_Head -----
 Route::group(['prefix' => '/subject-head', 'middleware' => 'head_subject'], function () {
     //Profile
-    Route::get('/info/{username}', [SubjectHeadController::class, 'getInfo'])->name('getInfo');
+    Route::get('/info', [SubjectHeadController::class, 'getInfo'])->name('getInfo');
     Route::post('/update-profile',      [SubjectHeadController::class, 'updateProfile'])->name('updateProfile');
 
     Route::get('/statist/list-all/{subject_head_id}', [StatistController::class, 'allHeadPage'])->name('allHeadPage');

@@ -58,37 +58,43 @@ class TeacherConTroller extends Controller
             'data'  => $data
         ]);
     }
-    public function getInfo($username)
+    public function getInfo(Request $request)
     {
-        $teacher = teacher::select('teachers.teacher_id', 'teachers.username', 'teachers.avatar', 'teachers.email', 'teachers.name', 'teachers.last_login', 'teachers.birthday', 'permissions.permission_detail', 'genders.gender_detail', 'genders.gender_id')
+        $username = $request->user('teachers')->username;
+        $me = teacher::select('teachers.teacher_id', 'teachers.username', 'teachers.avatar', 'teachers.email', 'teachers.name', 'teachers.last_login', 'teachers.birthday', 'permissions.permission_detail', 'genders.gender_detail', 'genders.gender_id')
             ->join('permissions', 'teachers.permission', '=', 'permissions.permission')
             ->join('genders', 'teachers.gender_id', '=', 'genders.gender_id')
             ->where('teachers.username', '=', $username)
             ->first();
-        if ($teacher) {
-            //đẩy view ở đây nha!!
-            return response()->json(['teacher' => $teacher], 200);
-        }
-        return response()->json(['message' => 'Giáo viên không tồn tại!'], 400);
+
+        return response()->json([
+            'message' => 'Lấy thông tin cá nhân thành công!',
+            'data' => $me
+        ], 200);
     }
     public function updateProfile(Request $request)
     {
         $me = $request->user('teachers');
-        // $validator = Validator::make($request->all(), [
-        //     'name' => 'sometimes|min:3|max:255',
-        //     'gender_id' => 'sometimes|integer',
-        //     'birthday' => 'sometimes|date',
-        //     'password' => 'sometimes|min:6|max:20',
-        //     'email' => 'sometimes|email|unique:admins,email',
-        //     'avatar' => 'somtimes|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        // ]);
+        $validator = Validator::make($request->all(), [
+            'name' => 'nullable|min:3|max:255',
+            'gender_id' => 'nullable|integer',
+            'birthday' => 'nullable|date',
+            'password' => 'nullable|min:6|max:20',
+            'email' => 'nullable|email|unique:admins,email',
+            'avatar' => 'nullable|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
 
-        // if ($validator->fails()) {
-        //     return response()->json([
-        //         'status' => false,
-        //         'errors' => $validator->errors(),
-        //     ], 422);
-        // }
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+        $data = $request->only(['name', 'gender_id', 'birthday', 'email', 'permission']);
+
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt($request->password);
+        }
 
         if ($request->hasFile('avatar')) {
             if ($me->avatar != "avatar-default.jpg") {
@@ -99,17 +105,18 @@ class TeacherConTroller extends Controller
             $imagePath = $image->storeAs('images',  $imageName, 'public');
             $data['avatar'] = '/storage/' . $imagePath;
         }
-
-        if ($request->filled('password')) {
-            $data['password'] = bcrypt($request->password);
-        }
-
         $me->update($data);
 
-        return response()->json([
-            'status' => true,
-            'message' => "Cập nhập tài khoản cá nhân thành công!"
-        ]);
+        if ($request->filled('password')) {
+            return response()->json([
+                'message' => "Thay đổi mật khẩu thành công thành công!",
+            ], 200);
+        } else {
+            return response()->json([
+                'message' => "Cập nhập tài khoản cá nhân thành công!",
+                'data' => $me
+            ], 201);
+        }
     }
 
     public function getStudent(Request $request)
@@ -773,6 +780,8 @@ class TeacherConTroller extends Controller
 
         return response()->json($result);
     }
+
+
     public function notificationsToStudent(Request $request)
     {
         $teacherId = $request->user('teachers')->teacher_id;
@@ -793,24 +802,24 @@ class TeacherConTroller extends Controller
             'notifications' => $notifications
         ], 200);
     }
-    public function notificationsByAdmin($teacher_id)
+    public function notificationsByAdmin(Request $request)
     {
-        $teacherId = $teacher_id;
-        $notifications = Notifications::whereIn('notification_id', function ($query) use ($teacher_id) {
+        $teacherId = $request->user("teachers")->teacher_id;
+        $notifications = Notifications::whereIn('notification_id', function ($query) use ($teacherId) {
             $query->select('notification_id')
                 ->from('teacher_notifications')
-                ->where('teacher_id', $teacher_id);
+                ->where('teacher_id', $teacherId);
         })->get();
 
-        $data = compact('teacherId', 'notifications');
         return response()->json([
             'message' => 'Thông báo được truy xuất thành công!',
-            'data' => $data,
+            'data' => $notifications,
         ], 200);
     }
 
     public function sendNotification(Request $request)
     {
+        $user = $request->user('teachers');
         $validator = Validator::make($request->all(), [
             'notification_title' => 'required|string|max:255',
             'notification_content' => 'required|string',
@@ -829,11 +838,6 @@ class TeacherConTroller extends Controller
             return response()->json(['error' => $validator->errors()], 422);
         }
 
-        $user = $request->user('teachers');
-        if (!$user) {
-            return response()->json(['error' => 'Chưa nhận ra người dùng!'], 401);
-        }
-
         $notification = Notifications::create([
             'name' => $user->name,
             'username' => $user->username,
@@ -844,7 +848,7 @@ class TeacherConTroller extends Controller
         $classNames = [];
         foreach ($request->class_id as $class_id) {
             Student_Notifications::create([
-                'notification_id' => $notification->notificationid,
+                'notification_id' => $notification->notification_id,
                 'class_id' => $class_id,
             ]);
             $class = Classes::find($class_id);
@@ -853,11 +857,13 @@ class TeacherConTroller extends Controller
             }
         }
 
-        Log::info('Notification sent', ['notification_id' => $notification->notificationid]);
-
+        Log::info('Notification sent', ['notification_id' => $notification->id]);
+        $id = $user->teacher_id;
         return response()->json([
             'message' => 'Gửi thông báo thành công cho các lớp: ' . implode(', ', $classNames),
-            'data' => $notification,
+            'data' => [
+                'id' => $id,
+                'chat' => $notification],
         ], 200);
     }
 }

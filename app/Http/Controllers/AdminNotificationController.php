@@ -138,7 +138,7 @@ class AdminNotificationController extends Controller
         }
 
         return response()->json([
-            'message'   => $message,
+            'message' => $message,
             'data' => $notification
         ], 200);
     }
@@ -156,8 +156,6 @@ class AdminNotificationController extends Controller
                 'error' => $validator->errors(),
             ], 422);
         }
-        // Tao Nofitoaca tino =>id
-
         // Lấy danh sách tất cả các giáo viên trong hệ thống
         $allTeachers = Teacher::pluck('teacher_id');
         $notification = notifications::create([
@@ -169,11 +167,14 @@ class AdminNotificationController extends Controller
         ]);
         $notification->save();
         // Gửi thông báo cho tất cả các giáo viên
-        foreach($allTeachers as $teacher){
-            teacher_notifications::create(["notification_id"=>$notification->notification_id,"teacher_id"=>$teacher]);
-        };
+        foreach ($allTeachers as $teacher) {
+            teacher_notifications::create(["notification_id" => $notification->notification_id, "teacher_id" => $teacher]);
+        }
+        ;
+        $id_user = $user->admin_id;
         return response()->json([
-            'message'   => 'Gửi thông báo đến tất cả giáo viên thành công!',
+            'id_user' => $id_user,
+            'message' => 'Gửi thông báo đến tất cả giáo viên thành công!',
             'data' => $notification
         ], 200);
     }
@@ -192,19 +193,23 @@ class AdminNotificationController extends Controller
             ], 422);
         }
         $allClasses = classes::pluck('class_id');
-            $notification = notifications::create([
-                'username' => $user->username,
-                'name' => $user->name,
-                'notification_title' => $request->notification_title,
-                'notification_content' => $request->notification_content,
-                'time_sent' => Carbon::now('Asia/Ho_Chi_Minh'),
-            ]);
-            $notification->save();
-            foreach($allClasses as $classId){
-                student_notifications::create(["notification_id"=>$notification->notification_id,"class_id"=>$classId]);
-            };
+        // Create notification for each class
+        $notification = notifications::create([
+            'username' => $user->username,
+            'name' => $user->name,
+            'notification_title' => $request->notification_title,
+            'notification_content' => $request->notification_content,
+            'time_sent' => Carbon::now('Asia/Ho_Chi_Minh'),
+        ]);
+        $notification->save();
+        foreach ($allClasses as $classId) {
+            student_notifications::create(["notification_id" => $notification->notification_id, "class_id" => $classId]);
+        }
+        ;
+        $id_user = $user->admin_id;
         return response()->json([
-            'message'=> 'Gửi thông báo đến tất cả lớp học thành công!',
+            'id_user' => $id_user,
+            'message' => 'Gửi thông báo đến tất cả lớp học thành công!',
             'data' => $notification
         ], 200);
     }

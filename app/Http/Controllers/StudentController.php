@@ -24,19 +24,19 @@ use Ramsey\Uuid\Uuid;
 
 class StudentController extends Controller
 {
-    public function getInfo($username)
+    public function getInfo(Request $request)
     {
-        $student = student::select('students.student_id', 'students.username', 'students.avatar', 'students.email', 'students.name', 'students.last_login', 'students.birthday', 'permissions.permission_detail', 'genders.gender_detail', 'genders.gender_id')
+        $username = $request->user('students')->username;
+        $me = student::select('students.student_id', 'students.username', 'students.avatar', 'students.email', 'students.name', 'students.last_login', 'students.birthday', 'permissions.permission_detail', 'genders.gender_detail', 'genders.gender_id')
             ->join('permissions', 'students.permission', '=', 'permissions.permission')
             ->join('genders', 'students.gender_id', '=', 'genders.gender_id')
             ->where('students.username', '=', $username)
             ->first();
-        if ($student) {
-            //đẩy view ở đây nha!!
-            //return view('student.info', ['student' => $student]);
-            return response()->json(['student' => $student], 200);
-        }
-        return response()->json(['message' => 'Học sinh không tồn tại!'], 404);
+
+        return response()->json([
+            'message' => 'Lấy thông tin cá nhân thành công!',
+            'data' => $me
+        ], 200);
     }
     public function getScore(Request $request)
     {
@@ -113,21 +113,26 @@ class StudentController extends Controller
     public function updateProfile(Request $request)
     {
         $me = $request->user('students');
-        // $validator = Validator::make($request->all(), [
-        //     'name' => 'sometimes|min:3|max:255',
-        //     'gender_id' => 'sometimes|integer',
-        //     'birthday' => 'sometimes|date',
-        //     'password' => 'sometimes|min:6|max:20',
-        //     'email' => 'sometimes|email|unique:admins,email',
-        //     'avatar' => 'somtimes|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        // ]);
+        $validator = Validator::make($request->all(), [
+            'name' => 'nullable|min:3|max:255',
+            'gender_id' => 'nullable|integer',
+            'birthday' => 'nullable|date',
+            'password' => 'nullable|min:6|max:20',
+            'email' => 'nullable|email|unique:admins,email',
+            'avatar' => 'nullable|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
 
-        // if ($validator->fails()) {
-        //     return response()->json([
-        //         'status' => false,
-        //         'errors' => $validator->errors(),
-        //     ], 422);
-        // }
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+        $data = $request->only(['name', 'gender_id', 'birthday', 'email', 'permission']);
+
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt($request->password);
+        }
 
         if ($request->hasFile('avatar')) {
             if ($me->avatar != "avatar-default.jpg") {
@@ -138,52 +143,18 @@ class StudentController extends Controller
             $imagePath = $image->storeAs('images',  $imageName, 'public');
             $data['avatar'] = '/storage/' . $imagePath;
         }
-
-        if ($request->filled('password')) {
-            $data['password'] = bcrypt($request->password);
-        }
-
         $me->update($data);
 
-        return response()->json([
-            'status' => true,
-            'message' => "Cập nhập tài khoản cá nhân thành công!"
-        ]);
-    }
-    public function updateAvatarProfile(Request $request)
-    {
-        $user = $request->user('students');
-
-        $validator = Validator::make($request->all(), [
-            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        ], [
-            'avatar.required' => 'Vui lòng chọn hình ảnh đại diện',
-            'avatar.image' => 'Vui lòng chọn hình ảnh đại diện',
-            'avatar.mimes' => 'Vui lòng chọn hình ảnh đúng định dạng (jpeg, png, jpg, gif, svg)',
-            'avatar.max' => 'Kích thước hình ảnh không được vượt quá 2048KB',
-        ]);
-
-        if ($validator->fails()) {
+        if ($request->filled('password')) {
             return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
+                'message' => "Thay đổi mật khẩu thành công thành công!",
+            ], 200);
+        } else {
+            return response()->json([
+                'message' => "Cập nhập tài khoản cá nhân thành công!",
+                'data' => $me
+            ], 201);
         }
-
-        if ($request->hasFile('avatar')) {
-            $image = $request->file('avatar');
-            $path = $image->store('images/student');
-
-            if ($user->avatar) {
-                Storage::delete($user->avatar);
-            }
-
-            $user->avatar = $path;
-            $user->save();
-
-            return response()->json(['message' => 'Tải lên thành công', 'path' => $path], 200);
-        }
-        return response()->json(['message' => 'Không có tệp nào được tải lên'], 404);
     }
     public function updateDoingExam(Request $request)
     {
@@ -571,35 +542,10 @@ class StudentController extends Controller
             return response()->json(["message"=>"create new answer"]);
         }
     }
-
     //danh sách thông báo
-    public function getNotification(Request $request)
+    public function notifications(Request $request)
     {
-        $student_id = $request->student_id;
-        $student = Student::find($student_id);
-        if (!$student) {
-            return response()->json([
-                'message' => 'Học sinh không tồn tại',
-            ], 400);
-        }
-        $getList = notifications::whereExists(function ($query) use ($student_id) {
-            $query->select(DB::raw(1))
-                ->from('student_notifications')
-                ->whereColumn('student_notifications.notification_id', 'notifications.notification_id')
-                ->where('student_notifications.student_id', $student_id);
-        })->get();
-        if ($getList->isEmpty()) {
-            return response()->json([
-                'message' => 'Không tìm thấy dữ liệu',
-            ], 400);
-        }
-        return response()->json([
-            'message' => 'Thành công',
-            'data' => $getList
-        ]);
-    }
-    public function notifications($classId)
-    {
+        $classId = $request->user("students")->class_id;
         $notifications = notifications::whereIn('notification_id', function ($query) use ($classId) {
                 $query->select('notification_id')
                     ->from('student_notifications')
@@ -607,20 +553,22 @@ class StudentController extends Controller
             })
             ->get();
 
-        return $notifications;
+        return response()->json(['data' => $notifications]);
     }
 
-    public function getChat($class_id)
+    public function getChat(Request $request)
     {
-        $data = chats::where('class_id', $class_id)
+        $classId = $request->user("students")->class_id;
+        $data = chats::where('class_id', $classId)
             ->orderBy('id', 'DESC')
              ->limit(10)
             ->get();
         return response()->json(['data' => $data]);
     }
-    public function getAllChat($class_id)
+    public function getAllChat(Request $request)
     {
-        $data = chats::where('class_id', $class_id)
+        $classId = $request->user("students")->class_id;
+        $data = chats::where('class_id', $classId)
             ->orderBy('id', 'DESC')
             ->get();
         return response()->json(['data' => $data]);
@@ -628,11 +576,12 @@ class StudentController extends Controller
     public function sendChat(Request $request)
     {
         $user = $request->user('students');
+
         $validator = Validator::make($request->all(), [
-            'content' => 'required|string',
+            'chat_content' => 'required|string',
         ], [
-            'content.required' => 'Vui lòng nhập nội dung chat',
-            'content.unique' => 'Nội dung chat đã được gửi',
+            'chat_content.required' => 'Vui lòng nhập nội dung chat',
+            'chat_content.unique' => 'Nội dung chat đã được gửi',
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -640,19 +589,19 @@ class StudentController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-
+        $id_student = $user->student_id;
         $chat = chats::create([
+            // 'id_student' => $id_student,
             'username' => $user->username,
             'name' => $user->name,
             'class_id' => $user->class_id,
-            'chat_content' => $request->content,
+            'chat_content' => $request->chat_content,
             'time_sent' => Carbon::now('Asia/Ho_Chi_Minh'),
         ]);
-        $id = $user->student_id;
         return response()->json([
             'message'   => 'Gửi tin nhắn thành công!',
-            'id'=> $id,
-            'data'      => $chat
+            'data'      => [
+                'chat'=>$chat]
         ], 200);
     }
 
