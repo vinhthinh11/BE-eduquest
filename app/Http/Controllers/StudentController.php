@@ -571,10 +571,10 @@ class StudentController extends Controller
             return response()->json(["message"=>"create new answer"]);
         }
     }
-
     //danh sách thông báo
-    public function notifications($classId)
+    public function notifications(Request $request)
     {
+        $classId = $request->user("students")->class_id;
         $notifications = notifications::whereIn('notification_id', function ($query) use ($classId) {
                 $query->select('notification_id')
                     ->from('student_notifications')
@@ -582,20 +582,22 @@ class StudentController extends Controller
             })
             ->get();
 
-        return $notifications;
+        return response()->json(['data' => $notifications]);
     }
 
-    public function getChat($class_id)
+    public function getChat(Request $request)
     {
-        $data = chats::where('class_id', $class_id)
+        $classId = $request->user("students")->class_id;
+        $data = chats::where('class_id', $classId)
             ->orderBy('id', 'DESC')
              ->limit(10)
             ->get();
         return response()->json(['data' => $data]);
     }
-    public function getAllChat($class_id)
+    public function getAllChat(Request $request)
     {
-        $data = chats::where('class_id', $class_id)
+        $classId = $request->user("students")->class_id;
+        $data = chats::where('class_id', $classId)
             ->orderBy('id', 'DESC')
             ->get();
         return response()->json(['data' => $data]);
@@ -604,6 +606,7 @@ class StudentController extends Controller
     public function sendChat(Request $request)
     {
         $user = $request->user('students');
+
         $validator = Validator::make($request->all(), [
             'chat_content' => 'required|string',
         ], [
@@ -616,8 +619,9 @@ class StudentController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-
+        $id_student = $user->student_id;
         $chat = chats::create([
+            // 'id_student' => $id_student,
             'username' => $user->username,
             'name' => $user->name,
             'class_id' => $user->class_id,
@@ -627,7 +631,9 @@ class StudentController extends Controller
 
         return response()->json([
             'message'   => 'Gửi tin nhắn thành công!',
-            'data'      => $chat
+            'data'      => [
+                'id_student'=> $id_student,
+                'chat'=>$chat]
         ], 200);
     }
 

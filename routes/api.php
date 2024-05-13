@@ -157,16 +157,15 @@ Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     });
 
     Route::group(['prefix' => 'chat'], function () {
-        Route::get('/get/{class_id}', [StudentController::class, 'getChat'])->name('listChat');
-        Route::get('/all/{class_id}', [StudentController::class, 'getAllChat'])->name('listAllChat');
+        Route::get('/get', [StudentController::class, 'getChat'])->name('listChat');
+        Route::get('/all', [StudentController::class, 'getAllChat'])->name('listAllChat');
         Route::post('/send', [StudentController::class, 'sendChat'])->name('sendChat');
         Route::delete('/un-sent', [StudentController::class, 'unSent'])->name('unSent');
         Route::put('/edit', [StudentController::class, 'editChat'])->name('editChat');
     });
 
     //xem danh sách thông báo
-
-    Route::get('/notification/{class_id}', [StudentController::class, 'notifications'])->name('notifications');
+    Route::get('/notification', [StudentController::class, 'notifications'])->name('notifications');
 });
 
 // ----- Route for Teacher -----
@@ -219,8 +218,8 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     });
     // Thông báo
     Route::group(['prefix' => '/notification'], function () {
-        Route::get('/to-student/{teacher_id}', [TeacherConTroller::class, 'notificationsToStudent'])->name('notificationsToStudent');
-        Route::get('/by-admin/{teacher_id}', [TeacherConTroller::class, 'notificationsByAdmin'])->name('notificationsByAdmin');
+        Route::get('/to-student', [TeacherConTroller::class, 'notificationsToStudent'])->name('notificationsToStudent');
+        Route::get('/by-admin', [TeacherConTroller::class, 'notificationsByAdmin'])->name('notificationsByAdmin');
         Route::post('/send', [TeacherConTroller::class, 'sendNotification'])->name('sendNotification');
     });
 });

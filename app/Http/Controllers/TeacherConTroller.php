@@ -775,29 +775,33 @@ class TeacherConTroller extends Controller
     }
 
 
-    public function notificationsToStudent($teacher_id)
+    public function notificationsToStudent(Request $request)
     {
-        $notifications = notifications::whereIn('notification_id', function ($query) use ($teacher_id) {
+        $teacherId = $request->user('teachers')->teacher_id;
+        $classId = $request->class_id;
+
+        $notifications = Notifications::whereIn('notification_id', function ($query) use ($classId) {
             $query->select('notification_id')
                 ->from('student_notifications')
-                ->whereIn('class_id', function ($query) use ($teacher_id) {
-                    $query->select('class_id')
-                        ->from('classes')
-                        ->where('teacher_id', $teacher_id);
-                });
-        })->get();
+                ->where('class_id', $classId);
+        })->whereIn('notification_id', function ($query) use ($teacherId) {
+            $query->select('notification_id')
+                ->from('classes')
+                ->where('teacher_id', $teacherId);
+        })->orderBy('time_sent', 'desc')->get();
 
         return response()->json([
             'message' => 'Thông báo được truy xuất thành công!',
             'notifications' => $notifications
         ], 200);
     }
-    public function notificationsByAdmin($teacher_id)
+    public function notificationsByAdmin(Request $request)
     {
-        $notifications = Notifications::whereIn('notification_id', function ($query) use ($teacher_id) {
+        $teacherId = $request->user("teachers")->teacher_id;
+        $notifications = Notifications::whereIn('notification_id', function ($query) use ($teacherId) {
             $query->select('notification_id')
                 ->from('teacher_notifications')
-                ->where('teacher_id', $teacher_id);
+                ->where('teacher_id', $teacherId);
         })->get();
 
         return response()->json([
@@ -808,6 +812,7 @@ class TeacherConTroller extends Controller
 
     public function sendNotification(Request $request)
     {
+        $user = $request->user('teachers');
         $validator = Validator::make($request->all(), [
             'notification_title' => 'required|string|max:255',
             'notification_content' => 'required|string',
@@ -824,11 +829,6 @@ class TeacherConTroller extends Controller
         ]);
         if ($validator->fails()) {
             return response()->json(['error' => $validator->errors()], 422);
-        }
-
-        $user = $request->user('teachers');
-        if (!$user) {
-            return response()->json(['error' => 'Chưa nhận ra người dùng!'], 401);
         }
 
         $notification = Notifications::create([
@@ -851,10 +851,12 @@ class TeacherConTroller extends Controller
         }
 
         Log::info('Notification sent', ['notification_id' => $notification->id]);
-
+        $id = $user->teacher_id;
         return response()->json([
             'message' => 'Gửi thông báo thành công cho các lớp: ' . implode(', ', $classNames),
-            'data' => $notification,
+            'data' => [
+                'id' => $id,
+                'chat' => $notification],
         ], 200);
     }
 }
