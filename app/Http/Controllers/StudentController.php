@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageSent;
 use App\Models\chats;
 use App\Models\practice;
 use App\Models\practice_scores;
@@ -576,12 +577,11 @@ class StudentController extends Controller
     public function sendChat(Request $request)
     {
         $user = $request->user('students');
-
         $validator = Validator::make($request->all(), [
             'chat_content' => 'required|string',
         ], [
-            'chat_content.required' => 'Vui lòng nhập nội dung chat',
-            'chat_content.unique' => 'Nội dung chat đã được gửi',
+            'chat_content.required' => 'Vui lòng nhập nội dung chat!',
+            'chat_content.unique' => 'Nội dung chat đã được gửi!',
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -589,19 +589,21 @@ class StudentController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-        $id_student = $user->student_id;
-        $chat = chats::create([
-            // 'id_student' => $id_student,
+
+        $chat = Chats::create([
             'username' => $user->username,
             'name' => $user->name,
             'class_id' => $user->class_id,
             'chat_content' => $request->chat_content,
             'time_sent' => Carbon::now('Asia/Ho_Chi_Minh'),
         ]);
+
+        // Phát sóng sự kiện
+        broadcast(new MessageSent($chat))->toOthers();
+
         return response()->json([
-            'message'   => 'Gửi tin nhắn thành công!',
-            'data'      => [
-                'chat'=>$chat]
+            'message' => "Gửi tin nhắn thành công!",
+            'data' => $chat,
         ], 200);
     }
 

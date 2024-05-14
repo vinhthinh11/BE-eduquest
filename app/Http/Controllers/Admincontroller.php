@@ -123,8 +123,6 @@ class Admincontroller extends Controller
         Auth::guard('api')->logout();
         return redirect('api/admin/login');
     }
-
-
     public function check_add_admin_via_file(Request $request)
     {
         $validator = Validator::make($request->all(), [
