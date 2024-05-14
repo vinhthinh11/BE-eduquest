@@ -54,7 +54,7 @@ class StudentController extends Controller
     $user = $request->user('students');
     $grade_id = student::with("classes")->where("student_id", $user->student_id)->first()->classes->grade_id;
     $test = tests::where("grade_id", $grade_id)
-                ->where('status_id', '==', 2)
+                ->where('status_id', '=', 2)
                 ->whereNotIn('test_code', function ($query) use ($user) {
                     $query->select('test_code')
                           ->from('scores')
@@ -619,9 +619,7 @@ class StudentController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-        $id_student = $user->student_id;
         $chat = chats::create([
-            // 'id_student' => $id_student,
             'username' => $user->username,
             'name' => $user->name,
             'class_id' => $user->class_id,
@@ -631,9 +629,7 @@ class StudentController extends Controller
 
         return response()->json([
             'message'   => 'Gửi tin nhắn thành công!',
-            'data'      => [
-                'id_student'=> $id_student,
-                'chat'=>$chat]
+            'chat'=>$chat
         ], 200);
     }
 
