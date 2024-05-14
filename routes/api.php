@@ -12,7 +12,6 @@ use App\Http\Controllers\StatistController;
 use App\Http\Controllers\TeacherConTroller;
 use App\Http\Controllers\AdminHSController;
 use App\Http\Controllers\StudentController;
-use App\Http\Controllers\HSLuyenDeController;
 use App\Http\Controllers\TBMDuyetDeThiController;
 use App\Http\Controllers\AdminNotificationController;
 
@@ -25,7 +24,7 @@ Route::get('me', [AuthController::class, 'me']);
 Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
 
     //Profile
-    Route::get('/info/{username}',    [Admincontroller::class, 'getInfo'])->name('getInfo');
+    Route::get('/info',    [Admincontroller::class, 'getInfo'])->name('getInfo');
     Route::post('/update-profile',     [Admincontroller::class, 'updateProfile'])->name('updateProfile');
 
     //ql Admin
@@ -118,14 +117,14 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::get('/list-student', [AdminNotificationController::class, 'listNotificationHS'])->name('listNotificationHS');
         Route::post('/send', [AdminNotificationController::class, 'sendNotification'])->name('sendNotification');
         Route::post('/send-all-teacher', [AdminNotificationController::class, 'sendAllTeacher'])->name('sendAllTeacher');
-        Route::post('/send-all-grade', [AdminNotificationController::class, 'sendAllGrade'])->name('sendAllGrade');
+        Route::post('/send-all-classes', [AdminNotificationController::class, 'sendAlClasses'])->name('sendAlClasses');
     });
 });
 
 // ----- Route for Student -----
 Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
     //Profile
-    Route::get('/info/{username}', [StudentController::class, 'getInfo'])->name('getInfo');
+    Route::get('/info', [StudentController::class, 'getInfo'])->name('getInfo');
     Route::post('/update-profile',      [StudentController::class, 'updateProfile'])->name('updateProfile');
 
     //Thống kê
@@ -195,7 +194,7 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     });
 
     //Profile
-    Route::get('/info/{username}', [TeacherConTroller::class, 'getInfo'])->name('getInfo');
+    Route::get('/info', [TeacherConTroller::class, 'getInfo'])->name('getInfo');
     Route::post('/update-profile',      [TeacherConTroller::class, 'updateProfile'])->name('updateProfile');
 
     //Thống kê
@@ -214,7 +213,6 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     Route::group(['prefix' => '/student'], function () {
         Route::get('/get', [TeacherConTroller::class, 'getStudent'])->name('getStudent');
         Route::get('/get/{class_id}', [TeacherConTroller::class, 'getStudentOfClass'])->name('getStudent');
-
     });
     // Thông báo
     Route::group(['prefix' => '/notification'], function () {
@@ -227,7 +225,7 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
 // ----- Route for Subject_Head -----
 Route::group(['prefix' => '/subject-head', 'middleware' => 'head_subject'], function () {
     //Profile
-    Route::get('/info/{username}', [SubjectHeadController::class, 'getInfo'])->name('getInfo');
+    Route::get('/info', [SubjectHeadController::class, 'getInfo'])->name('getInfo');
     Route::post('/update-profile',      [SubjectHeadController::class, 'updateProfile'])->name('updateProfile');
 
     Route::get('/statist/list-all/{subject_head_id}', [StatistController::class, 'allHeadPage'])->name('allHeadPage');

@@ -58,37 +58,43 @@ class TeacherConTroller extends Controller
             'data'  => $data
         ]);
     }
-    public function getInfo($username)
+    public function getInfo(Request $request)
     {
-        $teacher = teacher::select('teachers.teacher_id', 'teachers.username', 'teachers.avatar', 'teachers.email', 'teachers.name', 'teachers.last_login', 'teachers.birthday', 'permissions.permission_detail', 'genders.gender_detail', 'genders.gender_id')
+        $username = $request->user('teachers')->username;
+        $me = teacher::select('teachers.teacher_id', 'teachers.username', 'teachers.avatar', 'teachers.email', 'teachers.name', 'teachers.last_login', 'teachers.birthday', 'permissions.permission_detail', 'genders.gender_detail', 'genders.gender_id')
             ->join('permissions', 'teachers.permission', '=', 'permissions.permission')
             ->join('genders', 'teachers.gender_id', '=', 'genders.gender_id')
             ->where('teachers.username', '=', $username)
             ->first();
-        if ($teacher) {
-            //đẩy view ở đây nha!!
-            return response()->json(['teacher' => $teacher], 200);
-        }
-        return response()->json(['message' => 'Giáo viên không tồn tại!'], 400);
+
+        return response()->json([
+            'message' => 'Lấy thông tin cá nhân thành công!',
+            'data' => $me
+        ], 200);
     }
     public function updateProfile(Request $request)
     {
         $me = $request->user('teachers');
-        // $validator = Validator::make($request->all(), [
-        //     'name' => 'sometimes|min:3|max:255',
-        //     'gender_id' => 'sometimes|integer',
-        //     'birthday' => 'sometimes|date',
-        //     'password' => 'sometimes|min:6|max:20',
-        //     'email' => 'sometimes|email|unique:admins,email',
-        //     'avatar' => 'somtimes|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        // ]);
+        $validator = Validator::make($request->all(), [
+            'name' => 'nullable|min:3|max:255',
+            'gender_id' => 'nullable|integer',
+            'birthday' => 'nullable|date',
+            'password' => 'nullable|min:6|max:20',
+            'email' => 'nullable|email|unique:admins,email',
+            'avatar' => 'nullable|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
 
-        // if ($validator->fails()) {
-        //     return response()->json([
-        //         'status' => false,
-        //         'errors' => $validator->errors(),
-        //     ], 422);
-        // }
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+        $data = $request->only(['name', 'gender_id', 'birthday', 'email', 'permission']);
+
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt($request->password);
+        }
 
         if ($request->hasFile('avatar')) {
             if ($me->avatar != "avatar-default.jpg") {
@@ -99,17 +105,18 @@ class TeacherConTroller extends Controller
             $imagePath = $image->storeAs('images',  $imageName, 'public');
             $data['avatar'] = '/storage/' . $imagePath;
         }
-
-        if ($request->filled('password')) {
-            $data['password'] = bcrypt($request->password);
-        }
-
         $me->update($data);
 
-        return response()->json([
-            'status' => true,
-            'message' => "Cập nhập tài khoản cá nhân thành công!"
-        ]);
+        if ($request->filled('password')) {
+            return response()->json([
+                'message' => "Thay đổi mật khẩu thành công thành công!",
+            ], 200);
+        } else {
+            return response()->json([
+                'message' => "Cập nhập tài khoản cá nhân thành công!",
+                'data' => $me
+            ], 201);
+        }
     }
 
     public function getStudent(Request $request)
@@ -806,7 +813,7 @@ class TeacherConTroller extends Controller
 
         return response()->json([
             'message' => 'Thông báo được truy xuất thành công!',
-            'notifications' => $notifications
+            'data' => $notifications,
         ], 200);
     }
 

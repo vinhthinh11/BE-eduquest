@@ -55,39 +55,45 @@ class Admincontroller extends Controller
         ]);
     }
 
-    public function getInfo($username)
+    public function getInfo(Request $request)
     {
-        $admin = Admin::select('admins.admin_id', 'admins.username', 'admins.avatar', 'admins.email', 'admins.name', 'admins.last_login', 'admins.birthday', 'permissions.permission_detail', 'genders.gender_detail', 'genders.gender_id')
+        $username = $request->user("admins")->username;
+        $me = Admin::select('admins.admin_id', 'admins.username', 'admins.avatar', 'admins.email', 'admins.name', 'admins.last_login', 'admins.birthday', 'permissions.permission_detail', 'genders.gender_detail', 'genders.gender_id')
             ->join('permissions', 'admins.permission', '=', 'permissions.permission')
             ->join('genders', 'admins.gender_id', '=', 'genders.gender_id')
             ->where('admins.username', '=', $username)
             ->first();
-    if ($admin) {
-        //đẩy view ở đây nha!!
-        //return view('admin.info', ['admin' => $admin]);
-        return response()->json(['admin' => $admin], 200);
-    }
-        return response()->json(['message' => 'Admin không tồn tại!'], 404);
+
+        return response()->json([
+            'message' => 'Lấy thông tin cá nhân thành công!',
+            'data' => $me
+        ], 200);
     }
 
     public function updateProfile(Request $request)
     {
         $me = $request->user('admins');
-        // $validator = Validator::make($request->all(), [
-        //     'name' => 'sometimes|min:3|max:255',
-        //     'gender_id' => 'sometimes|integer',
-        //     'birthday' => 'sometimes|date',
-        //     'password' => 'sometimes|min:6|max:20',
-        //     'email' => 'sometimes|email|unique:admins,email',
-        //     'avatar' => 'somtimes|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        // ]);
+        $validator = Validator::make($request->all(), [
+            'name' => 'nullable|min:3|max:255',
+            'gender_id' => 'nullable|integer',
+            'birthday' => 'nullable|date',
+            'password' => 'nullable|min:6|max:20',
+            'email' => 'nullable|email|unique:admins,email',
+            'avatar' => 'nullable|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
 
-        // if ($validator->fails()) {
-        //     return response()->json([
-        //         'status' => false,
-        //         'errors' => $validator->errors(),
-        //     ], 422);
-        // }
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $data = $request->only(['name', 'gender_id', 'birthday', 'email', 'permission']);
+
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt($request->password);
+        }
 
         if ($request->hasFile('avatar')) {
             if ($me->avatar != "avatar-default.jpg") {
@@ -99,84 +105,24 @@ class Admincontroller extends Controller
             $data['avatar'] = '/storage/' . $imagePath;
         }
 
-        if ($request->filled('password')) {
-            $data['password'] = bcrypt($request->password);
-        }
-
         $me->update($data);
 
-        return response()->json([
-            'status' => true,
-            'message' => "Cập nhập tài khoản cá nhân thành công!"
-        ]);
-    }
-
-    public function submitLogin(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            //'username' => 'required|string|exists:admins,username',
-            'email'    => 'required|email',
-            'password' => 'required|string|max:20|min:6',
-        ], [
-            // 'username.required' => 'Tên đăng nhập là bắt buộc!',
-            // 'username.exists'   => 'Tên đăng nhập không tồn tại!',
-            'email.required'    => 'Email là bắt buộc!',
-            'email.email'       => 'Email phải là định dạng hợp lệ!',
-            'password.required' => 'Mật khẩu là bắt buộc!',
-            'password.min'      => 'Mật khẩu tối thiểu 6 kí tự!',
-            'password.max'      => 'Mật khẩu tối đa 20 kí tự!',
-        ]);
-
-        if ($validator->fails()) {
+        if ($request->filled('password')) {
             return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-        $result = [];
-
-        if ($request->has('email') && $request->has('password')) {
-            $email = $request->input('email');
-            $password = $request->input('password');
-
-
-            $admin = DB::table('admins')
-                ->select('permission')
-                ->where('email', $email)
-                ->orWhere('email', $password)
-                ->first();
-
-            if ($admin) {
-                $permission = $admin->permission;
-            }
-
-            $token  = Auth::guard('api')->attempt([
-                'email'    => $email,
-                'password'    => $password,
-            ]);
-            // dd($token);
-            if ($token) {
-                return response()->json([
-                    'result' =>  "Đăng nhập thành công",
-                    'access_token' => $token,
-                    'permission' => $permission,
-                    'expires_in' => JWTAuth::factory()->getTTL() * 6000
-                ]);
-            } else {
-                return response()->json([
-                    'mesage' =>  "Tài khoản hoặc mật khẩu không đúng!",
-                ], 403);
-            }
+                'message' => "Thay đổi mật khẩu thành công thành công!",
+            ], 200);
+        } else {
+            return response()->json([
+                'message' => "Cập nhập tài khoản cá nhân thành công!",
+                'data' => $me
+            ], 201);
         }
     }
-
     public function logout(Request $request)
     {
         Auth::guard('api')->logout();
         return redirect('api/admin/login');
     }
-
-
     public function check_add_admin_via_file(Request $request)
     {
         $validator = Validator::make($request->all(), [

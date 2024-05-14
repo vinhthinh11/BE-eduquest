@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\classes;
-use App\Models\grade;
 use Illuminate\Http\Request;
 use App\Models\notifications;
 use App\Models\student_notifications;
@@ -159,7 +158,7 @@ class AdminNotificationController extends Controller
         }
         // Lấy danh sách tất cả các giáo viên trong hệ thống
         $allTeachers = Teacher::pluck('teacher_id');
-        $notification = new Notifications([
+        $notification = notifications::create([
             'username' => $user->username,
             'name' => $user->name,
             'notification_title' => $request->notification_title,
@@ -180,7 +179,7 @@ class AdminNotificationController extends Controller
         ], 200);
     }
 
-    public function sendAllGrade(Request $request)
+    public function sendAlClasses(Request $request)
     {
         $user = $request->user('admins');
         $validator = Validator::make($request->all(), [

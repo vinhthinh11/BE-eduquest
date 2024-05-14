@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageSent;
 use App\Models\chats;
 use App\Models\practice;
 use App\Models\practice_scores;
@@ -24,19 +25,19 @@ use Ramsey\Uuid\Uuid;
 
 class StudentController extends Controller
 {
-    public function getInfo($username)
+    public function getInfo(Request $request)
     {
-        $student = student::select('students.student_id', 'students.username', 'students.avatar', 'students.email', 'students.name', 'students.last_login', 'students.birthday', 'permissions.permission_detail', 'genders.gender_detail', 'genders.gender_id')
+        $username = $request->user('students')->username;
+        $me = student::select('students.student_id', 'students.username', 'students.avatar', 'students.email', 'students.name', 'students.last_login', 'students.birthday', 'permissions.permission_detail', 'genders.gender_detail', 'genders.gender_id')
             ->join('permissions', 'students.permission', '=', 'permissions.permission')
             ->join('genders', 'students.gender_id', '=', 'genders.gender_id')
             ->where('students.username', '=', $username)
             ->first();
-        if ($student) {
-            //đẩy view ở đây nha!!
-            //return view('student.info', ['student' => $student]);
-            return response()->json(['student' => $student], 200);
-        }
-        return response()->json(['message' => 'Học sinh không tồn tại!'], 404);
+
+        return response()->json([
+            'message' => 'Lấy thông tin cá nhân thành công!',
+            'data' => $me
+        ], 200);
     }
     public function getScore(Request $request)
     {
@@ -113,21 +114,26 @@ class StudentController extends Controller
     public function updateProfile(Request $request)
     {
         $me = $request->user('students');
-        // $validator = Validator::make($request->all(), [
-        //     'name' => 'sometimes|min:3|max:255',
-        //     'gender_id' => 'sometimes|integer',
-        //     'birthday' => 'sometimes|date',
-        //     'password' => 'sometimes|min:6|max:20',
-        //     'email' => 'sometimes|email|unique:admins,email',
-        //     'avatar' => 'somtimes|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        // ]);
+        $validator = Validator::make($request->all(), [
+            'name' => 'nullable|min:3|max:255',
+            'gender_id' => 'nullable|integer',
+            'birthday' => 'nullable|date',
+            'password' => 'nullable|min:6|max:20',
+            'email' => 'nullable|email|unique:admins,email',
+            'avatar' => 'nullable|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
 
-        // if ($validator->fails()) {
-        //     return response()->json([
-        //         'status' => false,
-        //         'errors' => $validator->errors(),
-        //     ], 422);
-        // }
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+        $data = $request->only(['name', 'gender_id', 'birthday', 'email', 'permission']);
+
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt($request->password);
+        }
 
         if ($request->hasFile('avatar')) {
             if ($me->avatar != "avatar-default.jpg") {
@@ -138,52 +144,18 @@ class StudentController extends Controller
             $imagePath = $image->storeAs('images',  $imageName, 'public');
             $data['avatar'] = '/storage/' . $imagePath;
         }
-
-        if ($request->filled('password')) {
-            $data['password'] = bcrypt($request->password);
-        }
-
         $me->update($data);
 
-        return response()->json([
-            'status' => true,
-            'message' => "Cập nhập tài khoản cá nhân thành công!"
-        ]);
-    }
-    public function updateAvatarProfile(Request $request)
-    {
-        $user = $request->user('students');
-
-        $validator = Validator::make($request->all(), [
-            'avatar' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        ], [
-            'avatar.required' => 'Vui lòng chọn hình ảnh đại diện',
-            'avatar.image' => 'Vui lòng chọn hình ảnh đại diện',
-            'avatar.mimes' => 'Vui lòng chọn hình ảnh đúng định dạng (jpeg, png, jpg, gif, svg)',
-            'avatar.max' => 'Kích thước hình ảnh không được vượt quá 2048KB',
-        ]);
-
-        if ($validator->fails()) {
+        if ($request->filled('password')) {
             return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
+                'message' => "Thay đổi mật khẩu thành công thành công!",
+            ], 200);
+        } else {
+            return response()->json([
+                'message' => "Cập nhập tài khoản cá nhân thành công!",
+                'data' => $me
+            ], 201);
         }
-
-        if ($request->hasFile('avatar')) {
-            $image = $request->file('avatar');
-            $path = $image->store('images/student');
-
-            if ($user->avatar) {
-                Storage::delete($user->avatar);
-            }
-
-            $user->avatar = $path;
-            $user->save();
-
-            return response()->json(['message' => 'Tải lên thành công', 'path' => $path], 200);
-        }
-        return response()->json(['message' => 'Không có tệp nào được tải lên'], 404);
     }
     public function updateDoingExam(Request $request)
     {
@@ -602,16 +574,14 @@ class StudentController extends Controller
             ->get();
         return response()->json(['data' => $data]);
     }
-
     public function sendChat(Request $request)
     {
         $user = $request->user('students');
-
         $validator = Validator::make($request->all(), [
             'chat_content' => 'required|string',
         ], [
-            'chat_content.required' => 'Vui lòng nhập nội dung chat',
-            'chat_content.unique' => 'Nội dung chat đã được gửi',
+            'chat_content.required' => 'Vui lòng nhập nội dung chat!',
+            'chat_content.unique' => 'Nội dung chat đã được gửi!',
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -619,7 +589,8 @@ class StudentController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-        $chat = chats::create([
+
+        $chat = Chats::create([
             'username' => $user->username,
             'name' => $user->name,
             'class_id' => $user->class_id,
@@ -627,9 +598,12 @@ class StudentController extends Controller
             'time_sent' => Carbon::now('Asia/Ho_Chi_Minh'),
         ]);
 
+        // Phát sóng sự kiện
+        broadcast(new MessageSent($chat))->toOthers();
+
         return response()->json([
-            'message'   => 'Gửi tin nhắn thành công!',
-            'chat'=>$chat
+            'message' => "Gửi tin nhắn thành công!",
+            'data' => $chat,
         ], 200);
     }
 
