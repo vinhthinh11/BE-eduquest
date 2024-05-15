@@ -55,7 +55,7 @@ class StudentController extends Controller
     $user = $request->user('students');
     $grade_id = student::with("classes")->where("student_id", $user->student_id)->first()->classes->grade_id;
     $test = tests::where("grade_id", $grade_id)
-                ->where('status_id', '==', 2)
+                ->where('status_id', '=', 2)
                 ->whereNotIn('test_code', function ($query) use ($user) {
                     $query->select('test_code')
                           ->from('scores')
