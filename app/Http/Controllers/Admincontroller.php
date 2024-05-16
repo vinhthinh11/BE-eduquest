@@ -89,7 +89,7 @@ class Admincontroller extends Controller
             ], 422);
         }
 
-        $data = $request->only(['name', 'gender_id', 'birthday', 'email', 'permission']);
+        $data = $request->only(['name', 'username','gender_id', 'birthday', 'email', 'permission']);
 
         if ($request->filled('password')) {
             $data['password'] = bcrypt($request->password);

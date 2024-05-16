@@ -45,7 +45,7 @@ class TBMDuyetDeThiController extends Controller
             ], 422);
         }
         $test = tests::find($test_code);
-        if(!$test) return response()->json(['message' => 'Không tìm thấy đề thi'], 404);
+        if(!$test) return response()->json(['message' => 'Không tìm thấy đề thi'], 400);
         $test->status_id = $request->status_id;
         $test->save();
         return response()->json($test);

@@ -47,7 +47,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::get('/get-subjects', [Admincontroller::class, 'getSubjects'])->name('getSubjects');
         Route::get('/get-level', [Admincontroller::class, 'getLevels'])->name('getLevel');
         Route::post('/search', [Admincontroller::class, 'search'])->name('search');
-        Route::post('/check-add-question-via-file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
+        Route::post('/file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
     });
     //  ql test
     Route::group(['prefix' => 'test'], function () {
