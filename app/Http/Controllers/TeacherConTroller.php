@@ -28,15 +28,15 @@ class TeacherConTroller extends Controller
 {
     public function searchOfTest(Request $request)
     {
-    $keySearch = $request->key_search;
+        $keySearch = $request->key_search;
 
-    $data = tests::where('test_code', 'like', '%' . $keySearch . '%')
-                ->orWhere('test_name', 'like', '%' . $keySearch . '%')
-                ->orWhere('subject_id', 'like', '%' . $keySearch . '%')
-                ->orWhere('grade_id', 'like', '%' . $keySearch . '%')
-                ->orWhere('level_id', 'like', '%' . $keySearch . '%')
-                ->orWhere('note', 'like', '%' . $keySearch . '%')
-                ->get();
+        $data = tests::where('test_code', 'like', '%' . $keySearch . '%')
+            ->orWhere('test_name', 'like', '%' . $keySearch . '%')
+            ->orWhere('subject_id', 'like', '%' . $keySearch . '%')
+            ->orWhere('grade_id', 'like', '%' . $keySearch . '%')
+            ->orWhere('level_id', 'like', '%' . $keySearch . '%')
+            ->orWhere('note', 'like', '%' . $keySearch . '%')
+            ->get();
 
         return response()->json([
             'data'  => $data
@@ -44,15 +44,15 @@ class TeacherConTroller extends Controller
     }
     public function searchOfTeacher(Request $request)
     {
-    $keySearch = $request->key_search;
+        $keySearch = $request->key_search;
 
-    $data = questions::where('question_content', 'like', '%' . $keySearch . '%')
-                    ->orWhere('answer_a', 'like', '%' . $keySearch . '%')
-                    ->orWhere('answer_b', 'like', '%' . $keySearch . '%')
-                    ->orWhere('answer_c', 'like', '%' . $keySearch . '%')
-                    ->orWhere('answer_d', 'like', '%' . $keySearch . '%')
-                    ->orWhere('suggest', 'like', '%' . $keySearch . '%')
-                    ->get();
+        $data = questions::where('question_content', 'like', '%' . $keySearch . '%')
+            ->orWhere('answer_a', 'like', '%' . $keySearch . '%')
+            ->orWhere('answer_b', 'like', '%' . $keySearch . '%')
+            ->orWhere('answer_c', 'like', '%' . $keySearch . '%')
+            ->orWhere('answer_d', 'like', '%' . $keySearch . '%')
+            ->orWhere('suggest', 'like', '%' . $keySearch . '%')
+            ->get();
 
         return response()->json([
             'data'  => $data
@@ -126,21 +126,21 @@ class TeacherConTroller extends Controller
         $students = students::join('classes', 'students.class_id', '=', 'classes.class_id')
             ->where('classes.teacher_id', $user->teacher_id)
 
-            ->select("name", "username",'email', "students.student_id", "students.class_id","students.birthday","avatar")->get();
+            ->select("name", "username", 'email', "students.student_id", "students.class_id", "students.birthday", "avatar")->get();
         // ở đây có trường hợp giáo viên chưa chủ nhiệm lớp nào thì số học sinh trả về sẽ là 0
         return response()->json([
             'message' => 'Lấy dữ liệu Lớp thành công!',
             'data' => $students
         ], 200);
     }
-     public function getStudentOfClass(Request $request,$class_id)
+    public function getStudentOfClass(Request $request, $class_id)
     {
         $user = $request->user('teachers');
         //get all student that have class_id in classes that teacher_id is $user->teacher_id
         $students = students::join('classes', 'students.class_id', '=', 'classes.class_id')
             ->where('classes.teacher_id', $user->teacher_id)
             ->where('students.class_id', $class_id)
-            ->select("name", "username",'email', "students.student_id", "students.class_id","students.birthday","avatar")->get();
+            ->select("name", "username", 'email', "students.student_id", "students.class_id", "students.birthday", "avatar")->get();
         // ở đây có trường hợp giáo viên chưa chủ nhiệm lớp nào thì số học sinh trả về sẽ là 0
         return response()->json([
             'message' => 'Lấy dữ liệu Lớp thành công!',
@@ -673,8 +673,8 @@ class TeacherConTroller extends Controller
         // lấy số lượng câu hỏi của giáo viên dạy môn đó trong ngân hang câu hỏi
         $numQuestion = questions::where('subject_id', $user->subject_id)->where('grade_id', $request->grade_id)->where('level_id', $request->level_id)->count();
         // kiểm tra số lượng câu hỏi trong ngân hàng đề thi có đủ hay không
-        if ($numQuestion < $request->total_questions) return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi là".$numQuestion."không đủ!"], 400);
-        if ($numQuestion < $request->total_questions) return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi là".$numQuestion."không đủ!"], 400);
+        if ($numQuestion < $request->total_questions) return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi là" . $numQuestion . "không đủ!"], 400);
+        if ($numQuestion < $request->total_questions) return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi là" . $numQuestion . "không đủ!"], 400);
         $user = $request->user('teachers');
         DB::beginTransaction();
         try {
@@ -769,7 +769,6 @@ class TeacherConTroller extends Controller
                 $result['status_value'] = "Lỗi! Không thể thêm bài thi có STT: " . implode(', ', $err_list) . ', vui lòng xem lại.';
                 $result['status'] = 0;
             }
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -780,22 +779,14 @@ class TeacherConTroller extends Controller
 
         return response()->json($result);
     }
-
-
     public function notificationsToStudent(Request $request)
     {
         $teacherId = $request->user('teachers')->teacher_id;
-        $classId = $request->class_id;
-
-        $notifications = Notifications::whereIn('notification_id', function ($query) use ($classId) {
-            $query->select('notification_id')
-                ->from('student_notifications')
-                ->where('class_id', $classId);
-        })->whereIn('notification_id', function ($query) use ($teacherId) {
-            $query->select('notification_id')
-                ->from('classes')
-                ->where('teacher_id', $teacherId);
-        })->orderBy('time_sent', 'desc')->get();
+        $name = $request->user('teachers')->name;
+        $classId = classes::where('teacher_id', $teacherId)->pluck('class_id');
+        $notifications = notifications::join('student_notifications', 'notifications.notification_id', '=', 'student_notifications.notification_id')
+            ->whereIn('student_notifications.class_id', $classId)->where('name', $name)
+            ->get();
 
         return response()->json([
             'message' => 'Thông báo được truy xuất thành công!',
@@ -861,9 +852,7 @@ class TeacherConTroller extends Controller
         $id = $user->teacher_id;
         return response()->json([
             'message' => 'Gửi thông báo thành công cho các lớp: ' . implode(', ', $classNames),
-            'data' => [
-                'id' => $id,
-                'chat' => $notification],
+            'data' => $notification
         ], 200);
     }
 }

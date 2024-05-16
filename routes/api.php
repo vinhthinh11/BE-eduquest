@@ -192,7 +192,7 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
 
     //Profile
     // Route::get('/info', [TeacherConTroller::class, 'getInfo'])->name('getInfo');
-    // Route::post('/update-profile',      [TeacherConTroller::class, 'updateProfile'])->name('updateProfile');
+    Route::post('/update-profile',      [TeacherConTroller::class, 'updateProfile'])->name('updateProfile');
 
     //Thống kê
     Route::get('/statist/list-all/{teacher_id}', [StatistController::class, 'allTeacherPage'])->name('allTeacherPage');

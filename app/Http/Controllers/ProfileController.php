@@ -12,13 +12,6 @@ class ProfileController extends Controller
 {
     public function updateProfile(Request $request)
     {
-        if (!$request->user()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Người dùng chưa đăng nhập.',
-            ], 401);
-        }
-
         $validator = Validator::make($request->all(), [
             'name' => 'nullable|min:3|max:255',
             'gender_id' => 'nullable|integer',
@@ -26,6 +19,17 @@ class ProfileController extends Controller
             'password' => 'nullable|min:6|max:20',
             'email' => 'nullable|email', new EmailExistsInMultipleTables,
             'avatar' => 'nullable|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ], [
+            'name.min' => 'Tên phải có ít nhất 3 ký tự.',
+            'name.max' => 'Tên không được vượt quá 255 ký tự.',
+            'gender_id.integer' => 'Giới tính phải là số nguyên.',
+            'birthday.date' => 'Ngày sinh phải là ngày hợp lệ.',
+            'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự.',
+            'password.max' => 'Mật khẩu không được vượt quá 20 ký tự.',
+            'email.email' => 'Email phải có định dạng hợp lệ.',
+            'email.unique' => 'Email đã tồn tại trong hệ thống.',
+            'avatar.mimes' => 'Ảnh đại diện phải là các định dạng: jpeg, png, jpg, gif, svg.',
+            'avatar.max' => 'Kích thước ảnh đại diện không được vượt quá 2048 KB.',
         ]);
 
         if ($validator->fails()) {
@@ -34,30 +38,55 @@ class ProfileController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-
-        $me = $request->user();
-
-        $data = $request->only(['name', 'gender_id', 'birthday', 'email', 'permission']);
-
+        //kiểm tra người dùng
+        $userType = ['admins', 'subject_heads', 'teachers', 'students'];
+        foreach ($userType as $type) {
+            $user = $request->user($type);
+            if ($user) {
+                break;
+            }
+        }
+        //nếu không thì ré
+        if (!$user) {
+            return response()->json([
+                'message' => 'Người dùng không tồn tại!',
+            ], 403);
+        }
+        //check ra người dùng thì cho phép đổi thông tin
+        $data = $request->only(['name', 'gender_id', 'birthday', 'email']);
+        //password
         if ($request->filled('password')) {
             $data['password'] = bcrypt($request->password);
         }
-
+        //đổi avatar
         if ($request->hasFile('avatar')) {
-            if ($me->avatar != "avatar-default.jpg") {
-                Storage::delete('public/' . str_replace('/storage/', '', $me->avatar));
-            }
             $image = $request->file('avatar');
             $imageName = time() . '.' . $image->getClientOriginalExtension();
-            $imagePath = $image->storeAs('images', $imageName, 'public');
-            $data['avatar'] = '/storage/' . $imagePath;
+            $imagePath = $image->storeAs('images',  $imageName, 'public');
+
+            if ($user->avatar && $user->avatar != "avatar-default.jpg") {
+                Storage::delete('public/' . str_replace('/storage/', '', $user->avatar));
+            }
+
+            // Cập nhật đường dẫn avatar mới
+            $user->avatar = '/storage/' . $imagePath;
         }
+            return response()->json([
+                'message' => "Thay đổi avatar thành công!",
+                'data' => $user->avatar
+            ], 200);
 
-        $me->update($data);
+        $user->update($data);
 
-        return response()->json([
-            'message' => 'Cập nhật thông tin cá nhân thành công!',
-            'data' => $me
-        ], 200);
+        if ($request->filled('password')) {
+            return response()->json([
+                'message' => "Thay đổi mật khẩu thành công thành công!",
+            ], 200);
+        } else {
+            return response()->json([
+                'message' => "Cập nhập tài khoản cá nhân thành công!",
+                'data' => $user
+            ], 200);
+        }
     }
 }
