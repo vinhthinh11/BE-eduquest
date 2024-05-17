@@ -121,7 +121,6 @@ class AuthController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-
         // Kiểm tra OTP và xác nhận mật khẩu mới
         $email = $request->email;
         $otp = $request->otp;

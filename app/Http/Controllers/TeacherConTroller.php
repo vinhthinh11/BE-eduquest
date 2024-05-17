@@ -785,7 +785,7 @@ class TeacherConTroller extends Controller
     public function notificationsToStudent(Request $request)
     {
         $teacherId = $request->user('teachers')->teacher_id;
-        $classId = $request->class_id;
+        $classId = classes::where("teacher_id", $teacherId)->get();
 
         $notifications = Notifications::whereIn('notification_id', function ($query) use ($classId) {
             $query->select('notification_id')
