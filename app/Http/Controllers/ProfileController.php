@@ -60,31 +60,37 @@ class ProfileController extends Controller
         }
         //đổi avatar
         if ($request->hasFile('avatar')) {
+            if ($user->avatar != "avatar-default.jpg") {
+                Storage::delete('public/' . str_replace('/storage/', '', $user->avatar));
+            }
             $image = $request->file('avatar');
             $imageName = time() . '.' . $image->getClientOriginalExtension();
             $imagePath = $image->storeAs('images',  $imageName, 'public');
-
-            if ($user->avatar && $user->avatar != "avatar-default.jpg") {
-                Storage::delete('public/' . str_replace('/storage/', '', $user->avatar));
-            }
-
-            // Cập nhật đường dẫn avatar mới
-            $user->avatar = '/storage/' . $imagePath;
+            $data['avatar'] = '/storage/' . $imagePath;
         }
+
+        $user->update($data);
+
+        if ($request->hasFile('avatar') && $request->filled('password')) {
+            return response()->json([
+                'message' => "Thay đổi mật khẩu và avatar thành công!",
+                'data' => [
+                    'avatar' => $user->avatar,
+                    'password' => "Thay đổi mật khẩu thành công!"
+                ]
+            ], 200);
+        } elseif ($request->hasFile('avatar')) {
             return response()->json([
                 'message' => "Thay đổi avatar thành công!",
                 'data' => $user->avatar
             ], 200);
-
-        $user->update($data);
-
-        if ($request->filled('password')) {
+        } elseif ($request->filled('password')) {
             return response()->json([
-                'message' => "Thay đổi mật khẩu thành công thành công!",
+                'message' => "Thay đổi mật khẩu thành công!",
             ], 200);
         } else {
             return response()->json([
-                'message' => "Cập nhập tài khoản cá nhân thành công!",
+                'message' => "Cập nhật tài khoản cá nhân thành công!",
                 'data' => $user
             ], 200);
         }
