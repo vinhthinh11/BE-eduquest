@@ -14,19 +14,16 @@ use App\Http\Controllers\AdminHSController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TBMDuyetDeThiController;
 use App\Http\Controllers\AdminNotificationController;
+use App\Http\Controllers\ProfileController;
 
 Route::post('login', [AuthController::class, 'login']);
 Route::post('forget-password', [AuthController::class, 'forgetPassword']);
 Route::post('verify-otp-and-reset-password', [AuthController::class, 'verifyOtpAndResetPassword']);
 Route::get('me', [AuthController::class, 'me']);
+Route::post('/update-profile',     [ProfileController::class, 'updateProfile']);
 
 // ----- Route for Admin -----
 Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
-
-    //Profile
-    Route::get('/info',    [Admincontroller::class, 'getInfo'])->name('getInfo');
-    Route::post('/update-profile',     [Admincontroller::class, 'updateProfile'])->name('updateProfile');
-
     //ql Admin
     Route::group(['prefix' => 'admin'], function () {
         Route::get('/get', [Admincontroller::class, 'getAdmin'])->name('getAdmin');
@@ -122,9 +119,9 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
 });
 
 // ----- Route for Student -----
-Route::group(['prefix' => '/student', 'middleware' => 'student'], function () {
-    //Profile
-    Route::get('/info', [StudentController::class, 'getInfo'])->name('getInfo');
+Route::group(['prefix' => '/student'], function () {//, 'middleware' => 'student'
+
+    // Route::get('/info', [StudentController::class, 'getInfo'])->name('getInfo');
     Route::post('/update-profile',      [StudentController::class, 'updateProfile'])->name('updateProfile');
 
     //Thống kê
@@ -194,8 +191,8 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     });
 
     //Profile
-    Route::get('/info', [TeacherConTroller::class, 'getInfo'])->name('getInfo');
-    Route::post('/update-profile',      [TeacherConTroller::class, 'updateProfile'])->name('updateProfile');
+    // Route::get('/info', [TeacherConTroller::class, 'getInfo'])->name('getInfo');
+    // Route::post('/update-profile',      [TeacherConTroller::class, 'updateProfile'])->name('updateProfile');
 
     //Thống kê
     Route::get('/statist/list-all/{teacher_id}', [StatistController::class, 'allTeacherPage'])->name('allTeacherPage');
@@ -225,8 +222,8 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
 // ----- Route for Subject_Head -----
 Route::group(['prefix' => '/subject-head', 'middleware' => 'head_subject'], function () {
     //Profile
-    Route::get('/info', [SubjectHeadController::class, 'getInfo'])->name('getInfo');
-    Route::post('/update-profile',      [SubjectHeadController::class, 'updateProfile'])->name('updateProfile');
+    // Route::get('/info', [SubjectHeadController::class, 'getInfo'])->name('getInfo');
+    // Route::post('/update-profile',      [SubjectHeadController::class, 'updateProfile'])->name('updateProfile');
 
     Route::get('/statist/list-all/{subject_head_id}', [StatistController::class, 'allHeadPage'])->name('allHeadPage');
 

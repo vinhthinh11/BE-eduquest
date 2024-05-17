@@ -78,7 +78,6 @@ class Kernel extends HttpKernel
         'head_subject' => \App\Http\Middleware\CheckHeadSubject::class,
         'teacher' => \App\Http\Middleware\CheckTeacher::class,
         'student' => \App\Http\Middleware\CheckStudent::class,
-        'userinfo' => \App\Http\Middleware\InfoMiddleware::class,
         'CheckStudent' => \App\Http\Middleware\CheckStudentToken::class,
         'CheckTeacher' => \App\Http\Middleware\CheckSTeacherLogin::class,
         'CheckTBM' => \App\Http\Middleware\CheckTbmLogin::class,

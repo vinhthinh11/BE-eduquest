@@ -785,17 +785,11 @@ class TeacherConTroller extends Controller
     public function notificationsToStudent(Request $request)
     {
         $teacherId = $request->user('teachers')->teacher_id;
-        $classId = $request->class_id;
-
-        $notifications = Notifications::whereIn('notification_id', function ($query) use ($classId) {
-            $query->select('notification_id')
-                ->from('student_notifications')
-                ->where('class_id', $classId);
-        })->whereIn('notification_id', function ($query) use ($teacherId) {
-            $query->select('notification_id')
-                ->from('classes')
-                ->where('teacher_id', $teacherId);
-        })->orderBy('time_sent', 'desc')->get();
+        $name = $request->user('teachers')->name;
+        $classId = classes::where('teacher_id', $teacherId)->pluck('class_id');
+       $notifications = notifications::join('student_notifications', 'notifications.notification_id', '=', 'student_notifications.notification_id')
+            ->whereIn('student_notifications.class_id', $classId)->where('name',$name)
+            ->get();
 
         return response()->json([
             'message' => 'Thông báo được truy xuất thành công!',

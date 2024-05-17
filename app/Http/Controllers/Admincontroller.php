@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\admin;
-use App\Models\quest_of_test;
 use App\Models\questions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,16 +11,11 @@ use App\Http\Controllers\Controller;
 use App\Models\grade;
 use App\Models\level;
 use App\Models\status;
-use App\Models\student;
-use App\Models\students;
 use App\Models\subjects;
 use App\Models\tests;
 use Carbon\Carbon;
 use Carbon\CarbonTimeZone;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Tymon\JWTAuth\Facades\JWTAuth;
 
 class Admincontroller extends Controller
 {
@@ -55,74 +49,26 @@ class Admincontroller extends Controller
         ]);
     }
 
-    public function getInfo(Request $request)
-    {
-        $username = $request->user("admins")->username;
-        $me = Admin::select('admins.admin_id', 'admins.username', 'admins.avatar', 'admins.email', 'admins.name', 'admins.last_login', 'admins.birthday', 'permissions.permission_detail', 'genders.gender_detail', 'genders.gender_id')
-            ->join('permissions', 'admins.permission', '=', 'permissions.permission')
-            ->join('genders', 'admins.gender_id', '=', 'genders.gender_id')
-            ->where('admins.username', '=', $username)
-            ->first();
+    // public function getInfo(Request $request)
+    // {
+    //     $username = $request->user("admins")->username;
+    //     $me = Admin::select('admins.admin_id', 'admins.username', 'admins.avatar', 'admins.email', 'admins.name', 'admins.last_login', 'admins.birthday', 'permissions.permission_detail', 'genders.gender_detail', 'genders.gender_id')
+    //         ->join('permissions', 'admins.permission', '=', 'permissions.permission')
+    //         ->join('genders', 'admins.gender_id', '=', 'genders.gender_id')
+    //         ->where('admins.username', '=', $username)
+    //         ->first();
 
-        return response()->json([
-            'message' => 'Lấy thông tin cá nhân thành công!',
-            'data' => $me
-        ], 200);
-    }
+    //     return response()->json([
+    //         'message' => 'Lấy thông tin cá nhân thành công!',
+    //         'data' => $me
+    //     ], 200);
+    // }
 
-    public function updateProfile(Request $request)
-    {
-        $me = $request->user('admins');
-        $validator = Validator::make($request->all(), [
-            'name' => 'nullable|min:3|max:255',
-            'gender_id' => 'nullable|integer',
-            'birthday' => 'nullable|date',
-            'password' => 'nullable|min:6|max:20',
-            'email' => 'nullable|email|unique:admins,email',
-            'avatar' => 'nullable|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $data = $request->only(['name', 'username','gender_id', 'birthday', 'email', 'permission']);
-
-        if ($request->filled('password')) {
-            $data['password'] = bcrypt($request->password);
-        }
-
-        if ($request->hasFile('avatar')) {
-            if ($me->avatar != "avatar-default.jpg") {
-                Storage::delete('public/' . str_replace('/storage/', '' , $me->avatar));
-            }
-            $image = $request->file('avatar');
-            $imageName = time() . '.' . $image->getClientOriginalExtension();
-            $imagePath = $image->storeAs('images' , $imageName, 'public');
-            $data['avatar'] = '/storage/' . $imagePath;
-        }
-
-        $me->update($data);
-
-        if ($request->filled('password')) {
-            return response()->json([
-                'message' => "Thay đổi mật khẩu thành công thành công!",
-            ], 200);
-        } else {
-            return response()->json([
-                'message' => "Cập nhập tài khoản cá nhân thành công!",
-                'data' => $me
-            ], 201);
-        }
-    }
-    public function logout(Request $request)
-    {
-        Auth::guard('api')->logout();
-        return redirect('api/admin/login');
-    }
+    // public function logout(Request $request)
+    // {
+    //     Auth::guard('api')->logout();
+    //     return redirect('api/admin/login');
+    // }
     public function check_add_admin_via_file(Request $request)
     {
         $validator = Validator::make($request->all(), [
