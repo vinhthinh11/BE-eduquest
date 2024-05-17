@@ -38,6 +38,7 @@ return [
             'options' => [
                 'cluster' => env('PUSHER_APP_CLUSTER'),
                 'useTLS' => true,
+                'activityTimeout' => 30000, // 30 seconds
             ],
         ],
 
