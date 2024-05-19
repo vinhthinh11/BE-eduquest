@@ -17,4 +17,13 @@ class student_notifications extends Model
         'class_id'
     ];
     public $timestamps = false;
+    public function notification()
+    {
+        return $this->belongsTo(notifications::class);
+    }
+
+    public function class()
+    {
+        return $this->belongsTo(classes::class, 'class_id', 'class_id');
+    }
 }
