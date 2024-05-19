@@ -43,7 +43,7 @@ class student extends  Authenticatable implements JWTSubject
         'password',
     ];
     public $timestamps = false;
-    public function class()
+    public function classes()
     {
         return $this->belongsTo(classes::class, 'class_id', 'class_id');
     }
@@ -52,7 +52,6 @@ class student extends  Authenticatable implements JWTSubject
     {
         return $this->hasMany(Scores::class, 'student_id', 'student_id');
     }
-
     public function getJWTIdentifier()
     {
         return $this->getKey();
@@ -70,9 +69,6 @@ class student extends  Authenticatable implements JWTSubject
             ->first();
 
         return $test;
-    }
-    public function classes(){
-        return $this->belongsTo(classes::class, 'class_id');
     }
 
     public function getQuestOfTest($testCode)

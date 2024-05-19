@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\classes;
 use App\Models\notifications;
-use App\Models\quest_of_practice;
 use App\Models\quest_of_test;
 use App\Models\questions;
 use App\Models\scores;
@@ -14,7 +13,6 @@ use App\Models\students;
 use App\Models\teacher;
 use App\Models\tests;
 use Carbon\Carbon;
-use Carbon\CarbonTimeZone;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -55,8 +53,24 @@ class TeacherConTroller extends Controller
             ->get();
 
         return response()->json([
-            'data' => $data
+            'data'  => $data
         ]);
+    }
+    public function getResultClass(Request $request, $test_code)
+    {
+        $teacherId = $request->user('teachers')->teacher_id;
+        $classId = classes::where('teacher_id', $teacherId)->pluck('class_id');
+        $show = tests::join('scores', 'tests.test_code', '=', 'scores.test_code')
+                        ->join('students', 'scores.student_id', '=', 'students.student_id')
+                        ->where('students.class_id', $classId)
+                        ->where('tests.test_code', $test_code)
+                        //->select('tests.test_code', 'tests.test_name', 'tests.subject_id', 'tests.grade_id', 'tests.level_id', 'tests.note', 'scores.score_number', 'scores.completion_time')
+                        ->get();
+
+        return response()->json([
+            'message' => 'Dữ liệu kết quả bài test của học sinh trong lớp',
+            'data' => $show
+        ], 200);
     }
     public function getInfo(Request $request)
     {
@@ -124,9 +138,8 @@ class TeacherConTroller extends Controller
         $user = $request->user('teachers');
         $students = students::join('classes', 'students.class_id', '=', 'classes.class_id')
             ->where('classes.teacher_id', $user->teacher_id)
-
-            ->select("name", "username", 'email', "students.student_id", "students.class_id", "students.birthday", "avatar")->get();
-        // ở đây có trường hợp giáo viên chưa chủ nhiệm lớp nào thì số học sinh trả về sẽ là 0
+            ->select("name", "username", 'email', "students.student_id", "students.class_id", "students.birthday", "avatar")
+            ->get();
         return response()->json([
             'message' => 'Lấy dữ liệu Lớp thành công!',
             'data' => $students
@@ -193,32 +206,16 @@ class TeacherConTroller extends Controller
             ]
         ], 200);
     }
-
-    public function getStudentOfClass(Request $request, $class_id)
-    {
-        $user = $request->user('teachers');
-        //get all student that have class_id in classes that teacher_id is $user->teacher_id
-        $students = students::join('classes', 'students.class_id', '=', 'classes.class_id')
-            ->where('classes.teacher_id', $user->teacher_id)
-            ->where('students.class_id', $class_id)
-            ->select("name", "username", 'email', "students.student_id", "students.class_id", "students.birthday", "avatar")->get();
-        // ở đây có trường hợp giáo viên chưa chủ nhiệm lớp nào thì số học sinh trả về sẽ là 0
-        return response()->json([
-            'message' => 'Lấy dữ liệu Lớp thành công!',
-            'data' => $students
-        ], 200);
-    }
     public function getClass(Request $request)
     {
         $user = $request->user('teachers');
         $classes = classes::with('teacher')->where('teacher_id', $user->teacher_id)->get();
 
         return response()->json([
-            'message' => 'Lấy dữ liệu lớp thành công!',
-            'data' => $classes
+            'message'   => 'Lấy dữ liệu lớp thành công!',
+            'data'      => $classes
         ], 200);
     }
-    //show điểm
     public function getScore(Request $request)
     {
         $teacherId = $request->user('teachers')->teacher_id;
@@ -230,14 +227,15 @@ class TeacherConTroller extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'status' => false,
-                'message' => 'Học sinh không tồn tại!',
-                'errors' => $validator->errors(),
+                'status'    => false,
+                'message'   => 'Học sinh không tồn tại!',
+                'errors'    => $validator->errors(),
             ], 422);
         }
 
         // Lấy danh sách class_id mà giáo viên giảng dạy
         $classIds = Classes::where('teacher_id', $teacherId)->pluck('class_id');
+
         // Lấy dữ liệu điểm của học sinh trong các lớp mà giáo viên đang giảng dạy
         $scoreData = Scores::join('students', 'scores.student_id', '=', 'students.student_id')
             ->join('classes', 'students.class_id', '=', 'classes.class_id')
@@ -256,8 +254,8 @@ class TeacherConTroller extends Controller
             ->get();
 
         return response()->json([
-            'message' => 'Lấy điểm của học sinh thành công!',
-            'data' => $scoreData,
+            'message'   => 'Lấy điểm của học sinh thành công!',
+            'data'      => $scoreData,
         ], 200);
     }
     //xuất file điểm
@@ -626,8 +624,13 @@ class TeacherConTroller extends Controller
     public function getTest(Request $request)
     {
         // teacher môn nào chỉ có thể xem test của môn đó
-        $id = $request->user('teachers')->subject_id;
-        $data = tests::with('subject')->where('subject_id', $id)->orderBy('timest', 'desc')->get();
+        $subjectId = $request->user('teachers')->subject_id;
+        $teacherId = $request->user('teachers')->teacher_id;
+        $data  = tests::with('subject')
+                        ->where('subject_id', $subjectId)
+                        ->where('tests.teacher_id', $teacherId)
+                        ->orderBy('timest', 'desc')
+                        ->get();
         return response()->json(["data" => $data]);
     }
     /**

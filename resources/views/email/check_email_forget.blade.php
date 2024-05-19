@@ -20,7 +20,7 @@
             overflow: hidden;
         }
         .header {
-            background-color: #ff0022;
+            background-color: #7300ff;
             color: #ffffff;
             padding: 40px 0;
             text-align: center;
@@ -67,7 +67,7 @@
             <h1>Thông tin mật khẩu mới</h1>
         </div>
         <div class="content">
-            <h2>Xin chào {{$name}},</h2>
+            <h2>Xin chào {{$user->name}},</h2>
             <p>Chúng tôi đã nhận được yêu cầu từ bạn để thiết lập lại mật khẩu cho tài khoản của bạn.</p>
             <p>Dưới đây là mật khẩu mới của bạn:</p>
             <p><strong>Mật khẩu mới:</strong> "<i><strong>{{$newPass}}</strong></i>",</p>

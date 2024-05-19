@@ -2,11 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Support\Facades\DB;
-
 
 class tests extends  Model {
     protected $table = 'tests';
@@ -29,7 +26,7 @@ class tests extends  Model {
     {
         return $this->hasMany(Scores::class, 'test_code', 'test_code');
     }
-    public function questions():BelongsToMany
+       public function questions():BelongsToMany
     {
         return $this->belongsToMany(questions::class, 'quest_of_test', 'test_code', 'question_id');
     }
