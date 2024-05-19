@@ -56,13 +56,15 @@ class TeacherConTroller extends Controller
             'data'  => $data
         ]);
     }
-    public function getResultClass(Request $request)
+    public function getResultClass(Request $request, $test_code)
     {
         $teacherId = $request->user('teachers')->teacher_id;
         $classId = classes::where('teacher_id', $teacherId)->pluck('class_id');
         $show = tests::join('scores', 'tests.test_code', '=', 'scores.test_code')
                         ->join('students', 'scores.student_id', '=', 'students.student_id')
                         ->where('students.class_id', $classId)
+                        ->where('tests.test_code', $test_code)
+                        //->select('tests.test_code', 'tests.test_name', 'tests.subject_id', 'tests.grade_id', 'tests.level_id', 'tests.note', 'scores.score_number', 'scores.completion_time')
                         ->get();
 
         return response()->json([
@@ -623,8 +625,13 @@ class TeacherConTroller extends Controller
     public function getTest(Request $request)
     {
         // teacher môn nào chỉ có thể xem test của môn đó
-        $id = $request->user('teachers')->subject_id;
-        $data  = tests::with('subject')->where('subject_id', $id)->orderBy('timest', 'desc')->get();
+        $subjectId = $request->user('teachers')->subject_id;
+        $teacherId = $request->user('teachers')->teacher_id;
+        $data  = tests::with('subject')
+                        ->where('subject_id', $subjectId)
+                        ->where('tests.teacher_id', $teacherId)
+                        ->orderBy('timest', 'desc')
+                        ->get();
         return response()->json(["data" => $data]);
     }
     /**
