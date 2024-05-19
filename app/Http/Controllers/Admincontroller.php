@@ -48,27 +48,6 @@ class Admincontroller extends Controller
             'data'    => $data,
         ]);
     }
-
-    // public function getInfo(Request $request)
-    // {
-    //     $username = $request->user("admins")->username;
-    //     $me = Admin::select('admins.admin_id', 'admins.username', 'admins.avatar', 'admins.email', 'admins.name', 'admins.last_login', 'admins.birthday', 'permissions.permission_detail', 'genders.gender_detail', 'genders.gender_id')
-    //         ->join('permissions', 'admins.permission', '=', 'permissions.permission')
-    //         ->join('genders', 'admins.gender_id', '=', 'genders.gender_id')
-    //         ->where('admins.username', '=', $username)
-    //         ->first();
-
-    //     return response()->json([
-    //         'message' => 'Lấy thông tin cá nhân thành công!',
-    //         'data' => $me
-    //     ], 200);
-    // }
-
-    // public function logout(Request $request)
-    // {
-    //     Auth::guard('api')->logout();
-    //     return redirect('api/admin/login');
-    // }
     public function check_add_admin_via_file(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -106,7 +85,7 @@ class Admincontroller extends Controller
 
                 $validationRules = [
                     'name' => 'required|string|min:6|max:50',
-                    'username' => 'required|string|min:6|max:50|unique:admins,username',
+                    'username' => 'required|string|min:6|max:50',
                     'email' => 'nullable|email|unique:admins,email',
                     'password' => 'required|string|min:6|max:20',
                     'birthday' => 'nullable|date',
@@ -122,7 +101,6 @@ class Admincontroller extends Controller
                     'username.string' => 'Username phải là chuỗi',
                     'username.min' => 'Username phải chứa ít nhất 6 ký tự',
                     'username.max' => 'Username chỉ được chứa tối đa 50 ký tự',
-                    'username.unique' => 'Username đã tồn tại',
                     'email.email' => 'Email không đúng định dạng',
                     'email.unique' => 'Email đã được sử dụng',
                     'password.required' => 'Password không được để trống',
@@ -184,7 +162,7 @@ class Admincontroller extends Controller
             $result['status'] = false;
         }
 
-        return response()->json($result, 200, [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        return response()->json($result,  $result['status'], [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     }
     public function indexAdmin()
     {
@@ -359,7 +337,6 @@ class Admincontroller extends Controller
         $result = [];
 
         $subjectId = $request->subject_id;
-        // $subjectId = 10;
         $inputFileType = 'Xlsx';
         $count = 0;
         $errList = [];
@@ -376,7 +353,6 @@ class Admincontroller extends Controller
                     continue;
                 }
 
-                $answers = [];
                 $stt = $row['A'];
                 $questionContent = $row['B'];
                 $levelId = $row['C'];
@@ -388,22 +364,7 @@ class Admincontroller extends Controller
                 $gradeId = $row['I'];
                 $unit = $row['J'];
                 $suggest = $row['K'];
-                $teacherId = null;
-                switch ($correctAnswer) {
-                    case "A":
-                        $answer = $answerA;
-                        break;
-                    case "B":
-                        $answer = $answerB;
-                        break;
-                    case "C":
-                        $answer = $answerC;
-                        break;
-                    default:
-                        $answer = $answerD;
-                }
-
-                if (!empty($questionContent) && $teacherId == null) {
+                if (!empty($questionContent)) {
                     $question = new questions([
                         'subject_id' => $subjectId,
                         'question_content' => $questionContent,
@@ -412,12 +373,12 @@ class Admincontroller extends Controller
                         'answer_b' => $answerB,
                         'answer_c' => $answerC,
                         'answer_d' => $answerD,
-                        'correct_answer' => $answer,
+                        'correct_answer' => $correctAnswer,
                         'grade_id' => $gradeId,
                         'unit' => $unit,
                         'suggest' => $suggest,
                         'status_id' => 3,
-                        'teacher_id' => $teacherId,
+                        'teacher_id' => null,
                     ]);
 
                     // Lưu câu hỏi vào cơ sở dữ liệu

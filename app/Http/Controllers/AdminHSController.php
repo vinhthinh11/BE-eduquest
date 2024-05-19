@@ -90,7 +90,7 @@ class AdminHSController extends Controller
         }
     }
 
-    public function check_add_admin_via_file(Request $request)
+    public function check_add_hs_via_file(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'file' => 'required|file|mimes:xlsx',
@@ -127,11 +127,12 @@ class AdminHSController extends Controller
 
                 $validationRules = [
                     'name' => 'required|string|min:6|max:50',
-                    'username' => 'required|string|min:6|max:50|unique:students,username',
+                    'username' => 'required|string|min:6|max:50',
                     'email' => 'nullable|email|unique:students,email',
                     'password' => 'required|string|min:6|max:20',
                     'birthday' => 'nullable|date',
                     'gender' => 'required|string|in:Nam,Nữ,Khác',
+                    'class_id" => "required|integer|exists:classes,class_id'
                 ];
 
                 $validationMessages = [
@@ -143,7 +144,6 @@ class AdminHSController extends Controller
                     'username.string' => 'Username phải là chuỗi',
                     'username.min' => 'Username phải chứa ít nhất 6 ký tự',
                     'username.max' => 'Username chỉ được chứa tối đa 50 ký tự',
-                    'username.unique' => 'Username đã tồn tại',
                     'email.email' => 'Email không đúng định dạng',
                     'email.unique' => 'Email đã được sử dụng',
                     'password.required' => 'Password không được để trống',
@@ -154,6 +154,8 @@ class AdminHSController extends Controller
                     'gender.required' => 'Giới tính không được để trống',
                     'gender.string' => 'Giới tính phải là chuỗi',
                     'gender.in' => 'Giới tính không hợp lệ',
+                    'class_id.required' => 'Lớp không được để trống',
+                    'class_id.exists' => 'Lớp không tồn tại',
                 ];
 
                 $dataToValidate = [
@@ -163,6 +165,7 @@ class AdminHSController extends Controller
                     'password' => $row['E'],
                     'birthday' => $row['F'],
                     'gender' => $row['G'],
+                    'class_id' => $row['H'],
                 ];
 
                 $customValidator = Validator::make($dataToValidate, $validationRules, $validationMessages);
@@ -181,6 +184,7 @@ class AdminHSController extends Controller
                     'password' => $password,
                     'birthday' => $row['F'],
                     'gender_id' => $gender,
+                    'class_id' => $row['H'],
                     'last_login' => Carbon::now(CarbonTimeZone::createFromHourOffset(7 * 60))->timezone('Asia/Ho_Chi_Minh'),
                 ]);
 
@@ -195,17 +199,17 @@ class AdminHSController extends Controller
 
             if (empty($errDetails)) {
                 $result['status_value'] = "Thêm thành công " . $count . " tài khoản Học Sinh!";
-                $result['status'] = true;
+                $result['status'] = 200;
             } else {
                 $result['status_value'] = "Lỗi! Thông tin lỗi cụ thể cho từng tài khoản: " . json_encode($errDetails, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-                $result['status'] = 404;
+                $result['status'] = 422;
             }
         } else {
             $result['status_value'] = "Không tìm thấy tệp được tải lên";
-            $result['status'] = false;
+            $result['status'] = 400;
         }
 
-        return response()->json($result, 200, [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        return response()->json($result,$result['status'], [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     }
     public function createHS(Request $request)
     {

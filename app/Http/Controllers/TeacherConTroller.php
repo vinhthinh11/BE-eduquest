@@ -37,7 +37,7 @@ class TeacherConTroller extends Controller
             ->get();
 
         return response()->json([
-            'data'  => $data
+            'data' => $data
         ]);
     }
     public function searchOfTeacher(Request $request)
@@ -116,7 +116,7 @@ class TeacherConTroller extends Controller
             }
             $image = $request->file('avatar');
             $imageName = time() . '.' . $image->getClientOriginalExtension();
-            $imagePath = $image->storeAs('images',  $imageName, 'public');
+            $imagePath = $image->storeAs('images', $imageName, 'public');
             $data['avatar'] = '/storage/' . $imagePath;
         }
         $me->update($data);
@@ -258,7 +258,6 @@ class TeacherConTroller extends Controller
             'data'      => $scoreData,
         ], 200);
     }
-
     //xuất file điểm
     public function exportScore(Request $request)
     {
@@ -266,7 +265,7 @@ class TeacherConTroller extends Controller
             'test_code' => 'required|string|max:255',
         ], [
             'test_code.required' => 'Mã bài thi không được để trống!',
-            'test_code.max'      => 'Mã bài thi không quá 255 kí tự!',
+            'test_code.max' => 'Mã bài thi không quá 255 kí tự!',
         ]);
 
         if ($validator->fails()) {
@@ -510,7 +509,7 @@ class TeacherConTroller extends Controller
         ]);
         if ($validator->fails()) {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => $validator->errors(),
             ], 422);
         }
@@ -518,7 +517,7 @@ class TeacherConTroller extends Controller
 
         if (!$question) {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => 'Câu hỏi không tồn tại!'
             ]);
         }
@@ -526,14 +525,14 @@ class TeacherConTroller extends Controller
             $question->delete();
 
             return response()->json([
-                'status'  => true,
+                'status' => true,
                 'message' => 'Xóa câu hỏi thành công!'
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => 'Câu hỏi đang tồn tại ở ngân hàng câu hỏi!',
-                'data'    => $e
+                'data' => $e
             ]);
         }
     }
@@ -541,28 +540,28 @@ class TeacherConTroller extends Controller
     public function updateQuestion(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'question_id'       => 'required|integer|exists:questions,question_id',
-            'question_content'  => 'nullable|string',
-            'level_id'          => 'required|nullable|integer|exists:levels,level_id',
-            'answer_a'          => 'nullable|string',
-            'answer_b'          => 'nullable|string',
-            'answer_c'          => 'nullable|string',
-            'answer_d'          => 'nullable|string',
-            'correct_answer'    => 'nullable',
-            'grade_id'          => 'nullable|integer|exists:grades,grade_id',
-            'unit'              => 'nullable|string',
-            'suggest'           => 'nullable|string',
-            'status_id'         => 'nullable|integer|in:1,2,3',
-            'teacher_id'        => 'nullable|integer|exists:teachers,teacher_id',
+            'question_id' => 'required|integer|exists:questions,question_id',
+            'question_content' => 'nullable|string',
+            'level_id' => 'required|nullable|integer|exists:levels,level_id',
+            'answer_a' => 'nullable|string',
+            'answer_b' => 'nullable|string',
+            'answer_c' => 'nullable|string',
+            'answer_d' => 'nullable|string',
+            'correct_answer' => 'nullable',
+            'grade_id' => 'nullable|integer|exists:grades,grade_id',
+            'unit' => 'nullable|string',
+            'suggest' => 'nullable|string',
+            'status_id' => 'nullable|integer|in:1,2,3',
+            'teacher_id' => 'nullable|integer|exists:teachers,teacher_id',
         ], [
-            'question_id.required'      => 'ID câu hỏi là bắt buộc!',
-            'question_id.exists'        => 'Không tìm thấy câu hỏi với ID đã chọn!',
-            'level_id.exists'           => 'Không tìm thấy level với ID đã chọn!',
-            'level_id.required'         => 'Level bắt buộc!',
-            'grade_id.exists'           => 'Không tìm thấy grade với ID đã chọn!',
-            'status_id.in'              => 'Cấp độ không được để trống!',
-            'teacher_id.integer'        => 'Teacher ID phải là số nguyên!',
-            'teacher_id.exists'         => 'Không tìm thấy giáo viên với ID đã chọn!',
+            'question_id.required' => 'ID câu hỏi là bắt buộc!',
+            'question_id.exists' => 'Không tìm thấy câu hỏi với ID đã chọn!',
+            'level_id.exists' => 'Không tìm thấy level với ID đã chọn!',
+            'level_id.required' => 'Level bắt buộc!',
+            'grade_id.exists' => 'Không tìm thấy grade với ID đã chọn!',
+            'status_id.in' => 'Cấp độ không được để trống!',
+            'teacher_id.integer' => 'Teacher ID phải là số nguyên!',
+            'teacher_id.exists' => 'Không tìm thấy giáo viên với ID đã chọn!',
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -641,8 +640,9 @@ class TeacherConTroller extends Controller
     {
         // teacher môn nào chỉ có thể xem test của môn đó
         $questions = [];
-        $data  = tests::find($test_code);
-        if (!$data) return response()->json(["message" => "Không tìm thấy đề thi!"], 400);
+        $data = tests::find($test_code);
+        if (!$data)
+            return response()->json(["message" => "Không tìm thấy đề thi!"], 400);
         foreach ($data->questions as $question) {
             $questions[] = $question;
         }
@@ -660,13 +660,16 @@ class TeacherConTroller extends Controller
         $test = tests::find($test_code);
 
         // kiểm tra xem đề thi có tồn tại không
-        if (!$test) return response()->json(["message" => "Không tìm thấy đề thi!"], 400);
+        if (!$test)
+            return response()->json(["message" => "Không tìm thấy đề thi!"], 400);
 
         // kiểm tra xem đề thi có phải của môn học mà giáo viên dạy không
-        if ($test->subject_id != $id->subject_id) return response()->json(["message" => "Đề thi không phải của môn học mà giáo viên dạy!"], 400);
+        if ($test->subject_id != $id->subject_id)
+            return response()->json(["message" => "Đề thi không phải của môn học mà giáo viên dạy!"], 400);
 
         // kiểm tra xem đề thi đã duyệt chưa
-        if ($test->status_id != 3) return response()->json(["message" => "Đề thi đã duyệt không thể xóa!"], 400);
+        if ($test->status_id != 3)
+            return response()->json(["message" => "Đề thi đã duyệt không thể xóa!"], 400);
         $test->delete();
         return response()->json(["message" => "Xóa thành công đề thi", "data" => $test]);
     }
@@ -679,9 +682,9 @@ class TeacherConTroller extends Controller
     public function updateTest(Request $request, $test_code)
     {
         $validator = Validator::make($request->all(), [
-            'time_to_do'   => 'sometimes|numeric|min:15|max:120',
-            'password'      => 'sometimes|string|min:6|max:20',
-            'note'          => 'sometimes|string',
+            'time_to_do' => 'sometimes|numeric|min:15|max:120',
+            'password' => 'sometimes|string|min:6|max:20',
+            'note' => 'sometimes|string',
         ], [
             'teacher_id.exists' => 'Không tìm thấy Giáo viên!',
             'subject_id.exists' => 'Không tìm thấy Môn học!',
@@ -694,7 +697,7 @@ class TeacherConTroller extends Controller
         $data = $request->all();
         if ($request->password)
             $data['password'] = bcrypt($request->password);
-        $test  = tests::find($test_code)
+        $test = tests::find($test_code)
             ->update($data);
 
         return response()->json([
@@ -709,16 +712,16 @@ class TeacherConTroller extends Controller
     public function createTest(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'test_name'  => 'string|unique:tests,test_name',
+            'test_name' => 'string|unique:tests,test_name',
             'total_questions' => 'integer|min:10|max:100',
-            'password'      => 'required|string|min:6|max:10',
+            'password' => 'required|string|min:6|max:10',
             'grade_id' => 'integer|exists:grades,grade_id',
             'level_id' => 'required|integer|exists:levels,level_id',
-            'time_to_do'   => 'required|numeric|min:10|max:120',
+            'time_to_do' => 'required|numeric|min:10|max:120',
         ], [
-            'test_name.unique'  => 'Tên đề không nên trùng nhau!',
-            'password.min'      => 'Password tối thiểu 6 kí tự!',
-            'grade_id.exists'   => 'Không tìm thấy Lớp!',
+            'test_name.unique' => 'Tên đề không nên trùng nhau!',
+            'password.min' => 'Password tối thiểu 6 kí tự!',
+            'grade_id.exists' => 'Không tìm thấy Lớp!',
             'total_questions.min' => 'Tối thiểu 10 câu hỏi trong đề!',
             'level_id.required' => 'Level_id là bắt buộc!',
             'time_to_do.min' => 'Thời gian làm bài tối thiếu là 10 phút!',
@@ -730,8 +733,10 @@ class TeacherConTroller extends Controller
         // lấy số lượng câu hỏi của giáo viên dạy môn đó trong ngân hang câu hỏi
         $numQuestion = questions::where('subject_id', $user->subject_id)->where('grade_id', $request->grade_id)->where('level_id', $request->level_id)->count();
         // kiểm tra số lượng câu hỏi trong ngân hàng đề thi có đủ hay không
-        if ($numQuestion < $request->total_questions) return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi là" . $numQuestion . "không đủ!"], 400);
-        if ($numQuestion < $request->total_questions) return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi là" . $numQuestion . "không đủ!"], 400);
+        if ($numQuestion < $request->total_questions)
+            return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi là" . $numQuestion . "không đủ!"], 400);
+        if ($numQuestion < $request->total_questions)
+            return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi là" . $numQuestion . "không đủ!"], 400);
         $user = $request->user('teachers');
         DB::beginTransaction();
         try {
@@ -759,7 +764,7 @@ class TeacherConTroller extends Controller
     {
         $validator = Validator::make($request->all(), [
             'test_code' => 'required|integer|exists:tests,test_code',
-            'file'      => 'required|file|mimes:xlsx,xls',
+            'file' => 'required|file|mimes:xlsx,xls',
         ], [
             'test_code.exists' => 'Không tìm thấy đề!',
             'file.mimes' => 'File phải là Excel!',
