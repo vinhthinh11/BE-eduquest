@@ -45,6 +45,21 @@ class StudentController extends Controller
         $scores = scores::where('student_id', $student->student_id)->orderBy('completion_time','desc')-> get();
         return response()->json(['data' => $scores], 200);
     }
+
+    public function getAllScore(Request $request)
+    {
+        $user = $request->user('students');
+        if (!$user) {
+            return response()->json(['error' => 'Không tìm thấy tài khoản'], 403);
+        }
+
+        // Lấy tất cả điểm của học sinh đã đăng nhập và sắp xếp theo thời gian hoàn thành giảm dần
+        $scores = Scores::where('student_id', $user->student_id)
+                        ->orderBy('completion_time', 'desc')
+                        ->get();
+
+        return response()->json(['data' => $scores], 200);
+    }
     public function getPracticeScore(Request $request)
     {
         $student = $request->user('students');
@@ -614,7 +629,7 @@ class StudentController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Người dùng không hợp lệ!',
-            ], 401);
+            ], 403);
         }
 
         $validator = Validator::make($request->all(), [
@@ -649,6 +664,13 @@ class StudentController extends Controller
 
     public function editChat(Request $request)
     {
+        $user = $request->user('students');
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Người dùng không hợp lệ!',
+            ], 401);
+        }
         $validator = Validator::make($request->all(), [
             'chat_content' => 'required|string',
         ], [
@@ -659,14 +681,6 @@ class StudentController extends Controller
                 'status' => false,
                 'errors' => $validator->errors(),
             ], 422);
-        }
-
-        $user = $request->user('students');
-        if (!$user) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Người dùng không hợp lệ!',
-            ], 401);
         }
 
         $chat = Chats::where('username', $user->username)->where('ID', $request->ID)->first();

@@ -119,24 +119,23 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
 });
 
 // ----- Route for Student -----
-Route::group(['prefix' => '/student'], function () {//, 'middleware' => 'student'
-
-    // Route::get('/info', [StudentController::class, 'getInfo'])->name('getInfo');
-    Route::post('/update-profile',      [StudentController::class, 'updateProfile'])->name('updateProfile');
-
+Route::group(['prefix' => '/student','middleware' => 'student'], function () {
     //Thống kê
     Route::group(['prefix' => 'statist'], function () {
         Route::get('/get',         [StatistController::class, 'statistStudent'])->name('statistStudent');
         Route::get('/subject-score', [StatistController::class, 'subjectScore'])->name('subjectScore');
         Route::get('/list-all', [StatistController::class, 'allStudentPage'])->name('allStudentPage');
     });
+
+    // Test
     Route::group(['prefix' => '/test'], function () {
-    Route::get('/get', [StudentController::class, 'getTest'])->name('getTest');
-    Route::get('/get/{test_code}', [StudentController::class, 'getTestDetail'])->name('getTestDetail');
-    Route::post('/start', [StudentController::class, 'beginDoingTest'])->name('beginDoingTest');
-    Route::post('/answer', [StudentController::class, 'updateAnswer'])->name('updateAnswer');
-    Route::post('/submit', [StudentController::class, 'submitTest'])->name('submitTest');
-});
+        Route::get('/get', [StudentController::class, 'getTest'])->name('getTest');
+        Route::get('/get/{test_code}', [StudentController::class, 'getTestDetail'])->name('getTestDetail');
+        Route::post('/start', [StudentController::class, 'beginDoingTest'])->name('beginDoingTest');
+        Route::post('/answer', [StudentController::class, 'updateAnswer'])->name('updateAnswer');
+        Route::post('/submit', [StudentController::class, 'submitTest'])->name('submitTest');
+    });
+
     // student practice
     Route::group(['prefix' => '/practice'], function () {
         Route::get('/get', [StudentController::class, 'getPractice'])->name('getPractice');
@@ -146,9 +145,11 @@ Route::group(['prefix' => '/student'], function () {//, 'middleware' => 'student
         Route::post('/submit', [StudentController::class, 'submitPractice'])->name('submitPractice');
         Route::get('/result', [StudentController::class, 'getPracticeScore'])->name('resultPractice');
         Route::get('/result/{practice_code}', [StudentController::class, 'getResultPractice'])->name('getResultPractice');
-});
+    });
+
     Route::group(['prefix'=> 'score'], function () {
         Route::get('/get', [StudentController::class, 'getScore'])->name('getScore');
+        Route::get('/get-all-score', [StudentController::class, 'getAllScore'])->name('getAllScore');
 
     });
 
@@ -190,10 +191,6 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
         Route::post('/search', [TeacherConTroller::class, 'searchOfTeacher'])->name('searchOfTeacher');
     });
 
-    //Profile
-    // Route::get('/info', [TeacherConTroller::class, 'getInfo'])->name('getInfo');
-    Route::post('/update-profile',      [TeacherConTroller::class, 'updateProfile'])->name('updateProfile');
-
     //Thống kê
     Route::get('/statist/list-all/{teacher_id}', [StatistController::class, 'allTeacherPage'])->name('allTeacherPage');
 
@@ -209,7 +206,8 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     });
     Route::group(['prefix' => '/student'], function () {
         Route::get('/get', [TeacherConTroller::class, 'getStudent'])->name('getStudent');
-        Route::get('/get/{class_id}', [TeacherConTroller::class, 'getStudentOfClass'])->name('getStudent');
+        Route::get('/detail', [TeacherConTroller::class, 'detailStudent'])->name('detailStudent');
+        Route::get('/result/{test_code}', [TeacherConTroller::class, 'getResultClass'])->name('getResultClass');
     });
     // Thông báo
     Route::group(['prefix' => '/notification'], function () {
@@ -221,9 +219,6 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
 
 // ----- Route for Subject_Head -----
 Route::group(['prefix' => '/subject-head', 'middleware' => 'head_subject'], function () {
-    //Profile
-    // Route::get('/info', [SubjectHeadController::class, 'getInfo'])->name('getInfo');
-    // Route::post('/update-profile',      [SubjectHeadController::class, 'updateProfile'])->name('updateProfile');
 
     Route::get('/statist/list-all/{subject_head_id}', [StatistController::class, 'allHeadPage'])->name('allHeadPage');
 

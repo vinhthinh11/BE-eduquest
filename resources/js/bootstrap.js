@@ -33,9 +33,9 @@ window.Pusher = require('pusher-js');
 Pusher.logToConsole = true;
 
 var pusher = new Pusher('858c7fd7f4758e865eee', {
-  cluster: 'ap1',
-  encrypted: true,
-  activityTimeout: 30000 // 30 giây
+    cluster: 'ap1',
+    encrypted: true,
+    activityTimeout: 10000 // 30 giây
 });
 window.Echo = new Echo({
     broadcaster: 'pusher',

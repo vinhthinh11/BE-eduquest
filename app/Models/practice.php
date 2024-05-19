@@ -29,9 +29,4 @@ class practice extends Model
     {
         return $this->belongsTo(subjects::class, 'subject_id');
     }
-
-    // public function scores()
-    // {
-    //     return $this->hasMany(practice_scores::class, 'practice_code');
-    // }
 }

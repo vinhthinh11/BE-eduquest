@@ -17,5 +17,6 @@ class chats extends Model
         'chat_content',
         'class_id'
     ];
+    protected $primaryKey = 'ID';
     public $timestamps = false;
 }
