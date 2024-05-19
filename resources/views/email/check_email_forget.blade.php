@@ -67,7 +67,7 @@
             <h1>Thông tin mật khẩu mới</h1>
         </div>
         <div class="content">
-            <h2>Xin chào {{$user}},</h2>
+            <h2>Xin chào {{$user->name}},</h2>
             <p>Chúng tôi đã nhận được yêu cầu từ bạn để thiết lập lại mật khẩu cho tài khoản của bạn.</p>
             <p>Dưới đây là mật khẩu mới của bạn:</p>
             <p><strong>Mật khẩu mới:</strong> "<i><strong>{{$newPass}}</strong></i>",</p>

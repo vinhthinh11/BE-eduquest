@@ -17,21 +17,8 @@ class classes extends Model
     ];
     public $timestamps = false;
     protected $primaryKey = 'class_id';
-
-
-    function getClasses()
+    public function students()
     {
-        $getClasses = DB::select('select * from classes');
-        return $getClasses;
+        return $this->hasMany(Student::class, 'class_id', 'class_id');
     }
-    public function teacher()
-    {
-        return $this->belongsTo(Teacher::class);
-    }
-
-    public function studentNotifications()
-    {
-        return $this->hasMany(student_notifications::class, 'class_id', 'class_id');
-    }
-
 }
