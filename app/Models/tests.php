@@ -25,6 +25,10 @@ class tests extends  Model {
     ];
     public $timestamps = false;
     protected $primaryKey = 'test_code';
+    public function scores()
+    {
+        return $this->hasMany(Scores::class, 'test_code', 'test_code');
+    }
     public function questions():BelongsToMany
     {
         return $this->belongsToMany(questions::class, 'quest_of_test', 'test_code', 'question_id');

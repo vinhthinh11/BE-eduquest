@@ -30,4 +30,8 @@ class notifications extends Model
         return [];
     }
     public $timestamps = false;
+    public function studentNotifications()
+    {
+        return $this->hasMany(student_notifications::class);
+    }
 }

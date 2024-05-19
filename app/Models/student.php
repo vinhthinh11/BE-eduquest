@@ -43,7 +43,15 @@ class student extends  Authenticatable implements JWTSubject
         'password',
     ];
     public $timestamps = false;
+    public function class()
+    {
+        return $this->belongsTo(classes::class, 'class_id', 'class_id');
+    }
 
+    public function scores()
+    {
+        return $this->hasMany(Scores::class, 'student_id', 'student_id');
+    }
 
     public function getJWTIdentifier()
     {

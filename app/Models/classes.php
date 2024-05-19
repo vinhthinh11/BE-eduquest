@@ -18,13 +18,23 @@ class classes extends Model
     public $timestamps = false;
     protected $primaryKey = 'class_id';
 
-    public function teacher()
+    public function students()
     {
-        return $this->belongsTo(teacher::class, 'teacher_id');
+        return $this->hasMany(Student::class, 'class_id', 'class_id');
     }
     function getClasses()
     {
         $getClasses = DB::select('select * from classes');
         return $getClasses;
     }
+    public function teacher()
+    {
+        return $this->belongsTo(Teacher::class);
+    }
+
+    public function studentNotifications()
+    {
+        return $this->hasMany(student_notifications::class, 'class_id', 'class_id');
+    }
+
 }

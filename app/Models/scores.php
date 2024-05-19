@@ -17,4 +17,13 @@ class scores extends Model
         'completion_time'
     ];
     public $timestamps = false;
+    public function student()
+    {
+        return $this->belongsTo(Student::class, 'student_id', 'student_id');
+    }
+
+    public function test()
+    {
+        return $this->belongsTo(tests::class, 'test_code', 'test_code');
+    }
 }
