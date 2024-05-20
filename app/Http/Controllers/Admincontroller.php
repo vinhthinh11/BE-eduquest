@@ -659,12 +659,16 @@ class Admincontroller extends Controller
             'data'    => $data,
         ]);
     }
-      public function getTestDetail( $test_code)
+    public function getTestDetail(Request $request, $test_code)
     {
-        $data = tests::find($test_code)->questions()->get();
-        return response()->json([
-            'data'    => $data,
-        ]);
+        $questions = [];
+        $data  = tests::find($test_code);
+        foreach ($data->questions as $question) {
+            $questions[] = $question;
+        }
+        $data['questions'] = $questions;
+
+        return response()->json(["data" => $data]);
     }
     public function changeStatus(Request $request)
     {
@@ -699,5 +703,24 @@ class Admincontroller extends Controller
                 'status_value' => "Trạng thái đề thi đã được thay đổi!",
                 'status_id' => $status_id
             ], 200);
+    }
+    public function updateTest(Request $request, $test_code)
+    {
+        $validator = Validator::make($request->all(), [
+            'status_id' => 'required|integer|in:1,2,3,4,5',
+        ], [
+            'status_id.required' => 'Trường trạng thái là bắt buộc.',
+            'status_id.integer' => 'Trường trạng thái phải là một số nguyên.',
+            "status_id.in" => "Trạng thái phải thuộc các giá trị: 1, 2, 3, 4, 5.",
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+        $test = tests::find($test_code);
+        $test->status_id = $request->status_id;
+        $test->save();
+        return response()->json($test);
     }
 }

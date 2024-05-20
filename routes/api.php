@@ -50,8 +50,8 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
     Route::group(['prefix' => 'test'], function () {
         Route::post('/create', [Admincontroller::class, 'checkAddTest'])->name(('checkAddTest'));
         Route::get('/get', [Admincontroller::class, 'getTest'])->name(('getTest'));
-        Route::get('/detail/{test_code}', [Admincontroller::class, 'getTestDetail'])->name(('getTestDetail'));
-        Route::post('/change-status', [Admincontroller::class, 'changeStatus'])->name(('changeStatus'));
+        Route::get('/get/{test_code}', [Admincontroller::class, 'getTestDetail'])->name(('getTestDetail'));
+        Route::put('/update/{test_code}', [Admincontroller::class, 'updateTest'])->name(('changeStatus'));
     });
 
     //Thống Kê
