@@ -62,8 +62,10 @@ class TeacherConTroller extends Controller
         $classId = classes::where('teacher_id', $teacherId)->pluck('class_id');
         $show = tests::join('scores', 'tests.test_code', '=', 'scores.test_code')
                         ->join('students', 'scores.student_id', '=', 'students.student_id')
-                        ->where('students.class_id', $classId)
+                        ->join('classes', 'students.class_id', '=', 'classes.class_id')
+                        ->whereIn('students.class_id', $classId)
                         ->where('tests.test_code', $test_code)
+
                         //->select('tests.test_code', 'tests.test_name', 'tests.subject_id', 'tests.grade_id', 'tests.level_id', 'tests.note', 'scores.score_number', 'scores.completion_time')
                         ->get();
 
@@ -214,6 +216,15 @@ class TeacherConTroller extends Controller
         return response()->json([
             'message'   => 'Lấy dữ liệu lớp thành công!',
             'data'      => $classes
+        ], 200);
+    }
+      public function getStudentOfClass(Request $request,$class_id)
+    {
+    $students = students::where('class_id', $class_id)->get();
+
+        return response()->json([
+            'message'   => 'Lấy dữ liệu lớp thành công!',
+            'data'      => $students
         ], 200);
     }
     public function getScore(Request $request)
@@ -377,11 +388,12 @@ class TeacherConTroller extends Controller
 
     public function addFileQuestion(Request $request)
     {
+       $teacher_id = $request->user('teachers')->teacher_id;
         $validator = Validator::make($request->all(), [
             'file' => 'required|file|mimes:xlsx',
         ], [
-            'file.required' => 'Vui lòng chọn tệp để tiếp tục!',
-            'file.mimes' => 'File phải là xlsx!',
+            'file.required'                => 'Vui lòng chọn tệp để tiếp tục!',
+            'file.mimes'                   => 'File phải là xlsx!',
         ]);
 
         if ($validator->fails()) {
@@ -390,9 +402,9 @@ class TeacherConTroller extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
-
         $result = [];
-        $subjectId = $request->subject_id;
+
+        $subjectId = $request->user('teachers')->subject_id;
         $inputFileType = 'Xlsx';
         $count = 0;
         $errList = [];
@@ -420,65 +432,29 @@ class TeacherConTroller extends Controller
                 $gradeId = $row['I'];
                 $unit = $row['J'];
                 $suggest = $row['K'];
-                $teacherId = null;
+                if (!empty($questionContent)) {
+                    $question = new questions([
+                        'subject_id' => $subjectId,
+                        'question_content' => $questionContent,
+                        'level_id' => $levelId,
+                        'answer_a' => $answerA,
+                        'answer_b' => $answerB,
+                        'answer_c' => $answerC,
+                        'answer_d' => $answerD,
+                        'correct_answer' => $correctAnswer,
+                        'grade_id' => $gradeId,
+                        'unit' => $unit,
+                        'suggest' => $suggest,
+                        'status_id' => 3,
+                        'teacher_id' => $teacher_id,
+                    ]);
 
-                switch ($correctAnswer) {
-                    case "A":
-                        $answer = $answerA;
-                        break;
-                    case "B":
-                        $answer = $answerB;
-                        break;
-                    case "C":
-                        $answer = $answerC;
-                        break;
-                    default:
-                        $answer = $answerD;
-                }
-
-                $dataToValidate = [
-                    'subject_id' => $subjectId,
-                    'question_content' => $questionContent,
-                    'level_id' => $levelId,
-                    'answer_a' => $answerA,
-                    'answer_b' => $answerB,
-                    'answer_c' => $answerC,
-                    'answer_d' => $answerD,
-                    'correct_answer' => $answer,
-                    'grade_id' => $gradeId,
-                    'unit' => $unit,
-                    'suggest' => $suggest,
-                    'status_id' => 3,
-                    'teacher_id' => $teacherId,
-                ];
-
-                $customValidator = Validator::make($dataToValidate, [
-                    'subject_id' => 'required|integer',
-                    'question_content' => 'required|string',
-                    'level_id' => 'required|integer|exists:levels,level_id',
-                    'answer_a' => 'required|string',
-                    'answer_b' => 'required|string',
-                    'answer_c' => 'required|string',
-                    'answer_d' => 'required|string',
-                    'correct_answer' => 'required|string|in:A,B,C,D',
-                    'grade_id' => 'required|integer|exists:grades,grade_id',
-                    'unit' => 'required|string',
-                    'suggest' => 'nullable|string',
-                    'status_id' => 'required|integer',
-                    'teacher_id' => 'nullable|integer',
-                ]);
-
-                if ($customValidator->fails()) {
-                    $errList[] = $stt;
-                    continue;
-                }
-
-                $question = new questions($dataToValidate);
-
-                if ($question->saveQuietly()) {
-                    $count++;
-                } else {
-                    $errList[] = $stt;
+                    // Lưu câu hỏi vào cơ sở dữ liệu
+                    if ($question->saveQuietly()) {
+                        $count++;
+                    } else {
+                        $errList[] = $stt;
+                    }
                 }
             }
 
@@ -495,7 +471,6 @@ class TeacherConTroller extends Controller
             $result['status_value'] = "Không tìm thấy tệp được tải lên!";
             $result['status'] = 0;
         }
-
         return response()->json($result);
     }
 
@@ -549,10 +524,8 @@ class TeacherConTroller extends Controller
             'answer_d' => 'nullable|string',
             'correct_answer' => 'nullable',
             'grade_id' => 'nullable|integer|exists:grades,grade_id',
-            'unit' => 'nullable|string',
             'suggest' => 'nullable|string',
             'status_id' => 'nullable|integer|in:1,2,3',
-            'teacher_id' => 'nullable|integer|exists:teachers,teacher_id',
         ], [
             'question_id.required' => 'ID câu hỏi là bắt buộc!',
             'question_id.exists' => 'Không tìm thấy câu hỏi với ID đã chọn!',
@@ -560,8 +533,6 @@ class TeacherConTroller extends Controller
             'level_id.required' => 'Level bắt buộc!',
             'grade_id.exists' => 'Không tìm thấy grade với ID đã chọn!',
             'status_id.in' => 'Cấp độ không được để trống!',
-            'teacher_id.integer' => 'Teacher ID phải là số nguyên!',
-            'teacher_id.exists' => 'Không tìm thấy giáo viên với ID đã chọn!',
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -570,13 +541,6 @@ class TeacherConTroller extends Controller
             ], 422);
         }
         $question = questions::find($request->question_id);
-
-        if (!$question) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Câu hỏi không tồn tại!',
-            ], 404);
-        }
 
         $question->update($request->all());
 
@@ -714,13 +678,11 @@ class TeacherConTroller extends Controller
         $validator = Validator::make($request->all(), [
             'test_name' => 'string|unique:tests,test_name',
             'total_questions' => 'integer|min:10|max:100',
-            'password' => 'required|string|min:6|max:10',
             'grade_id' => 'integer|exists:grades,grade_id',
             'level_id' => 'required|integer|exists:levels,level_id',
             'time_to_do' => 'required|numeric|min:10|max:120',
         ], [
             'test_name.unique' => 'Tên đề không nên trùng nhau!',
-            'password.min' => 'Password tối thiểu 6 kí tự!',
             'grade_id.exists' => 'Không tìm thấy Lớp!',
             'total_questions.min' => 'Tối thiểu 10 câu hỏi trong đề!',
             'level_id.required' => 'Level_id là bắt buộc!',
@@ -737,12 +699,11 @@ class TeacherConTroller extends Controller
             return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi là" . $numQuestion . "không đủ!"], 400);
         if ($numQuestion < $request->total_questions)
             return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi là" . $numQuestion . "không đủ!"], 400);
-        $user = $request->user('teachers');
         DB::beginTransaction();
         try {
             $test_code = time();
             $data = $request->all();
-            $test = (array_merge($data, ['test_code' => $test_code, 'subject_id' => $user->subject_id, 'status_id' => 3, 'password' => bcrypt($request->password)]));
+            $test = (array_merge($data, ['test_code' => $test_code, 'subject_id' => $user->subject_id, 'status_id' => 3, 'password' => bcrypt(1),'teacher_id' => $user->teacher_id]));
             // tạo chi tiết đề thi
             $testCreate = tests::create($test);
             $questions = questions::where('subject_id', $user->subject_id)->where('grade_id', $request->grade_id)->where('level_id', $request->level_id)->inRandomOrder()->limit($request->total_questions)->get('question_id');
@@ -762,83 +723,89 @@ class TeacherConTroller extends Controller
 
     public function addFileTest(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'test_code' => 'required|integer|exists:tests,test_code',
-            'file' => 'required|file|mimes:xlsx,xls',
+        $teacher_id = $request->user('teachers')->teacher_id;
+         $validator = Validator::make($request->all(), [
+            'file' => 'required|file|mimes:xlsx',
         ], [
-            'test_code.exists' => 'Không tìm thấy đề!',
-            'file.mimes' => 'File phải là Excel!',
+            'file.required'                => 'Vui lòng chọn tệp để tiếp tục!',
+            'file.mimes'                   => 'File phải là xlsx!',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 422);
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors(),
+            ], 422);
         }
+        $result = [];
 
+        $subjectId = $request->subject_id;
         $inputFileType = 'Xlsx';
+        $count = 0;
+        $errList = [];
 
-        try {
+        if ($request->hasFile('file')) {
+            $filePath = $request->file('file')->path();
+
             $reader = IOFactory::createReader($inputFileType);
-            $spreadsheet = $reader->load($request->file('file')->getRealPath());
+            $spreadsheet = $reader->load($filePath);
             $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
 
-            $count = 0;
-            $err_list = [];
-
-            foreach ($sheetData as $index => $row) {
-                if ($index < 4 || empty($row['A'])) {
+            foreach ($sheetData as $key => $row) {
+                if ($key < 4 || empty($row['A'])) {
                     continue;
                 }
 
                 $stt = $row['A'];
-                $test_name = $row['B'];
-                $level_id = $row['C'];
-                $grade_id = $row['D'];
-                $total_questions = $row['E'];
-                $time_to_do = $row['F'];
-                $note = $row['G'];
-                $status_id = $row['H'];
-                $timest = $row['J'];
+                $questionContent = $row['B'];
+                $levelId = $row['C'];
+                $answerA = $row['D'];
+                $answerB = $row['E'];
+                $answerC = $row['F'];
+                $answerD = $row['G'];
+                $correctAnswer = $row['H'];
+                $gradeId = $row['I'];
+                $unit = $row['J'];
+                $suggest = $row['K'];
+                if (!empty($questionContent)) {
+                    $question = new questions([
+                        'subject_id' => $subjectId,
+                        'question_content' => $questionContent,
+                        'level_id' => $levelId,
+                        'answer_a' => $answerA,
+                        'answer_b' => $answerB,
+                        'answer_c' => $answerC,
+                        'answer_d' => $answerD,
+                        'correct_answer' => $correctAnswer,
+                        'grade_id' => $gradeId,
+                        'unit' => $unit,
+                        'suggest' => $suggest,
+                        'status_id' => 3,
+                        'teacher_id' => $teacher_id,
+                    ]);
 
-                if (empty($test_name) || empty($grade_id) || empty($level_id) || empty($timest) || empty($total_questions) || empty($time_to_do) || empty($note) || empty($status_id)) {
-                    $err_list[] = $stt;
-                    continue;
+                    // Lưu câu hỏi vào cơ sở dữ liệu
+                    if ($question->saveQuietly()) {
+                        $count++;
+                    } else {
+                        $errList[] = $stt;
+                    }
                 }
-
-                DB::beginTransaction();
-
-                $subject_id = $request->test_code;
-                $test = tests::create([
-                    'subject_id' => $subject_id,
-                    'test_name' => $test_name,
-                    'level_id' => $level_id,
-                    'grade_id' => $grade_id,
-                    'timest' => $timest,
-                    'total_questions' => $total_questions,
-                    'time_to_do' => $time_to_do,
-                    'note' => $note,
-                    'status_id' => $status_id,
-                    'teacher_id' => null,
-                ]);
-
-                DB::commit();
-                $count++;
             }
 
-            if (empty($err_list)) {
-                $result['status_value'] = "Thêm thành công " . $count . ' bài thi!';
+            unlink($filePath);
+
+            if (empty($errList)) {
+                $result['status_value'] = "Thêm thành công " . $count . " câu hỏi!";
                 $result['status'] = 1;
             } else {
-                $result['status_value'] = "Lỗi! Không thể thêm bài thi có STT: " . implode(', ', $err_list) . ', vui lòng xem lại.';
+                $result['status_value'] = "Lỗi! Không thể thêm câu hỏi có STT: " . implode(', ', $errList) . ', vui lòng xem lại.';
                 $result['status'] = 0;
             }
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'status' => false,
-                'message' => $e->getMessage(),
-            ], 500);
+        } else {
+            $result['status_value'] = "Không tìm thấy tệp được tải lên!";
+            $result['status'] = 0;
         }
-
         return response()->json($result);
     }
     public function notificationsToStudent(Request $request)

@@ -18,7 +18,8 @@ class tests extends  Model {
         'time_to_do',
         'note',
         'status_id',
-        'timest'
+        'timest',
+        'teacher_id'
     ];
     public $timestamps = false;
     protected $primaryKey = 'test_code';

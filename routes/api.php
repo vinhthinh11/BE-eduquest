@@ -21,7 +21,7 @@ Route::post('forget-password', [AuthController::class, 'forgetPassword']);
 Route::post('verify-otp-and-reset-password', [AuthController::class, 'verifyOtpAndResetPassword']);
 Route::get('me', [AuthController::class, 'me']);
 Route::post('/update-profile',     [ProfileController::class, 'updateProfile']);
-
+Route::get('/get-subjects', [Admincontroller::class, 'getSubjects'])->name('getSubjects');
 // ----- Route for Admin -----
 Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
     //ql Admin
@@ -41,7 +41,6 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::delete('/delete', [Admincontroller::class, 'deleteQuestion'])->name(('deleteQuestion'));
         Route::get('/get-grade', [Admincontroller::class, 'getGrades'])->name('getGrade');
         Route::get('/get-status', [Admincontroller::class, 'getStatus'])->name('getStatus');
-        Route::get('/get-subjects', [Admincontroller::class, 'getSubjects'])->name('getSubjects');
         Route::get('/get-level', [Admincontroller::class, 'getLevels'])->name('getLevel');
         Route::post('/search', [Admincontroller::class, 'search'])->name('search');
         Route::post('/file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
@@ -203,6 +202,7 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
     // qly lớp
     Route::group(['prefix' => '/class'], function () {
         Route::get('/get', [TeacherConTroller::class, 'getClass'])->name('getClass');
+        Route::get('/get/{class_id}', [TeacherConTroller::class, 'getStudentOfClass'])->name('getClass');
     });
     Route::group(['prefix' => '/student'], function () {
         Route::get('/get', [TeacherConTroller::class, 'getStudent'])->name('getStudent');
