@@ -329,7 +329,6 @@ class TeacherConTroller extends Controller
     {
         $validator = Validator::make($request->all(), [
             'grade_id' => 'required|integer',
-            'unit' => 'required|string',
             'level_id' => 'required|integer',
             'question_content' => 'required|string',
             'answer_a' => 'required|string',
@@ -337,13 +336,9 @@ class TeacherConTroller extends Controller
             'answer_c' => 'required|string',
             'answer_d' => 'required|string',
             'correct_answer' => 'required|string',
-            'question_id' => 'nullable|integer',
-            'subject_id' => 'required|integer',
-            'status_id' => 'required|integer',
             'suggest' => 'nullable|string',
         ], [
             'grade_id.required' => 'Vui lòng chọn mức độ học.',
-            'unit.required' => 'Vui lòng nhập đơn vị.',
             'level_id.required' => 'Vui lòng chọn cấp độ.',
             'question_content.required' => 'Vui lòng nhập nội dung câu hỏi.',
             'answer_a.required' => 'Vui lòng nhập đáp án A.',

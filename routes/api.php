@@ -22,6 +22,7 @@ Route::post('verify-otp-and-reset-password', [AuthController::class, 'verifyOtpA
 Route::get('me', [AuthController::class, 'me']);
 Route::post('/update-profile',     [ProfileController::class, 'updateProfile']);
 Route::get('/get-subjects', [Admincontroller::class, 'getSubjects'])->name('getSubjects');
+Route::post('question/search', [Admincontroller::class, 'search'])->name('search');
 // ----- Route for Admin -----
 Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
     //ql Admin
@@ -42,7 +43,7 @@ Route::group(['prefix' => '/admin', 'middleware' => 'admin'], function () {
         Route::get('/get-grade', [Admincontroller::class, 'getGrades'])->name('getGrade');
         Route::get('/get-status', [Admincontroller::class, 'getStatus'])->name('getStatus');
         Route::get('/get-level', [Admincontroller::class, 'getLevels'])->name('getLevel');
-        Route::post('/search', [Admincontroller::class, 'search'])->name('search');
+
         Route::post('/file', [AdminController::class, 'checkAddQuestionViaFile'])->name('admin.check_add_question_via_file');
     });
     //  ql test

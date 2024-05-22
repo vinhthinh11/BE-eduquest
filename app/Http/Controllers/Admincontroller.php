@@ -24,11 +24,6 @@ class Admincontroller extends Controller
     $keySearch = $request->key_search;
 
     $data = questions::where('question_content', 'like', '%' . $keySearch . '%')
-                    ->orWhere('answer_a', 'like', '%' . $keySearch . '%')
-                    ->orWhere('answer_b', 'like', '%' . $keySearch . '%')
-                    ->orWhere('answer_c', 'like', '%' . $keySearch . '%')
-                    ->orWhere('answer_d', 'like', '%' . $keySearch . '%')
-                    ->orWhere('suggest', 'like', '%' . $keySearch . '%')
                     ->get();
 
         return response()->json([
@@ -152,14 +147,14 @@ class Admincontroller extends Controller
 
             if (empty($errDetails)) {
                 $result['status_value'] = "Thêm thành công " . $count . " tài khoản ADMIN";
-                $result['status'] = true;
+                $result['status'] = 200;
             } else {
                 $result['status_value'] = "Lỗi! Thông tin lỗi cụ thể cho từng tài khoản: " . json_encode($errDetails, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
                 $result['status'] = 442;
             }
         } else {
             $result['status_value'] = "Không tìm thấy tệp được tải lên";
-            $result['status'] = false;
+            $result['status'] = 400;
         }
 
         return response()->json($result,  $result['status'], [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
