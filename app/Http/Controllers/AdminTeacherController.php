@@ -162,8 +162,8 @@ class AdminTeacherController extends Controller
     public function create(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name'          => 'required|string|min:6|max:50|unique:teachers,name',
-            'username'      => 'string',
+            'name'          => 'required|string|min:6|max:50',
+            'username'      => 'string|string|min:6|max:50',
             'gender_id'     => 'required|integer',
             'password'      => 'required|string|min:6|max:20',
             'email'         => 'required|email|unique:teachers,email',
@@ -222,8 +222,9 @@ class AdminTeacherController extends Controller
             $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
 
             $count = 0;
-            $errDetails = [];
 
+
+            DB::beginTransaction();
             foreach ($sheetData as $key => $row) {
                 if ($key < 4) {
                     continue;
@@ -232,14 +233,14 @@ class AdminTeacherController extends Controller
                 if (empty($row['A'])) {
                     continue;
                 }
-
                 $validationRules = [
                     'name' => 'required|string|min:6|max:50',
                     'username' => 'required|string|min:6|max:50|unique:admins,username',
-                    'email' => 'nullable|email|unique:admins,email',
+                    'email' => 'nullable|email|unique:teachers,email',
                     'password' => 'required|string|min:6|max:20',
                     'birthday' => 'nullable|date',
                     'gender' => 'required|string|in:Nam,Nữ,Khác',
+                    'subject_id' => 'required|exists:subjects,subject_id',
                 ];
 
                 $validationMessages = [
@@ -262,6 +263,7 @@ class AdminTeacherController extends Controller
                     'gender.required' => 'Giới tính không được để trống',
                     'gender.string' => 'Giới tính phải là chuỗi',
                     'gender.in' => 'Giới tính không hợp lệ',
+                    'subject_id.exists' => 'Môn không tồn tại',
                 ];
 
                 $dataToValidate = [
@@ -271,13 +273,14 @@ class AdminTeacherController extends Controller
                     'password' => $row['E'],
                     'birthday' => $row['F'],
                     'gender' => $row['G'],
+                    'subject_id' => $row['H'],
                 ];
 
                 $customValidator = Validator::make($dataToValidate, $validationRules, $validationMessages);
-
+                $errDetails = [];
                 if ($customValidator->fails()) {
                     $errDetails[$row['A']] = implode(', ', $customValidator->errors()->all());
-                    continue;
+                     return response()->json(["status_value" => 'Lỗi ở dòng các dòng ' .$row['A'].' '. implode(', ', $errDetails)], 400, [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
                 }
 
                 $password = bcrypt($row['E']);
@@ -289,31 +292,28 @@ class AdminTeacherController extends Controller
                     'password' => $password,
                     'birthday' => $row['F'],
                     'gender_id' => $gender,
+                    'subject_id' => $row['H'],
                     'last_login' => Carbon::now(CarbonTimeZone::createFromHourOffset(7 * 60))->timezone('Asia/Ho_Chi_Minh'),
                 ]);
 
                 if ($teacher->saveQuietly()) {
                     $count++;
                 } else {
-                    $errDetails[$row['A']] = "Lỗi khi thêm tài khoản";
+                    $errDetails[$row['A']] =$row['A'] ;
                 }
             }
 
             unlink($filePath);
 
             if (empty($errDetails)) {
-                $result['status_value'] = "Thêm thành công " . $count . " tài khoản Giáo Viên";
-                $result['status'] = true;
+                DB::commit();
+                return response()->json(["status_value"=>'Thêm thành công'.$count.'giá tri'], 200, [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
             } else {
-                $result['status_value'] = "Lỗi! Thông tin lỗi cụ thể cho từng tài khoản: " . json_encode($errDetails, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-                $result['status'] = 442;
+                DB::rollBack();
+                return response()->json(["status_value" => 'Lỗi ở dòng các dòng ' .$row['A']. implode(', ', $errDetails)], 400, [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
             }
-        } else {
-            $result['status_value'] = "Không tìm thấy tệp được tải lên";
-            $result['status'] = false;
         }
-
-        return response()->json($result, 200, [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        return response()->json(['status_value'=>"Không tìm thầy file"], 400, [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
     }
 
     public function search(Request $request)

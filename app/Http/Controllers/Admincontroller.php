@@ -166,8 +166,8 @@ class Admincontroller extends Controller
     public function createAdmin(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name'          => 'required|string|min:3|max:50|unique:admins,name',
-            'username'      => 'required|string|min:6|max:50|unique:admins,username',
+            'name'          => 'required|string|min:3|max:50',
+            'username'      => 'required|string|min:6|max:50',
             'gender_id'     => 'required|integer',
             'password'      => 'required|string|min:6|max:20',
             'email'         => 'nullable|email|unique:admins,email',
@@ -186,7 +186,6 @@ class Admincontroller extends Controller
             'email.unique'          => 'Email đã được sử dụng!',
             'birthday.date'         => 'Ngày Sinh phải là một ngày hợp lệ!',
         ]);
-
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
@@ -368,7 +367,7 @@ class Admincontroller extends Controller
                         'answer_b' => $answerB,
                         'answer_c' => $answerC,
                         'answer_d' => $answerD,
-                        'correct_answer' => $correctAnswer,
+                        'correct_answer' => strtolower($correctAnswer),
                         'grade_id' => $gradeId,
                         'unit' => $unit,
                         'suggest' => $suggest,
@@ -442,20 +441,8 @@ class Admincontroller extends Controller
             ], 422);
         }
         $data = request()->only(['question_content', 'level_id', 'answer_a', 'answer_b', 'subject_id', 'answer_c', 'answer_d', 'correct_answer', 'grade_id', 'unit', 'suggest', 'status_id', 'teacher_id']);
-        switch (strtolower($data['correct_answer'])) {
-            case 'a':
-                $data['correct_answer'] = $data['answer_a'];
-                break;
-            case 'b':
-                $data['correct_answer'] = $data['answer_b'];
-                break;
-            case 'c':
-                $data['correct_answer'] = $data['answer_c'];
-                break;
-            case 'd':
-                $data['correct_answer'] = $data['answer_d'];
-                break;
-        }
+
+        $data['correct_answer'] = strtolower($data['correct_answer']);
         $question =  questions::create($data);
         return response()->json(['question' => $question]);
     }

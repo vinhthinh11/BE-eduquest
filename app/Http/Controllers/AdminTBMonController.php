@@ -100,7 +100,7 @@ class AdminTBMonController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
-                'errors' => $validator->errors()->toArray(),
+                'status_value' => $validator->errors()->toArray(),
             ], 422, [], JSON_UNESCAPED_UNICODE);
         }
 
@@ -170,8 +170,8 @@ class AdminTBMonController extends Controller
                 $customValidator = Validator::make($dataToValidate, $validationRules, $validationMessages);
 
                 if ($customValidator->fails()) {
-                    $errDetails[$row['A']] = implode(', ', $customValidator->errors()->all());
-                    continue;
+                     $errDetails[$row['A']] = implode(', ', $customValidator->errors()->all());
+                     return response()->json(["status_value" => 'Lỗi ở dòng các dòng ' .$row['A'].' '. implode(', ', $errDetails)], 400, [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
                 }
 
                 $password = bcrypt($row['E']);

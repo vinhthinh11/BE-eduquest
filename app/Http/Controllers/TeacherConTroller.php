@@ -360,7 +360,8 @@ class TeacherConTroller extends Controller
             ], 422);
         }
         $data = $request->all();
-
+        $data['teacher_id'] = $request->user('teachers')->teacher_id;
+        $data['subject_id'] = $request->user('teachers')->subject_id;
         try {
             DB::beginTransaction();
 
@@ -442,7 +443,7 @@ class TeacherConTroller extends Controller
                         'grade_id' => $gradeId,
                         'unit' => $unit,
                         'suggest' => $suggest,
-                        'status_id' => 3,
+                        'status_id' => 1,
                         'teacher_id' => $teacher_id,
                     ]);
 
@@ -549,7 +550,7 @@ class TeacherConTroller extends Controller
     public function getQuestion(Request $request)
     {
         $user = $request->user('teachers');
-        $questions = questions::where('subject_id', $user->subject_id)->get();
+        $questions = questions::where('subject_id', $user->subject_id)->orderBy('question_id','desc')->get();
         return response()->json(["data" => $questions]);
     }
     public function getTotalQuestions(Request $request)
