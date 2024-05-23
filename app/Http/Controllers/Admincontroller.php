@@ -170,7 +170,7 @@ class Admincontroller extends Controller
             'username'      => 'required|string|min:6|max:50',
             'gender_id'     => 'required|integer',
             'password'      => 'required|string|min:6|max:20',
-            'email'         => 'nullable|email|unique:admins,email',
+            'email'         => 'required|email|min:6|max:20|unique:admins,email',
             'permission'    => 'nullable',
             'birthday'      => 'nullable|date',
         ], [

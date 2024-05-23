@@ -215,7 +215,7 @@ class AdminHSController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name'          => 'required|string|min:6|max:50|unique:students,name',
-            'username'      => 'required|string|min:6|max:50|unique:students,username',
+            'username'      => 'required|string|min:6',
             'gender_id'     => 'required|integer',
             'password'      => 'required|string|min:6|max:20',
             'email'         => 'nullable|email|unique:students,email',

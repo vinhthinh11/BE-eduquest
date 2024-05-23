@@ -214,7 +214,7 @@ class AdminTBMonController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name'          => 'required|string|min:6|max:50|unique:subject_head,name',
-            'username'      => 'required|string|min:6|max:50|unique:subject_head,username',
+            'username'      => 'required|string|min:6|max:50',
             'gender_id'     => 'required|integer',
             'password'      => 'required|string|min:6|max:20',
             'email'         => 'nullable|email|unique:subject_head,email',
