@@ -643,7 +643,7 @@ class Admincontroller extends Controller
 
     public function getTest()
     {
-        $data = tests::get();
+        $data = tests::orderBy('timest', 'desc')->get();
         if ($data->isEmpty()) {
             return response()->json([
                 'status' => false,

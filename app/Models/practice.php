@@ -18,9 +18,12 @@ class practice extends Model
         'level_id',
         'time_to_do',
         'total_question',
-        'student_id',
+        'teacher_id',
+        'practice_name'
     ];
      protected $primaryKey = 'practice_code';
+     public $timestamps = false;
+
     public function questions():BelongsToMany
     {
         return $this->belongsToMany(questions::class, 'quest_of_practice', 'practice_code', 'question_id');

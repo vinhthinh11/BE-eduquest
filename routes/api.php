@@ -178,6 +178,12 @@ Route::group(['prefix' => '/teacher', 'middleware' => 'teacher'], function () {
         Route::post('/search', [TeacherConTroller::class, 'searchOfTest'])->name('teachersearchOfTest');
         Route::post('/file', [TeacherConTroller::class, 'addFileTest'])->name('teacheraddFileTest');
     });
+    Route::group(['prefix' => '/practice'], function () {
+        Route::get('/get', [TeacherConTroller::class, 'getPractice'])->name('teacherGetTest');
+        Route::get('/get/{practice_code}', [TeacherConTroller::class, 'getPracticeDetail'])->name('teacherGetTestDetail');
+        Route::post('/create', [TeacherConTroller::class, 'createPractice'])->name('teacherCreateTest');
+        Route::delete('/delete/{practice_code}', [TeacherConTroller::class, 'deleteTest'])->name('teacherDeleteTest');
+    });
 
     // qly câu hỏi
     Route::group(['prefix' => '/question'], function () {

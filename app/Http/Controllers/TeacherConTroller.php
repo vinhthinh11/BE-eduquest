@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\classes;
 use App\Models\notifications;
+use App\Models\practice;
+use App\Models\quest_of_practice;
 use App\Models\quest_of_test;
 use App\Models\questions;
 use App\Models\scores;
@@ -592,6 +594,17 @@ class TeacherConTroller extends Controller
                         ->get();
         return response()->json(["data" => $data]);
     }
+    public function getPractice(Request $request)
+    {
+        // teacher môn nào chỉ có thể xem test của môn đó
+        $subjectId = $request->user('teachers')->subject_id;
+        $teacherId = $request->user('teachers')->teacher_id;
+        $data  = practice::with('subject')
+                        ->where('subject_id', $subjectId)
+                        ->where('practice.teacher_id', $teacherId)
+                        ->get();
+        return response()->json(["data" => $data]);
+    }
     /**
      * Xem chi tiết đề thi
      */
@@ -602,6 +615,17 @@ class TeacherConTroller extends Controller
         $data = tests::find($test_code);
         if (!$data)
             return response()->json(["message" => "Không tìm thấy đề thi!"], 400);
+        foreach ($data->questions as $question) {
+            $questions[] = $question;
+        }
+        $data['questions'] = $questions;
+
+        return response()->json(["data" => $data]);
+    }
+      public function getPracticeDetail(Request $request, $practice_code)
+    {
+        $questions = [];
+        $data = practice::find($practice_code);
         foreach ($data->questions as $question) {
             $questions[] = $question;
         }
@@ -692,8 +716,6 @@ class TeacherConTroller extends Controller
         // kiểm tra số lượng câu hỏi trong ngân hàng đề thi có đủ hay không
         if ($numQuestion < $request->total_questions)
             return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi là" . $numQuestion . "không đủ!"], 400);
-        if ($numQuestion < $request->total_questions)
-            return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi là" . $numQuestion . "không đủ!"], 400);
         DB::beginTransaction();
         try {
             $test_code = time();
@@ -715,6 +737,53 @@ class TeacherConTroller extends Controller
             return response()->json(["message" => "Tạo đề thi thất bại!", "error" => $e->getMessage()], 400);
         }
     }
+
+     public function createPractice(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'practice_name' => 'sometimes|string|unique:practice,practice_name',
+            'total_questions' => 'integer|min:10|max:50',
+            'grade_id' => 'integer|exists:grades,grade_id',
+            'level_id' => 'required|integer|exists:levels,level_id',
+            'time_to_do' => 'required|numeric|min:10|max:120',
+        ], [
+            'practice_name.unique' => 'Tên đề không nên trùng nhau!',
+            'grade_id.exists' => 'Không tìm thấy Lớp!',
+            'total_questions.min' => 'Tối thiểu 10 câu hỏi trong đề!',
+            'level_id.required' => 'Level_id là bắt buộc!',
+            'time_to_do.min' => 'Thời gian làm bài tối thiếu là 10 phút!',
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+        $user = $request->user('teachers');
+        // lấy số lượng câu hỏi của giáo viên dạy môn đó trong ngân hang câu hỏi
+        $numQuestion = questions::where('subject_id', $user->subject_id)->where('grade_id', $request->grade_id)->where('level_id', $request->level_id)->count();
+        // kiểm tra số lượng câu hỏi trong ngân hàng đề thi có đủ hay không
+        if ($numQuestion < $request->total_questions)
+            return response()->json(["message" => "Số lượng câu hỏi trong ngân hàng câu hỏi là" . $numQuestion . "không đủ!"], 400);
+        DB::beginTransaction();
+        try {
+            $practice_code = time();
+            $data = $request->all();
+            $practice = (array_merge($data, ['practice_code' => $practice_code, 'subject_id' => $user->subject_id, 'status_id' => 3,'teacher_id' => $user->teacher_id]));
+            // tạo chi tiết đề thi
+            $practiceCreate = practice::create($practice);
+            $questions = questions::where('subject_id', $user->subject_id)->where('grade_id', $request->grade_id)->where('level_id', $request->level_id)->inRandomOrder()->limit($request->total_questions)->get('question_id');
+            foreach ($questions as $question) {
+                quest_of_practice::create(['practice_code' => $practice_code, 'question_id' => $question->question_id]);
+            }
+            DB::commit();
+            return response()->json([
+                'message' => "Tạo đề thi thành công!",
+                "test" => $practiceCreate
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(["message" => "Tạo đề thi thất bại!", "error" => $e->getMessage()], 400);
+        }
+    }
+
 
     public function addFileTest(Request $request)
     {
